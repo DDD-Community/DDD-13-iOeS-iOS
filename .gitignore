@@ -1,0 +1,21 @@
+# Xcode
+*.xcodeproj
+*.xcworkspace
+xcuserdata/
+DerivedData/
+build/
+
+# Tuist
+Derived/
+
+# SPM
+.build/
+.swiftpm/
+
+# macOS
+.DS_Store
+
+# Misc
+*.ipa
+*.dSYM.zip
+*.dSYM
