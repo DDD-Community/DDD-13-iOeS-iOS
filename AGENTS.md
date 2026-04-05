@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 ## Project Overview
 
@@ -50,7 +50,7 @@ Core/
   Network/            # 네트워크 매니저, API 엔드포인트
   Database/           # DB 매니저
   DI/                 # DI 컨테이너 프로토콜 및 구현
-  Utilities/          # Extension, Logger 등
+  Utilities/          # Extension 등
 ```
 
 ### App에서 DI 조립
@@ -83,7 +83,8 @@ container.register(AuthServiceProtocol.self) { AuthService() }
 
 ## AI Ground Rule
 
-- `AGENTS.md` 파일 사용하여 다양한 에이전트에서도 일관적인 메모리 사용 유도
+- 이 파일(`AGENTS.md`)이 모든 AI 에이전트의 **단일 진실 소스(Single Source of Truth)**
+- `CLAUDE.md`는 이 파일을 가리키는 심볼릭 링크 (`ln -s AGENTS.md CLAUDE.md`)
 - 정해진 의사결정에 대해서도 필요시 문서화
 - 모든 작업에 대해서 허용하며, PR 리뷰 및 코멘트에는 사람이 직접 책임
 

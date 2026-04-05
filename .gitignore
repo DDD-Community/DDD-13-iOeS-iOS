@@ -17,6 +17,7 @@ Derived/
 
 # Claude Code
 .claude/
+CLAUDE.md
 
 # Misc
 *.ipa
