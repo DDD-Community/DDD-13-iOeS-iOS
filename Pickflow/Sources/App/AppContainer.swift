@@ -13,9 +13,10 @@ final class AppContainer {
     }
 
     private func registerDependencies() {
-        let networkManager = NetworkManager()
+        container.register(NetworkManagerProtocol.self, scope: .container) { NetworkManager() }
 
-        container.register(NetworkManagerProtocol.self) { networkManager }
+        let networkManager: NetworkManagerProtocol = container.resolve(NetworkManagerProtocol.self)!
+
         container.register(UserServiceProtocol.self) { UserService(networkManager: networkManager) }
         container.register(AuthServiceProtocol.self) { AuthService(networkManager: networkManager) }
         container.register(MapServiceProtocol.self) { MapService(networkManager: networkManager) }
