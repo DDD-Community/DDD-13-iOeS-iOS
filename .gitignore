@@ -15,6 +15,9 @@ Derived/
 # macOS
 .DS_Store
 
+# Claude Code
+.claude/
+
 # Misc
 *.ipa
 *.dSYM.zip
