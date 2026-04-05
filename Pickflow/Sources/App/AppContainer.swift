@@ -9,6 +9,7 @@ final class AppContainer {
     private init() {
         container = DIContainer()
         registerDependencies()
+        DIContainerHolder.shared = container
     }
 
     private func registerDependencies() {
@@ -17,5 +18,7 @@ final class AppContainer {
         container.register(NetworkManagerProtocol.self) { networkManager }
         container.register(UserServiceProtocol.self) { UserService(networkManager: networkManager) }
         container.register(AuthServiceProtocol.self) { AuthService(networkManager: networkManager) }
+        container.register(MapServiceProtocol.self) { MapService(networkManager: networkManager) }
+        container.register(AddressServiceProtocol.self) { AddressService(networkManager: networkManager) }
     }
 }
