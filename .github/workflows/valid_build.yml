@@ -28,17 +28,17 @@ jobs:
 
       - name: Restore local config files
         env:
-          COMMON_XCCONFIG_TEST: ${{ secrets.COMMON_XCCONFIG_TEST }}
+          COMMON_XCCONFIG: ${{ secrets.COMMON_XCCONFIG }}
           GOOGLE_SERVICE_INFO_PLIST_B64: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_B64 }}
         run: |
           set -euo pipefail
 
-          test -n "$COMMON_XCCONFIG_TEST"
+          test -n "$COMMON_XCCONFIG"
           test -n "$GOOGLE_SERVICE_INFO_PLIST_B64"
 
           mkdir -p Configs
 
-          printf '%s\n' "$COMMON_XCCONFIG_TEST" > Configs/Common.xcconfig
+          printf '%s\n' "$COMMON_XCCONFIG" > Configs/Common.xcconfig
 
           printf '%s' "$GOOGLE_SERVICE_INFO_PLIST_B64" | base64 --decode > Configs/GoogleService-Info.plist || \
           printf '%s' "$GOOGLE_SERVICE_INFO_PLIST_B64" | base64 -D > Configs/GoogleService-Info.plist
