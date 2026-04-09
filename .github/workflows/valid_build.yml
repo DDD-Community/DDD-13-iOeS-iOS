@@ -44,7 +44,9 @@ jobs:
           printf '%s' "$GOOGLE_SERVICE_INFO_PLIST_B64" | base64 -D > Configs/GoogleService-Info.plist
 
       - name: Generate project
-        run: tuist generate --no-open
+        run: |
+          tuist install
+          tuist generate --no-open
 
       - name: Build Pickflow
         run: |
