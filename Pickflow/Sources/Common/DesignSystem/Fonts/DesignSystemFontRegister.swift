@@ -1,6 +1,6 @@
 import UIKit
 
-enum DesignSystemFontRegistrar {
+enum DesignSystemFontRegister {
     private static let fontFileNames = [
         "Pretendard-Regular.otf",
         "Pretendard-Medium.otf",

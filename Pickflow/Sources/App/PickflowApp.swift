@@ -5,7 +5,7 @@ struct PickflowApp: App {
     private let container = AppContainer.shared
 
     init() {
-        DesignSystemFontRegistrar.registerAllCustomFonts()
+        DesignSystemFontRegister.registerAllCustomFonts()
     }
 
     var body: some Scene {
