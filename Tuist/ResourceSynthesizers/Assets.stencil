@@ -1,0 +1,147 @@
+// swiftlint:disable all
+// swift-format-ignore-file
+// swiftformat:disable all
+// Generated using tuist — https://github.com/tuist/tuist
+{% if catalogs %}
+{% macro hasValuesBlock assets filter %}
+  {%- for asset in assets -%}
+    {%- if asset.type == filter -%}
+      1
+    {%- elif asset.items -%}
+      {% call hasValuesBlock asset.items filter %}
+    {%- endif -%}
+  {%- endfor -%}
+{% endmacro %}
+{% set enumName %}{{param.enumName|default:"UIAsset"}}{% endset %}
+{% set colorEnumName %}{{param.colorEnumName|default:"Colors"}}{% endset %}
+{% set imageEnumName %}{{param.imageEnumName|default:"Images"}}{% endset %}
+{% set iconEnumName %}{{param.iconEnumName|default:"Icons"}}{% endset %}
+{% set bundleToken %}{{param.name}}Resources{% endset %}
+{% set forceNamespaces %}{{param.forceProvidesNamespaces|default:"false"}}{% endset %}
+{% set accessModifier %}{% if param.publicAccess %}public{% else %}internal{% endif %}{% endset %}
+
+import SwiftUI
+import UIKit
+
+// swiftlint:disable superfluous_disable_command file_length implicit_return
+// MARK: - Asset Catalogs
+
+{% macro stringCasesBlock assets allowedType %}
+  {% for asset in assets %}
+  {% if asset.type == allowedType %}
+  case {{asset.name|swiftIdentifier:"pretty"|lowerFirstWord|escapeReservedKeywords}} = "{{asset.value}}"
+  {% elif asset.items and ( forceNamespaces == "true" or asset.isNamespaced == "true" ) %}
+  {{accessModifier}} enum {{asset.name|swiftIdentifier:"pretty"|escapeReservedKeywords}} {
+    {% filter indent:2 %}{% call stringCasesBlock asset.items allowedType %}{% endfilter %}
+  }
+  {% elif asset.items %}
+  {% call stringCasesBlock asset.items allowedType %}
+  {% endif %}
+  {% endfor %}
+{% endmacro %}
+
+{% macro dataCasesBlock assets %}
+  {% for asset in assets %}
+  {% if asset.type == "data" %}
+  {{accessModifier}} static let {{asset.name|swiftIdentifier:"pretty"|lowerFirstWord|escapeReservedKeywords}} = DataAsset(name: "{{asset.value}}")
+  {% elif asset.items and ( forceNamespaces == "true" or asset.isNamespaced == "true" ) %}
+  {{accessModifier}} enum {{asset.name|swiftIdentifier:"pretty"|escapeReservedKeywords}} {
+    {% filter indent:2 %}{% call dataCasesBlock asset.items %}{% endfilter %}
+  }
+  {% elif asset.items %}
+  {% call dataCasesBlock asset.items %}
+  {% endif %}
+  {% endfor %}
+{% endmacro %}
+
+// swiftlint:disable identifier_name line_length nesting type_body_length type_name
+{{accessModifier}} enum {{enumName}} {
+  {% for catalog in catalogs %}
+  {% set catalogHasColor %}{% call hasValuesBlock catalog.assets "color" %}{% endset %}
+  {% set catalogHasImage %}{% call hasValuesBlock catalog.assets "image" %}{% endset %}
+  {% set catalogHasData %}{% call hasValuesBlock catalog.assets "data" %}{% endset %}
+  {{accessModifier}} enum {{catalog.name|swiftIdentifier:"pretty"|escapeReservedKeywords}}{% if catalogHasColor != "" and catalogHasImage == "" and catalogHasData == "" %}: String, CaseIterable{% elif catalogHasImage != "" and catalogHasColor == "" and catalogHasData == "" %}: String, CaseIterable{% endif %} {
+    {% if catalogHasColor != "" and catalogHasImage == "" and catalogHasData == "" %}
+      {% filter indent:2 %}{% call stringCasesBlock catalog.assets "color" %}{% endfilter %}
+
+    {{accessModifier}} var color: Color { Color(self.rawValue, bundle: {{bundleToken}}.bundle) }
+    {{accessModifier}} var swiftUIColor: Color { color }
+    {{accessModifier}} var uiColor: UIColor { UIColor(named: self.rawValue, in: {{bundleToken}}.bundle, compatibleWith: nil)! }
+    {% elif catalogHasImage != "" and catalogHasColor == "" and catalogHasData == "" %}
+      {% filter indent:2 %}{% call stringCasesBlock catalog.assets "image" %}{% endfilter %}
+
+    {{accessModifier}} var image: Image { Image(self.rawValue, bundle: {{bundleToken}}.bundle) }
+    {{accessModifier}} var uiImage: UIImage { UIImage(named: self.rawValue, in: {{bundleToken}}.bundle, with: nil)! }
+    {% elif catalogHasData != "" and catalogHasColor == "" and catalogHasImage == "" %}
+      {% filter indent:2 %}{% call dataCasesBlock catalog.assets %}{% endfilter %}
+    {% endif %}
+  }
+  {% endfor %}
+}
+// swiftlint:enable identifier_name line_length nesting type_body_length type_name
+
+// MARK: - Migration Aliases
+
+{{accessModifier}} typealias Asset = {{enumName}}
+{% for catalog in catalogs %}
+{% if catalog.name == colorEnumName %}
+{{accessModifier}} typealias {{param.name}}Colors = {{enumName}}.{{catalog.name|swiftIdentifier:"pretty"|escapeReservedKeywords}}
+{% elif catalog.name == imageEnumName %}
+{{accessModifier}} typealias {{param.name}}Images = {{enumName}}.{{catalog.name|swiftIdentifier:"pretty"|escapeReservedKeywords}}
+{% elif catalog.name == iconEnumName %}
+{{accessModifier}} typealias {{param.name}}Icons = {{enumName}}.{{catalog.name|swiftIdentifier:"pretty"|escapeReservedKeywords}}
+{% endif %}
+{% endfor %}
+
+// MARK: - SwiftUI Convenience
+
+{% for catalog in catalogs %}
+{% if catalog.name == colorEnumName %}
+public extension View {
+  func foregroundStyle(_ colors: {{enumName}}.{{catalog.name|swiftIdentifier:"pretty"|escapeReservedKeywords}}) -> some View {
+    foregroundStyle(colors.color)
+  }
+
+  func background(_ colors: {{enumName}}.{{catalog.name|swiftIdentifier:"pretty"|escapeReservedKeywords}}) -> some View {
+    background(colors.color)
+  }
+
+  func overlay(_ colors: {{enumName}}.{{catalog.name|swiftIdentifier:"pretty"|escapeReservedKeywords}}) -> some View {
+    overlay(colors.color)
+  }
+}
+
+public extension Shape {
+  func stroke(_ colors: {{enumName}}.{{catalog.name|swiftIdentifier:"pretty"|escapeReservedKeywords}}, lineWidth: CGFloat) -> some View {
+    stroke(colors.color, lineWidth: lineWidth)
+  }
+
+  func fill(_ colors: {{enumName}}.{{catalog.name|swiftIdentifier:"pretty"|escapeReservedKeywords}}) -> some View {
+    fill(colors.color)
+  }
+}
+{% elif catalog.name == imageEnumName or catalog.name == iconEnumName %}
+public extension Image {
+  init(_ images: {{enumName}}.{{catalog.name|swiftIdentifier:"pretty"|escapeReservedKeywords}}) {
+    self = images.image
+  }
+}
+{% endif %}
+{% endfor %}
+
+// MARK: - Implementation Details
+
+{{accessModifier}} struct DataAsset: Sendable {
+  {{accessModifier}} fileprivate(set) var name: String
+
+  @available(iOS 9.0, *)
+  {{accessModifier}} var data: NSDataAsset {
+    guard let data = NSDataAsset(name: name, bundle: {{bundleToken}}.bundle) else {
+      fatalError("Unable to load data asset named \(name).")
+    }
+    return data
+  }
+}
+{% else %}
+// No assets found
+{% endif %}

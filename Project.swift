@@ -29,7 +29,10 @@ let project = Project(
                 "UISupportedInterfaceOrientations": ["UIInterfaceOrientationPortrait"],
             ]),
             sources: ["Pickflow/Sources/**"],
-            resources: ["Pickflow/Resources/**"],
+            resources: [
+                "Pickflow/Resources/Assets.xcassets",
+                "Pickflow/Resources/DesignSystem/**",
+            ],
             dependencies: [
                 .external(name: "Alamofire"),
                 .external(name: "Swinject"),
