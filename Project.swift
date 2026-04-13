@@ -1,47 +1,43 @@
 import ProjectDescription
+import ProjectDescriptionHelpers
 
 let project = Project(
-    name: "Pickflow",
+    name: ProjectEnvironment.name,
     settings: .settings(
-        base: [
-            "SWIFT_VERSION": "6.0",
-            "IPHONEOS_DEPLOYMENT_TARGET": "26.0",
-            "SDKROOT": "iphoneos",
-        ],
+        base: .projectBase,
         configurations: [
-            .debug(name: "Debug"),
-            .release(name: "Release"),
+            .appDebug,
+            .appRelease,
         ]
     ),
     targets: [
         .target(
-            name: "Pickflow",
+            name: ProjectEnvironment.name,
             destinations: [.iPhone],
             product: .app,
-            bundleId: "com.pickflow",
-            deploymentTargets: .iOS("26.0"),
-            infoPlist: .extendingDefault(with: [
-                "CFBundleDisplayName": "Pickflow",
-                "UILaunchScreen": [
-                    "UIColorName": "",
-                    "UIImageName": "",
-                ],
-                "UISupportedInterfaceOrientations": ["UIInterfaceOrientationPortrait"],
-            ]),
+            bundleId: ProjectEnvironment.bundleID,
+            deploymentTargets: .iOS(ProjectEnvironment.deploymentTarget),
+            infoPlist: .app,
             sources: ["Pickflow/Sources/**"],
             resources: [
-                "Pickflow/Resources/Assets.xcassets",
-                "Pickflow/Resources/DesignSystem/**",
+                "Pickflow/Resources/**",
+                "Configs/GoogleService-Info.plist",
             ],
             dependencies: [
-                .external(name: "Alamofire"),
-                .external(name: "Swinject"),
+                .external(.alamofire),
+                .external(.firebaseMessaging),
+                .external(.kakaoSDKCommon),
+                .external(.kakaoSDKAuth),
+                .external(.kakaoSDKUser),
+                .external(.nMapsMap),
+                .external(.swinject),
             ],
             settings: .settings(
                 base: [
                     "SWIFT_STRICT_CONCURRENCY": "complete",
                     "CODE_SIGN_STYLE": "Automatic",
                     "DEVELOPMENT_TEAM": "4DUZKVXU2R",
+                    "OTHER_LDFLAGS": .array(["$(inherited)", "-ObjC"]),
                 ]
             )
         ),

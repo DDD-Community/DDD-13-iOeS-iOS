@@ -15,6 +15,11 @@ Derived/
 # macOS
 .DS_Store
 
+# Local configs
+Configs/Common.xcconfig
+GoogleService-Info.plist
+**/GoogleService-Info.plist
+
 # Claude Code
 .claude/
 CLAUDE.md
