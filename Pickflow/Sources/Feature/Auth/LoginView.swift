@@ -6,6 +6,10 @@ import SwiftUI
 struct LoginView: View {
     @StateObject var viewModel: LoginViewModel
 
+    /// 로그인 성공 시 상위(`AppRootView`)로 전파되는 콜백.
+    /// - Parameter isNewUser: 신규 가입 여부. `is_new_user: true` 분기 처리에 사용.
+    var onSignInSucceeded: (_ isNewUser: Bool) -> Void = { _ in }
+
     var body: some View {
         ZStack {
             backgroundGradient
@@ -20,6 +24,11 @@ struct LoginView: View {
             .padding(.horizontal, 20)
         }
         .preferredColorScheme(.dark)
+        .onChange(of: viewModel.didSignInSucceed) { _, succeeded in
+            if succeeded {
+                onSignInSucceeded(viewModel.isNewUser)
+            }
+        }
         .alert(
             "로그인 실패",
             isPresented: errorAlertBinding,
@@ -72,8 +81,8 @@ struct LoginView: View {
     /// 앱 로고 마크. 실제 에셋(`AppLogoMark`)이 없는 환경에서는 SF Symbol로 플레이스홀더 렌더.
     private var appLogo: some View {
         Group {
-            if let uiImage = UIImage(named: "AppLogoMark") {
-                Image(uiImage: uiImage)
+            if UIImage(named: "AppLogoMark") != nil {
+                Image("AppLogoMark")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
             } else {
@@ -105,11 +114,9 @@ struct LoginView: View {
     private var errorAlertBinding: Binding<Bool> {
         Binding(
             get: { viewModel.errorMessage != nil },
-            set: { isPresented in
-                if !isPresented {
-                    // 현재 VM은 읽기 전용이므로 메시지 소거 전용 메서드가 필요하면 별도 티켓에서 분리.
-                    // 본 티켓에서는 alert dismiss 후 자연 복구를 허용한다.
-                }
+            set: { _ in
+                // alert dismiss 시 상태를 강제로 소거할 별도 메서드는 두지 않는다.
+                // 다음 사용자 액션에서 ViewModel이 새 상태로 덮어쓴다.
             }
         )
     }
