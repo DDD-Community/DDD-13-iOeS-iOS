@@ -28,15 +28,15 @@ struct KakaoLoginButton: View {
 
                 if isLoading {
                     ProgressView()
-                        .tint(.black)
+                        .tint(Color("gray100"))
                 } else {
                     HStack(spacing: 8) {
                         Image(systemName: "message.fill")
                             .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(.black)
+                            .foregroundStyle(Color("gray100"))
                         Text(title)
                             .pretendard(.body(.large(.bold)))
-                            .foregroundStyle(.black)
+                            .foregroundStyle(Color("gray100"))
                     }
                 }
             }
@@ -61,5 +61,5 @@ extension Color {
         KakaoLoginButton(isLoading: true) {}
     }
     .padding()
-    .background(Color.black)
+    .background(Color("gray100"))
 }

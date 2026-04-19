@@ -46,7 +46,13 @@ struct LoginView: View {
     /// HEX 확정값은 §9 리소스 요청 확인 필요 (현재는 추정치).
     private var backgroundGradient: some View {
         ZStack {
-            Color.loginBackground
+            LinearGradient(
+                stops: [
+                    .init(color: .loginBackground, location: 0.0),
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
             RadialGradient(
                 colors: [Color.loginGlowCenter, Color.loginGlowEdge.opacity(0)],
                 center: .center,
@@ -66,14 +72,14 @@ struct LoginView: View {
 
             Text("일상 속 반짝임,\n실패 없이 포착하세요")
                 .pretendard(.display(.medium))
-                .foregroundStyle(.white)
+                .foregroundStyle(Color("gray0"))
                 .multilineTextAlignment(.center)
                 .accessibilityAddTraits(.isHeader)
-                .padding(.bottom, 12)
+                .padding(.bottom, 32)
 
             Text("파편화된 포토스팟 정보는 이제 그만.\n정확한 일몰 시간과 촬영 팁을 한눈에 보세요.")
                 .pretendard(.body(.small()))
-                .foregroundStyle(Color.loginSubtitle)
+                .foregroundStyle(Color("gray30"))
                 .multilineTextAlignment(.center)
         }
     }
@@ -92,7 +98,7 @@ struct LoginView: View {
                         .fill(Color.loginGlowCenter)
                     Image(systemName: "camera.fill")
                         .font(.system(size: 32, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color("gray0"))
                 }
             }
         }
@@ -106,7 +112,7 @@ struct LoginView: View {
         KakaoLoginButton(isLoading: viewModel.isLoading) {
             Task { await viewModel.signInWithKakaoTapped() }
         }
-        .padding(.bottom, 16)
+        .padding(.bottom, 60)
     }
 
     // MARK: - Helpers
@@ -125,17 +131,14 @@ struct LoginView: View {
 // MARK: - Colors
 
 private extension Color {
-    /// 배경 베이스 `#0B0B0B` (§9 확정 대기).
-    static let loginBackground = Color(red: 11 / 255, green: 11 / 255, blue: 11 / 255)
+    /// 디자인 시스템 `gray100` 기반 배경.
+    static let loginBackground = Color("gray100")
 
     /// 글로우 중심색 `#FF6A2A` (§9 확정 대기).
     static let loginGlowCenter = Color(red: 255 / 255, green: 106 / 255, blue: 42 / 255)
 
     /// 글로우 외곽 페이드아웃 지점 `#B22A00` (§9 확정 대기).
     static let loginGlowEdge = Color(red: 178 / 255, green: 42 / 255, blue: 0 / 255)
-
-    /// 서브카피 그레이 `#B8B8B8`.
-    static let loginSubtitle = Color(red: 184 / 255, green: 184 / 255, blue: 184 / 255)
 }
 
 // MARK: - Preview
