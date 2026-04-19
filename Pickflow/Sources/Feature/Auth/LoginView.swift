@@ -7,8 +7,7 @@ struct LoginView: View {
     @StateObject var viewModel: LoginViewModel
 
     /// 로그인 성공 시 상위(`AppRootView`)로 전파되는 콜백.
-    /// - Parameter isNewUser: 신규 가입 여부. `is_new_user: true` 분기 처리에 사용.
-    var onSignInSucceeded: (_ isNewUser: Bool) -> Void = { _ in }
+    var onSignInSucceeded: () -> Void = {}
 
     var body: some View {
         ZStack {
@@ -26,7 +25,7 @@ struct LoginView: View {
         .preferredColorScheme(.dark)
         .onChange(of: viewModel.didSignInSucceed) { _, succeeded in
             if succeeded {
-                onSignInSucceeded(viewModel.isNewUser)
+                onSignInSucceeded()
             }
         }
         .alert(

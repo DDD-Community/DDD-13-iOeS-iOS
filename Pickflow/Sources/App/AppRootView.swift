@@ -3,8 +3,7 @@ import SwiftUI
 /// 앱 최상위 라우팅 컨테이너.
 ///
 /// 인증 상태에 따라 `LoginView`와 홈(현재는 placeholder)을 분기한다.
-/// 초기 인증 상태 판정은 `AuthService.currentAuthState()`에 위임하며, 해당 로직은
-/// KAN-49(자동 로그인)에서 KeyChain(KAN-48) 기반 실구현으로 대체된다.
+/// 초기 인증 상태 판정은 `AuthService.currentAuthState()`에 위임한다.
 struct AppRootView: View {
     @StateObject private var viewModel: AppRootViewModel
 
@@ -34,9 +33,7 @@ struct AppRootView: View {
                         kakaoAuthProvider: viewModel.kakaoAuthProvider,
                         tokenStore: viewModel.tokenStore
                     ),
-                    onSignInSucceeded: { isNewUser in
-                        viewModel.didCompleteSignIn(isNewUser: isNewUser)
-                    }
+                    onSignInSucceeded: viewModel.didCompleteSignIn
                 )
             case .signedIn:
                 HomePlaceholderView()
@@ -83,10 +80,7 @@ final class AppRootViewModel: ObservableObject {
         authState = state.toRoute()
     }
 
-    func didCompleteSignIn(isNewUser: Bool) {
-        if isNewUser {
-            // TODO(KAN-46): 신규 유저 온보딩 분기.
-        }
+    func didCompleteSignIn() {
         authState = .signedIn
     }
 }

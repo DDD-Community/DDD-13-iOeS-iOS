@@ -5,7 +5,6 @@ final class LoginViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
     @Published private(set) var didSignInSucceed = false
-    @Published private(set) var isNewUser = false
 
     private let authService: AuthServiceProtocol
     private let kakaoAuthProvider: KakaoAuthProviderProtocol
@@ -41,7 +40,6 @@ final class LoginViewModel: ObservableObject {
                 refreshToken: response.refreshToken
             )
             try tokenStore.save(authToken)
-            isNewUser = response.isNewUser
             didSignInSucceed = true
         } catch {
             errorMessage = error.localizedDescription

@@ -30,7 +30,7 @@ Swift 6 + SwiftUI + Swift Concurrency 스타일로 작업한다.
 1. 로그인 성공 후 access/refresh token 저장
 2. 저장된 토큰 기반 자동 로그인 복구
 3. 위치권한 삽입 훅 정리
-4. `is_new_user == true` 라우팅 여지 정리
+4. `is_new_user`는 응답으로만 유지하고 라우팅에는 사용하지 않도록 정리
 
 ---
 
@@ -157,21 +157,14 @@ case logout(accessToken: String)
 // TODO(KAN-46): 홈 최초 진입 시 위치권한 온보딩 삽입
 ```
 
-### 3.8 신규 유저 분기
+### 3.8 신규 유저 플래그 정리
 
-`didCompleteSignIn(isNewUser:)`는 현재 `isNewUser` 값을 무시한다.
+`KakaoSignInResponse.isNewUser`는 백엔드 응답 필드로 유지한다.
 
 이번 단계에서는:
-- 실제 분기 화면을 만들 필요는 없지만
-- 신규 유저 분기 포인트는 더 명확히 남긴다.
-
-예:
-
-```swift
-if isNewUser {
-    // TODO(KAN-46): 신규 유저 온보딩 분기
-}
-```
+- 로그인 성공 라우팅은 신규/기존 유저 모두 동일하게 홈으로 보낸다.
+- `isNewUser`를 UI 상태나 라우팅 분기에 저장하지 않는다.
+- 필요 시 추후 분석/기획 변경 시점에만 별도 사용처를 추가한다.
 
 ---
 

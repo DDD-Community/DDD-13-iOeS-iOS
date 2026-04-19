@@ -94,7 +94,7 @@ rg "TODO\\(resource" Pickflow/Sources
 1. `KAKAO_NATIVE_APP_KEY`
 2. `KAKAO_CALLBACK_SCHEME`
 3. 실제 Firebase `GoogleService-Info.plist`
-4. `is_new_user` true일 때 라우팅 목적지
+4. `is_new_user`는 응답 필드로만 유지하고 별도 라우팅에는 사용하지 않음
 5. 위치권한 UX 세부 흐름
 
 ## 메모
