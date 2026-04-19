@@ -8,8 +8,13 @@ import SwiftUI
 struct AppRootView: View {
     @StateObject private var viewModel: AppRootViewModel
 
-    init(authService: AuthServiceProtocol) {
-        _viewModel = StateObject(wrappedValue: AppRootViewModel(authService: authService))
+    init(authService: AuthServiceProtocol, kakaoAuthProvider: KakaoAuthProviderProtocol) {
+        _viewModel = StateObject(
+            wrappedValue: AppRootViewModel(
+                authService: authService,
+                kakaoAuthProvider: kakaoAuthProvider
+            )
+        )
     }
 
     var body: some View {
@@ -19,7 +24,10 @@ struct AppRootView: View {
                 SplashView()
             case .signedOut:
                 LoginView(
-                    viewModel: LoginViewModel(authService: viewModel.authService),
+                    viewModel: LoginViewModel(
+                        authService: viewModel.authService,
+                        kakaoAuthProvider: viewModel.kakaoAuthProvider
+                    ),
                     onSignInSucceeded: { isNewUser in
                         viewModel.didCompleteSignIn(isNewUser: isNewUser)
                     }
@@ -52,9 +60,11 @@ final class AppRootViewModel: ObservableObject {
 
     /// LoginView 생성 시 주입용으로 노출. AppContainer에서 1회 resolve한 인스턴스를 재사용한다.
     let authService: AuthServiceProtocol
+    let kakaoAuthProvider: KakaoAuthProviderProtocol
 
-    init(authService: AuthServiceProtocol) {
+    init(authService: AuthServiceProtocol, kakaoAuthProvider: KakaoAuthProviderProtocol) {
         self.authService = authService
+        self.kakaoAuthProvider = kakaoAuthProvider
     }
 
     func bootstrap() async {

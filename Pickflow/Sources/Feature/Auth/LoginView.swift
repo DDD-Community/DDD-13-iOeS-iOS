@@ -148,7 +148,12 @@ private extension Color {
 // MARK: - Preview
 
 #Preview("LoginView") {
-    LoginView(viewModel: LoginViewModel(authService: PreviewAuthService()))
+    LoginView(
+        viewModel: LoginViewModel(
+            authService: PreviewAuthService(),
+            kakaoAuthProvider: PreviewKakaoAuthProvider()
+        )
+    )
 }
 
 /// Preview 렌더를 위한 인라인 Mock.
@@ -171,4 +176,10 @@ private final class PreviewAuthService: AuthServiceProtocol, @unchecked Sendable
     func signOut() async throws {}
 
     func currentAuthState() async -> AuthState { .signedOut }
+}
+
+private final class PreviewKakaoAuthProvider: KakaoAuthProviderProtocol, @unchecked Sendable {
+    func obtainAccessToken() async throws -> String {
+        "preview-kakao-access-token"
+    }
 }

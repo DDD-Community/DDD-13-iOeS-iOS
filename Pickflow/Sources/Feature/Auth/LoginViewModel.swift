@@ -8,9 +8,14 @@ final class LoginViewModel: ObservableObject {
     @Published private(set) var isNewUser = false
 
     private let authService: AuthServiceProtocol
+    private let kakaoAuthProvider: KakaoAuthProviderProtocol
 
-    init(authService: AuthServiceProtocol) {
+    init(
+        authService: AuthServiceProtocol,
+        kakaoAuthProvider: KakaoAuthProviderProtocol
+    ) {
         self.authService = authService
+        self.kakaoAuthProvider = kakaoAuthProvider
     }
 
     // MARK: - Intent
@@ -22,8 +27,7 @@ final class LoginViewModel: ObservableObject {
 
         do {
             // 1) Kakao SDK로 kakaoAccessToken 획득.
-            //    본 티켓(KAN-46)에서는 스텁이며, 실제 구현은 KAN-47에서 대체된다.
-            let kakaoAccessToken = try await obtainKakaoAccessToken()
+            let kakaoAccessToken = try await kakaoAuthProvider.obtainAccessToken()
 
             // 2) 백엔드 POST /auth/kakao 호출.
             let response = try await authService.signInWithKakao(kakaoAccessToken: kakaoAccessToken)
@@ -37,20 +41,5 @@ final class LoginViewModel: ObservableObject {
         }
 
         isLoading = false
-    }
-
-    // MARK: - Kakao SDK bridge (KAN-47 에서 대체)
-
-    /// Kakao SDK로부터 `kakaoAccessToken`을 비동기적으로 획득하는 스텁.
-    ///
-    /// - Note: KAN-47 에서 Kakao iOS SDK를 도입하면서 실제 구현으로 교체한다.
-    ///   본 메서드는 서비스(`AuthService`)가 SDK 의존성을 갖지 않도록 경계를 분리하는 역할이다.
-    private func obtainKakaoAccessToken() async throws -> String {
-        // TODO(KAN-47): Kakao SDK 로그인 플로우로 대체.
-        throw AuthError.unknown(NSError(
-            domain: "LoginViewModel",
-            code: -1,
-            userInfo: [NSLocalizedDescriptionKey: "Kakao SDK 미연동 (KAN-47)"]
-        ))
     }
 }
