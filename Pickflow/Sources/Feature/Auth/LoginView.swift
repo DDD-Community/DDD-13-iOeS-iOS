@@ -46,20 +46,19 @@ struct LoginView: View {
     /// HEX 확정값은 §9 리소스 요청 확인 필요 (현재는 추정치).
     private var backgroundGradient: some View {
         ZStack {
-            LinearGradient(
-                stops: [
-                    .init(color: .loginBackground, location: 0.0),
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            RadialGradient(
-                colors: [Color.loginGlowCenter, Color.loginGlowEdge.opacity(0)],
-                center: .center,
-                startRadius: 40,
-                endRadius: 340
-            )
-            .blendMode(.plusLighter)
+            Color.loginBackground
+
+            Circle()
+                .fill(Color.loginTopGlow)
+                .frame(width: 366, height: 388)
+                .blur(radius: 120)
+                .offset(x: -132, y: -70)
+
+            Circle()
+                .fill(Color.loginBottomGlow)
+                .frame(width: 234, height: 248)
+                .blur(radius: 96)
+                .offset(x: 118, y: 188)
         }
     }
 
@@ -79,7 +78,7 @@ struct LoginView: View {
 
             Text("파편화된 포토스팟 정보는 이제 그만.\n정확한 일몰 시간과 촬영 팁을 한눈에 보세요.")
                 .pretendard(.body(.small()))
-                .foregroundStyle(Color("gray30"))
+                .foregroundStyle(Color("gray10"))
                 .multilineTextAlignment(.center)
         }
     }
@@ -95,7 +94,7 @@ struct LoginView: View {
                 // TODO(resource): Assets.xcassets/AppLogoMark.imageset 교체 필요 (§9.2).
                 ZStack {
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(Color.loginGlowCenter)
+                        .fill(Color.loginLogoBackground)
                     Image(systemName: "camera.fill")
                         .font(.system(size: 32, weight: .bold))
                         .foregroundStyle(Color("gray0"))
@@ -134,11 +133,16 @@ private extension Color {
     /// 디자인 시스템 `gray100` 기반 배경.
     static let loginBackground = Color("gray100")
 
-    /// 글로우 중심색 `#FF6A2A` (§9 확정 대기).
-    static let loginGlowCenter = Color(red: 255 / 255, green: 106 / 255, blue: 42 / 255)
+    /// Figma 좌상단 블러 글로우.
+    static let loginTopGlow = Color(red: 88 / 255, green: 88 / 255, blue: 88 / 255)
+        .opacity(0.36)
 
-    /// 글로우 외곽 페이드아웃 지점 `#B22A00` (§9 확정 대기).
-    static let loginGlowEdge = Color(red: 178 / 255, green: 42 / 255, blue: 0 / 255)
+    /// Figma 우하단 오렌지 블러 글로우.
+    static let loginBottomGlow = Color(red: 204 / 255, green: 78 / 255, blue: 22 / 255)
+        .opacity(0.42)
+
+    /// 로고 placeholder 배경색.
+    static let loginLogoBackground = Color(red: 255 / 255, green: 106 / 255, blue: 42 / 255)
 }
 
 // MARK: - Preview
