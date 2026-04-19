@@ -9,13 +9,16 @@ final class LoginViewModel: ObservableObject {
 
     private let authService: AuthServiceProtocol
     private let kakaoAuthProvider: KakaoAuthProviderProtocol
+    private let tokenStore: TokenStoreProtocol
 
     init(
         authService: AuthServiceProtocol,
-        kakaoAuthProvider: KakaoAuthProviderProtocol
+        kakaoAuthProvider: KakaoAuthProviderProtocol,
+        tokenStore: TokenStoreProtocol
     ) {
         self.authService = authService
         self.kakaoAuthProvider = kakaoAuthProvider
+        self.tokenStore = tokenStore
     }
 
     // MARK: - Intent
@@ -33,7 +36,11 @@ final class LoginViewModel: ObservableObject {
             let response = try await authService.signInWithKakao(kakaoAccessToken: kakaoAccessToken)
 
             // 3) 결과 반영.
-            // TODO(KAN-48): response.accessToken / response.refreshToken을 KeyChain에 저장.
+            let authToken = AuthToken(
+                accessToken: response.accessToken,
+                refreshToken: response.refreshToken
+            )
+            try tokenStore.save(authToken)
             isNewUser = response.isNewUser
             didSignInSucceed = true
         } catch {

@@ -9,7 +9,7 @@ import Foundation
 enum AuthEndpoint: APIEndpoint {
     case kakaoSignIn(token: String)
     case refresh(refreshToken: String)
-    case logout
+    case logout(accessToken: String)
 
     var baseURL: String { AppConfig.baseURL }
 
@@ -40,9 +40,8 @@ enum AuthEndpoint: APIEndpoint {
 
     var headers: HTTPHeaders? {
         switch self {
-        case .logout:
-            // TODO(KAN-48): TokenStore에서 access_token 가져와 Bearer 헤더 부착.
-            nil
+        case let .logout(accessToken):
+            ["Authorization": "Bearer \(accessToken)"]
         default:
             nil
         }

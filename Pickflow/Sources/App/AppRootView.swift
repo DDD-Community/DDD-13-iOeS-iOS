@@ -8,11 +8,16 @@ import SwiftUI
 struct AppRootView: View {
     @StateObject private var viewModel: AppRootViewModel
 
-    init(authService: AuthServiceProtocol, kakaoAuthProvider: KakaoAuthProviderProtocol) {
+    init(
+        authService: AuthServiceProtocol,
+        kakaoAuthProvider: KakaoAuthProviderProtocol,
+        tokenStore: TokenStoreProtocol
+    ) {
         _viewModel = StateObject(
             wrappedValue: AppRootViewModel(
                 authService: authService,
-                kakaoAuthProvider: kakaoAuthProvider
+                kakaoAuthProvider: kakaoAuthProvider,
+                tokenStore: tokenStore
             )
         )
     }
@@ -26,7 +31,8 @@ struct AppRootView: View {
                 LoginView(
                     viewModel: LoginViewModel(
                         authService: viewModel.authService,
-                        kakaoAuthProvider: viewModel.kakaoAuthProvider
+                        kakaoAuthProvider: viewModel.kakaoAuthProvider,
+                        tokenStore: viewModel.tokenStore
                     ),
                     onSignInSucceeded: { isNewUser in
                         viewModel.didCompleteSignIn(isNewUser: isNewUser)
@@ -35,8 +41,7 @@ struct AppRootView: View {
             case .signedIn:
                 HomePlaceholderView()
                     .task {
-                        // TODO(KAN-50): 위치권한 팝업 삽입 지점.
-                        //               홈 최초 진입 시 권한 요청 모달을 띄운다.
+                        // TODO(KAN-46): 홈 최초 진입 시 위치권한 온보딩 삽입.
                     }
             }
         }
@@ -61,20 +66,27 @@ final class AppRootViewModel: ObservableObject {
     /// LoginView 생성 시 주입용으로 노출. AppContainer에서 1회 resolve한 인스턴스를 재사용한다.
     let authService: AuthServiceProtocol
     let kakaoAuthProvider: KakaoAuthProviderProtocol
+    let tokenStore: TokenStoreProtocol
 
-    init(authService: AuthServiceProtocol, kakaoAuthProvider: KakaoAuthProviderProtocol) {
+    init(
+        authService: AuthServiceProtocol,
+        kakaoAuthProvider: KakaoAuthProviderProtocol,
+        tokenStore: TokenStoreProtocol
+    ) {
         self.authService = authService
         self.kakaoAuthProvider = kakaoAuthProvider
+        self.tokenStore = tokenStore
     }
 
     func bootstrap() async {
-        // 현재는 항상 .signedOut 스텁. KAN-49에서 저장된 토큰 기반 자동 로그인으로 대체.
         let state = await authService.currentAuthState()
         authState = state.toRoute()
     }
 
-    func didCompleteSignIn(isNewUser _: Bool) {
-        // TODO(KAN-50): isNewUser == true 인 경우 닉네임 설정 / 온보딩 튜토리얼 등 분기 가능 (§9.4).
+    func didCompleteSignIn(isNewUser: Bool) {
+        if isNewUser {
+            // TODO(KAN-46): 신규 유저 온보딩 분기.
+        }
         authState = .signedIn
     }
 }

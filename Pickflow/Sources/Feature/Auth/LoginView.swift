@@ -151,7 +151,8 @@ private extension Color {
     LoginView(
         viewModel: LoginViewModel(
             authService: PreviewAuthService(),
-            kakaoAuthProvider: PreviewKakaoAuthProvider()
+            kakaoAuthProvider: PreviewKakaoAuthProvider(),
+            tokenStore: PreviewTokenStore()
         )
     )
 }
@@ -182,4 +183,12 @@ private final class PreviewKakaoAuthProvider: KakaoAuthProviderProtocol, @unchec
     func obtainAccessToken() async throws -> String {
         "preview-kakao-access-token"
     }
+}
+
+private final class PreviewTokenStore: TokenStoreProtocol, @unchecked Sendable {
+    func save(_: AuthToken) throws {}
+
+    func load() throws -> AuthToken? { nil }
+
+    func clear() throws {}
 }

@@ -3,9 +3,11 @@ import Foundation
 
 final class AuthService: AuthServiceProtocol, Sendable {
     private let networkManager: NetworkManagerProtocol
+    private let tokenStore: TokenStoreProtocol
 
-    init(networkManager: NetworkManagerProtocol) {
+    init(networkManager: NetworkManagerProtocol, tokenStore: TokenStoreProtocol) {
         self.networkManager = networkManager
+        self.tokenStore = tokenStore
     }
 
     // MARK: - AuthServiceProtocol
@@ -31,19 +33,33 @@ final class AuthService: AuthServiceProtocol, Sendable {
     }
 
     func signOut() async throws {
+        let storedToken = try? tokenStore.load()
+
+        guard let accessToken = storedToken?.accessToken, accessToken.isEmpty == false else {
+            try? tokenStore.clear()
+            return
+        }
+
         do {
             let _: EmptyResponse = try await networkManager.requestJSON(
-                endpoint: AuthEndpoint.logout
+                endpoint: AuthEndpoint.logout(accessToken: accessToken)
             )
+            try? tokenStore.clear()
         } catch {
             throw Self.map(error)
         }
     }
 
     func currentAuthState() async -> AuthState {
-        // TODO(KAN-49): KeyChain(KAN-48)에 저장된 토큰을 조회하여 `.signedIn(token)` 반환.
-        //               본 티켓(KAN-46)에서는 항상 `.signedOut`을 반환하는 스텁을 유지한다.
-        .signedOut
+        do {
+            if let token = try tokenStore.load() {
+                return .signedIn(token)
+            }
+        } catch {
+            try? tokenStore.clear()
+        }
+
+        return .signedOut
     }
 
     // MARK: - Error Mapping
