@@ -15,6 +15,10 @@ final class LocationService: NSObject, LocationServiceProtocol, @unchecked Senda
         locationManager.requestWhenInUseAuthorization()
     }
 
+    func authorizationStatus() -> CLAuthorizationStatus {
+        locationManager.authorizationStatus
+    }
+
     func currentLocation() async throws -> Coordinate {
         try await withCheckedThrowingContinuation { continuation in
             locationContinuation = continuation

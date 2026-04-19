@@ -6,7 +6,8 @@ struct ContentView: View {
         AppRootView(
             authService: getAuthService(),
             kakaoAuthProvider: getKakaoAuthProvider(),
-            tokenStore: getTokenStore()
+            tokenStore: getTokenStore(),
+            locationService: getLocationService()
         )
     }
 }

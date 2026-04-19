@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreLocation
 
 /// 앱 최상위 라우팅 컨테이너.
 ///
@@ -10,13 +11,15 @@ struct AppRootView: View {
     init(
         authService: AuthServiceProtocol,
         kakaoAuthProvider: KakaoAuthProviderProtocol,
-        tokenStore: TokenStoreProtocol
+        tokenStore: TokenStoreProtocol,
+        locationService: LocationServiceProtocol
     ) {
         _viewModel = StateObject(
             wrappedValue: AppRootViewModel(
                 authService: authService,
                 kakaoAuthProvider: kakaoAuthProvider,
-                tokenStore: tokenStore
+                tokenStore: tokenStore,
+                locationService: locationService
             )
         )
     }
@@ -38,7 +41,7 @@ struct AppRootView: View {
             case .signedIn:
                 HomePlaceholderView()
                     .task {
-                        // TODO(KAN-46): 홈 최초 진입 시 위치권한 온보딩 삽입.
+                        viewModel.prepareLocationPermissionIfNeeded()
                     }
             }
         }
@@ -64,15 +67,19 @@ final class AppRootViewModel: ObservableObject {
     let authService: AuthServiceProtocol
     let kakaoAuthProvider: KakaoAuthProviderProtocol
     let tokenStore: TokenStoreProtocol
+    let locationService: LocationServiceProtocol
+    private var didHandleLocationPermission = false
 
     init(
         authService: AuthServiceProtocol,
         kakaoAuthProvider: KakaoAuthProviderProtocol,
-        tokenStore: TokenStoreProtocol
+        tokenStore: TokenStoreProtocol,
+        locationService: LocationServiceProtocol
     ) {
         self.authService = authService
         self.kakaoAuthProvider = kakaoAuthProvider
         self.tokenStore = tokenStore
+        self.locationService = locationService
     }
 
     func bootstrap() async {
@@ -82,6 +89,22 @@ final class AppRootViewModel: ObservableObject {
 
     func didCompleteSignIn() {
         authState = .signedIn
+    }
+
+    func prepareLocationPermissionIfNeeded() {
+        guard authState == .signedIn, !didHandleLocationPermission else { return }
+        guard ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1" else { return }
+
+        switch locationService.authorizationStatus() {
+        case .notDetermined:
+            locationService.requestAuthorization()
+        case .restricted, .denied, .authorizedAlways, .authorizedWhenInUse:
+            break
+        @unknown default:
+            break
+        }
+
+        didHandleLocationPermission = true
     }
 }
 

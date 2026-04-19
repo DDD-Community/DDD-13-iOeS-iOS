@@ -12,6 +12,7 @@ public extension InfoPlist {
         "FirebaseAppDelegateProxyEnabled": .boolean(false),
         "FirebaseMessagingAutoInitEnabled": .boolean(true),
         "KAKAO_NATIVE_APP_KEY": .string("$(KAKAO_NATIVE_APP_KEY)"),
+        "NSLocationWhenInUseUsageDescription": .string("사용자의 현재 위치를 기반으로 정확한 포토스팟 정보를 제공하기 위해 위치 권한이 필요합니다."),
         "CFBundleURLTypes": .array([
             .dictionary([
                 "CFBundleTypeRole": .string(URLScheme.editorRole),
