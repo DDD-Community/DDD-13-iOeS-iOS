@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct SpotSearchLocationButton: View {
     let action: () -> Void
@@ -7,8 +8,16 @@ struct SpotSearchLocationButton: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 8) {
-                Image(systemName: "mappin")
-                    .font(.body.weight(.semibold))
+                if UIImage(named: "icon_location_mark") != nil {
+                    Image("icon_location_mark")
+                        .renderingMode(.template)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 18, height: 18)
+                } else {
+                    Image(systemName: "mappin")
+                        .font(.body.weight(.semibold))
+                }
 
                 Text("장소 검색하기")
                     .pretendard(.body(.large(.bold)))
