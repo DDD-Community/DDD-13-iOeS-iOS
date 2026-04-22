@@ -99,10 +99,14 @@ struct SpotRegistrationView: View {
             .padding(.vertical, 24)
         }
         .background(Color.spotBackground.ignoresSafeArea())
-        .navigationTitle("스팟 등록")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarRole(.editor)
         .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text("스팟 등록")
+                    .pretendard(.heading(.small))
+                    .foregroundStyle(.white)
+            }
+
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     Task {
