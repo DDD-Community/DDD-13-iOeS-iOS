@@ -13,29 +13,32 @@ struct CountedTextEditor: View {
                 ZStack(alignment: .topLeading) {
                     if text.wrappedValue.isEmpty {
                         Text(placeholder)
-                            .pretendard(.body(.large()))
+                            .pretendard(.body(.medium(.bold)))
                             .foregroundStyle(Color.spotSecondaryText)
-                            .padding(.horizontal, 4)
-                            .padding(.vertical, 8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                             .allowsHitTesting(false)
                     }
 
                     TextField("", text: text, axis: .vertical)
-                        .pretendard(.body(.large()))
+                        .pretendard(.body(.medium(.bold)))
                         .foregroundStyle(.white)
                         .textInputAutocapitalization(.sentences)
                         .lineLimit(4...6)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .frame(minHeight: 96, alignment: .topLeading)
+                .frame(minHeight: 64, alignment: .topLeading)
 
-                Text("\(count)/\(maxCount)")
-                    .pretendard(.label(.small))
-                    .foregroundStyle(Color.spotSecondaryText)
+                HStack(spacing: 0) {
+                    Text("\(count)")
+                        .foregroundStyle(.white)
+                    Text("/\(maxCount)")
+                        .foregroundStyle(Color.spotSecondaryText)
+                }
+                    .pretendard(.label(.medium))
                     .accessibilityLabel("\(count)자, 최대 \(maxCount)자")
             }
-            .padding(12)
-            .background(Color.spotCardBackground, in: RoundedRectangle(cornerRadius: 16))
+            .padding(16)
+            .background(Color.spotInputBackground, in: RoundedRectangle(cornerRadius: 8))
             .accessibilityElement(children: .contain)
             .accessibilityLabel(title)
         }

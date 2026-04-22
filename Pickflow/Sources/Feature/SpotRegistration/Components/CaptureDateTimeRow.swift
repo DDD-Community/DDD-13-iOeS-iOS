@@ -28,27 +28,12 @@ struct CaptureDateTimeRow: View {
 
     private func selectionField(title: String, value: String?, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            HStack(spacing: 8) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(value ?? title)
-                        .pretendard(.body(.medium(value == nil ? .regular : .bold)))
-                        .foregroundStyle(value == nil ? Color.spotSecondaryText : .white)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                    if value != nil {
-                        Text("수정")
-                            .pretendard(.label(.small))
-                            .foregroundStyle(Color.spotOrange)
-                    }
-                }
-
-                Image(systemName: "chevron.down")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(Color.spotSecondaryText)
-            }
-            .padding(.horizontal, 14)
-            .frame(maxWidth: .infinity, minHeight: 74)
-            .background(Color.spotCardBackground, in: RoundedRectangle(cornerRadius: 16))
+            Text(value ?? title)
+                .pretendard(.body(.medium(.bold)))
+                .foregroundStyle(value == nil ? Color.spotSecondaryText : .white)
+                .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
+                .padding(.horizontal, 16)
+                .background(Color.spotInputBackground, in: RoundedRectangle(cornerRadius: 8))
         }
         .buttonStyle(.plain)
     }

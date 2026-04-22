@@ -95,7 +95,7 @@ struct SpotRegistrationView: View {
                     maxCount: 50
                 )
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 16)
             .padding(.vertical, 24)
         }
         .background(Color.spotBackground.ignoresSafeArea())

@@ -6,32 +6,32 @@ struct SpotAddressCard: View {
     let distanceText: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .top, spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(title)
-                        .pretendard(.body(.large(.bold)))
-                        .foregroundStyle(.white)
-
-                    Text(address)
-                        .pretendard(.body(.small()))
-                        .foregroundStyle(Color.spotSecondaryText)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                Spacer(minLength: 12)
-
-                Text(distanceText)
-                    .pretendard(.label(.small))
+        VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .pretendard(.body(.large(.bold)))
                     .foregroundStyle(.white)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(Color.spotPillBackground, in: Capsule())
+
+                Text(address)
+                    .pretendard(.body(.small()))
+                    .foregroundStyle(Color.spotTertiaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            HStack {
+                Text(distanceText)
+                    .pretendard(.label(.medium))
+                    .foregroundStyle(Color(red: 0.902, green: 0.910, blue: 0.918))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.spotPillBackground, in: RoundedRectangle(cornerRadius: 4))
+
+                Spacer(minLength: 0)
             }
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.spotCardBackground, in: RoundedRectangle(cornerRadius: 16))
+        .background(Color.spotPhotoCardBackground, in: RoundedRectangle(cornerRadius: 8))
         .accessibilityElement(children: .combine)
         .accessibilityLabel("선택한 장소 \(title), 주소 \(address), 거리 \(distanceText)")
     }

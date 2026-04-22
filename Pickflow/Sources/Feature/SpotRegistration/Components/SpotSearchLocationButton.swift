@@ -13,10 +13,10 @@ struct SpotSearchLocationButton: View {
                         .renderingMode(.template)
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 18, height: 18)
+                        .frame(width: 24, height: 24)
                 } else {
                     Image(systemName: "mappin")
-                        .font(.body.weight(.semibold))
+                        .font(.system(size: 24, weight: .semibold))
                 }
 
                 Text("장소 검색하기")
@@ -25,7 +25,7 @@ struct SpotSearchLocationButton: View {
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
             .frame(height: 56)
-            .background(Color.spotOrange, in: RoundedRectangle(cornerRadius: 16))
+            .background(Color.spotOrange, in: RoundedRectangle(cornerRadius: 8))
         }
         .buttonStyle(.plain)
         .accessibilityLabel("장소 검색하기")

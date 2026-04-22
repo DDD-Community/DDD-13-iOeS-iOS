@@ -9,13 +9,13 @@ struct SpotPhotoPickerCard: View {
 
     var body: some View {
         let currentPhotoData = photoData
-        let placeholderToken = PretendardStyle.body(.medium()).token
+        let placeholderToken = PretendardStyle.body(.medium(.bold)).token
 
         ZStack(alignment: .topTrailing) {
             PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.spotCardBackground)
-                    .frame(height: 180)
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.spotPhotoCardBackground)
+                    .frame(height: 200)
                     .overlay {
                         if let currentPhotoData, let image = UIImage(data: currentPhotoData) {
                             Image(uiImage: image)
@@ -23,22 +23,22 @@ struct SpotPhotoPickerCard: View {
                                 .scaledToFill()
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                         } else {
-                            VStack(spacing: 12) {
+                            VStack(spacing: 8) {
                                 Image(systemName: "photo.badge.plus")
-                                    .font(.system(size: 28, weight: .medium))
-                                    .foregroundStyle(.white)
+                                    .font(.system(size: 32, weight: .medium))
+                                    .foregroundStyle(Color.spotPlaceholderText)
 
                                 Text("등록할 스팟의 사진을\n선택해 주세요.")
                                     .font(placeholderToken.font)
                                     .tracking(placeholderToken.kerning)
                                     .lineSpacing(placeholderToken.lineSpacing)
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(Color.spotPlaceholderText)
                                     .multilineTextAlignment(.center)
                             }
                             .padding(24)
                         }
                     }
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
             }
             .buttonStyle(.plain)
             .accessibilityLabel("스팟 사진 선택")

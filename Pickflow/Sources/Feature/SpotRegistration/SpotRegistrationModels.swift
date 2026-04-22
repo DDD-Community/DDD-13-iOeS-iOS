@@ -6,6 +6,15 @@ enum SpotRegistrationCopy {
 }
 
 extension PhotoCategory {
+    var iconAssetName: String {
+        switch self {
+        case .sunset:
+            "icon_photo_category_sunset"
+        case .reflection:
+            "icon_photo_category_reflection"
+        }
+    }
+
     var iconEmoji: String {
         switch self {
         case .sunset:
@@ -72,10 +81,14 @@ extension DateFormatter {
 extension Color {
     static let spotBackground = Color(red: 0.043, green: 0.043, blue: 0.043)
     static let spotCardBackground = Color(red: 0.110, green: 0.110, blue: 0.118)
+    static let spotPhotoCardBackground = Color(red: 0.200, green: 0.212, blue: 0.239)
+    static let spotInputBackground = Color(red: 0.118, green: 0.129, blue: 0.141)
     static let spotSecondaryText = Color(red: 0.541, green: 0.541, blue: 0.557)
-    static let spotOrange = Color(red: 1.000, green: 0.416, blue: 0.165)
+    static let spotTertiaryText = Color(red: 0.694, green: 0.722, blue: 0.745)
+    static let spotPlaceholderText = Color(red: 0.427, green: 0.471, blue: 0.510)
+    static let spotOrange = Color(red: 0.980, green: 0.380, blue: 0.200)
     static let spotDisabled = Color(red: 0.353, green: 0.353, blue: 0.353)
     static let spotChipBorder = Color(red: 0.267, green: 0.267, blue: 0.282)
     static let spotDivider = Color.white.opacity(0.08)
-    static let spotPillBackground = Color.white.opacity(0.08)
+    static let spotPillBackground = Color(red: 0.118, green: 0.129, blue: 0.141)
 }

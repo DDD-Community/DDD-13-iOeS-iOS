@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct PhotoCategoryChipGroup: View {
     @Binding var selectedCategory: PhotoCategory?
@@ -11,16 +12,25 @@ struct PhotoCategoryChipGroup: View {
                         selectedCategory = selectedCategory == category ? nil : category
                     } label: {
                         HStack(spacing: 6) {
-                            Text(category.iconEmoji)
+                            if UIImage(named: category.iconAssetName) != nil {
+                                Image(category.iconAssetName)
+                                    .renderingMode(.original)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 20, height: 20)
+                            } else {
+                                Text(category.iconEmoji)
+                                    .font(.system(size: 20))
+                            }
                             Text(category.displayName)
                                 .pretendard(.body(.medium(.bold)))
+                                .foregroundStyle(selectedCategory == category ? .white : Color.spotSecondaryText)
                         }
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 16)
-                        .frame(height: 44)
-                        .background(Color.spotCardBackground, in: Capsule())
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color.spotInputBackground, in: RoundedRectangle(cornerRadius: 8))
                         .overlay {
-                            Capsule()
+                            RoundedRectangle(cornerRadius: 8)
                                 .stroke(
                                     selectedCategory == category ? Color.spotOrange : Color.spotChipBorder,
                                     lineWidth: selectedCategory == category ? 1.5 : 1
