@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SpotRegistrationView: View {
+    @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: SpotRegistrationViewModel
     @State private var isDateSheetPresented = false
     @State private var isTimeSheetPresented = false
@@ -43,6 +44,15 @@ struct SpotRegistrationView: View {
     private var displayedTimeText: String? {
         guard let capturedTime = viewModel.capturedTime else { return nil }
         return DateFormatter.spotCaptureTimeDisplay.string(from: capturedTime)
+    }
+
+    private func dismissKeyboard() {
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil,
+            from: nil,
+            for: nil
+        )
     }
 
     var body: some View {
@@ -98,12 +108,32 @@ struct SpotRegistrationView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 24)
         }
+        .scrollDismissesKeyboard(.immediately)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            dismissKeyboard()
+        }
         .background(Color.spotBackground.ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden()
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 28, weight: .regular))
+                        .foregroundStyle(.white)
+                        .frame(width: 28, height: 28)
+                        .padding(10)
+                        .background(.ultraThinMaterial, in: Circle())
+                }
+                .accessibilityLabel("뒤로가기")
+            }
+
             ToolbarItem(placement: .principal) {
                 Text("스팟 등록")
-                    .pretendard(.heading(.small))
+                    .pretendard(.heading(.medium))
                     .foregroundStyle(.white)
             }
 
@@ -119,7 +149,7 @@ struct SpotRegistrationView: View {
                                 .tint(.white)
                         } else {
                             Text("등록")
-                                .pretendard(.body(.medium(.bold)))
+                                .pretendard(.heading(.small))
                                 .foregroundStyle(registerButtonColor)
                         }
                     }
