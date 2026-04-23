@@ -95,11 +95,13 @@ struct CaptureTimePickerSheet: View {
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 16)
-            .padding(.bottom, 48)
         }
         .padding(.top, 24)
+        .padding(.bottom, 48)
         .background(Color.spotCardBackground)
-        .presentationDetents([.height(402)])
+        .environment(\.colorScheme, .dark)
+        .presentationDetents([.height(360)])
+        .presentationBackground(Color.spotCardBackground)
         .presentationDragIndicator(.hidden)
         .presentationCornerRadius(16)
         .onChange(of: selectedHour24) { _, _ in
@@ -133,20 +135,12 @@ struct CaptureTimePickerSheet: View {
         Picker("", selection: selection) {
             ForEach(values, id: \.self) { value in
                 Text(title(value))
+                    .foregroundStyle(.white)
                     .tag(value)
             }
         }
         .pickerStyle(.wheel)
         .frame(maxWidth: .infinity)
         .clipped()
-        .overlay(alignment: .center) {
-            RoundedRectangle(cornerRadius: 7)
-                .fill(Color.white.opacity(0.10))
-                .frame(height: 36)
-                .allowsHitTesting(false)
-        }
-        .overlay {
-            EmptyView()
-        }
     }
 }

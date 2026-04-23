@@ -43,7 +43,10 @@ struct CaptureDateTimeRow: View {
             }
             .frame(maxWidth: .infinity, minHeight: 56)
             .padding(.horizontal, 16)
-            .background(Color.spotPhotoCardBackground, in: RoundedRectangle(cornerRadius: 8))
+            .background(
+                value == nil ? Color.spotInputBackground : Color.spotPhotoCardBackground,
+                in: RoundedRectangle(cornerRadius: 8)
+            )
         }
         .buttonStyle(.plain)
     }
