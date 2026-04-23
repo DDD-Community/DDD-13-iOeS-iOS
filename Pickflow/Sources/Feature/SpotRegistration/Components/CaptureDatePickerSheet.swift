@@ -58,13 +58,8 @@ struct CaptureDatePickerSheet: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            Capsule()
-                .fill(Color.white.opacity(0.18))
-                .frame(width: 44, height: 5)
-                .padding(.top, 8)
-
             Text("날짜 선택")
-                .pretendard(.body(.large(.bold)))
+                .pretendard(.heading(.small))
                 .foregroundStyle(.white)
 
             HStack(spacing: 0) {
@@ -87,16 +82,18 @@ struct CaptureDatePickerSheet: View {
                 Text("확인")
                     .pretendard(.body(.large(.bold)))
                     .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity, minHeight: 54)
-                    .background(Color.spotOrange, in: RoundedRectangle(cornerRadius: 16))
+                    .frame(maxWidth: .infinity, minHeight: 56)
+                    .background(Color.spotOrange, in: RoundedRectangle(cornerRadius: 8))
             }
             .buttonStyle(.plain)
-            .padding(.horizontal, 20)
-            .padding(.bottom, 20)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 48)
         }
+        .padding(.top, 24)
         .background(Color.spotCardBackground)
-        .presentationDetents([.height(360)])
-        .presentationDragIndicator(.visible)
+        .presentationDetents([.height(402)])
+        .presentationDragIndicator(.hidden)
+        .presentationCornerRadius(16)
         .onChange(of: selectedYear) { _, _ in
             clampMonthAndDay()
         }
@@ -137,13 +134,21 @@ struct CaptureDatePickerSheet: View {
         Picker("", selection: selection) {
             ForEach(values, id: \.self) { value in
                 Text(title(value))
-                    .pretendard(.body(.large()))
-                    .foregroundStyle(.white)
                     .tag(value)
             }
         }
         .pickerStyle(.wheel)
         .frame(maxWidth: .infinity)
         .clipped()
+        .overlay(alignment: .center) {
+            RoundedRectangle(cornerRadius: 7)
+                .fill(Color.white.opacity(0.10))
+                .frame(height: 36)
+                .allowsHitTesting(false)
+        }
+        .overlay {
+            // Keep the text style close to Figma while using the native wheel behavior.
+            EmptyView()
+        }
     }
 }

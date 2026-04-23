@@ -28,12 +28,22 @@ struct CaptureDateTimeRow: View {
 
     private func selectionField(title: String, value: String?, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(value ?? title)
-                .pretendard(.body(.medium(.bold)))
-                .foregroundStyle(value == nil ? Color.spotSecondaryText : .white)
-                .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
-                .padding(.horizontal, 16)
-                .background(Color.spotInputBackground, in: RoundedRectangle(cornerRadius: 8))
+            HStack(spacing: 12) {
+                Text(value ?? title)
+                    .pretendard(.body(.medium(.bold)))
+                    .foregroundStyle(value == nil ? Color.spotSecondaryText : .white)
+
+                Spacer(minLength: 0)
+
+                if value != nil {
+                    Text("수정")
+                        .pretendard(.label(.medium))
+                        .foregroundStyle(Color.spotOrange)
+                }
+            }
+            .frame(maxWidth: .infinity, minHeight: 56)
+            .padding(.horizontal, 16)
+            .background(Color.spotPhotoCardBackground, in: RoundedRectangle(cornerRadius: 8))
         }
         .buttonStyle(.plain)
     }

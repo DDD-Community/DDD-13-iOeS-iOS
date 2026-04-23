@@ -24,9 +24,17 @@ struct SpotPhotoPickerCard: View {
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                         } else {
                             VStack(spacing: 8) {
-                                Image(systemName: "photo.badge.plus")
-                                    .font(.system(size: 32, weight: .medium))
-                                    .foregroundStyle(Color.spotPlaceholderText)
+                                if UIImage(named: "icon_image_search") != nil {
+                                    Image("icon_image_search")
+                                        .renderingMode(.original)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 32, height: 32)
+                                } else {
+                                    Image(systemName: "photo.badge.plus")
+                                        .font(.system(size: 32, weight: .medium))
+                                        .foregroundStyle(Color.spotPlaceholderText)
+                                }
 
                                 Text("등록할 스팟의 사진을\n선택해 주세요.")
                                     .font(placeholderToken.font)
