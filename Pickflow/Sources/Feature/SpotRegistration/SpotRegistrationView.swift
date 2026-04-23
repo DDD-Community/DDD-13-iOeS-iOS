@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct SpotRegistrationView: View {
     @Environment(\.dismiss) private var dismiss
@@ -53,6 +54,69 @@ struct SpotRegistrationView: View {
             from: nil,
             for: nil
         )
+    }
+
+    @ViewBuilder
+    private var headerView: some View {
+        HStack {
+            Button {
+                dismiss()
+            } label: {
+                Group {
+                    if UIImage(named: "icon_back_arrow") != nil {
+                        Image("icon_back_arrow")
+                            .renderingMode(.template)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 28, height: 28)
+                    } else {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 28, weight: .regular))
+                            .frame(width: 28, height: 28)
+                    }
+                }
+                .foregroundStyle(.white)
+                .frame(width: 44, height: 44)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("뒤로가기")
+
+            Spacer()
+
+            Text("스팟 등록")
+                .pretendard(.heading(.medium))
+                .foregroundStyle(.white)
+
+            Spacer()
+
+            Button {
+                Task {
+                    await viewModel.submit()
+                }
+            } label: {
+                Group {
+                    if viewModel.isSubmitting {
+                        ProgressView()
+                            .tint(.white)
+                            .frame(width: 44, height: 44)
+                    } else {
+                        Text("등록")
+                            .pretendard(.heading(.small))
+                            .foregroundStyle(registerButtonColor)
+                            .frame(width: 44, height: 44)
+                    }
+                }
+            }
+            .buttonStyle(.plain)
+            .disabled(!viewModel.isRegisterEnabled)
+            .accessibilityLabel("등록")
+            .accessibilityHint("입력한 내용으로 스팟을 등록합니다")
+        }
+        .frame(height: 44)
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+        .padding(.bottom, 12)
+        .background(Color.spotBackground)
     }
 
     var body: some View {
@@ -113,52 +177,12 @@ struct SpotRegistrationView: View {
         .onTapGesture {
             dismissKeyboard()
         }
-        .background(Color.spotBackground.ignoresSafeArea())
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden()
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 28, weight: .regular))
-                        .foregroundStyle(.white)
-                        .frame(width: 28, height: 28)
-                        .padding(10)
-                        .background(.ultraThinMaterial, in: Circle())
-                }
-                .accessibilityLabel("뒤로가기")
-            }
-
-            ToolbarItem(placement: .principal) {
-                Text("스팟 등록")
-                    .pretendard(.heading(.medium))
-                    .foregroundStyle(.white)
-            }
-
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    Task {
-                        await viewModel.submit()
-                    }
-                } label: {
-                    Group {
-                        if viewModel.isSubmitting {
-                            ProgressView()
-                                .tint(.white)
-                        } else {
-                            Text("등록")
-                                .pretendard(.heading(.small))
-                                .foregroundStyle(registerButtonColor)
-                        }
-                    }
-                }
-                .disabled(!viewModel.isRegisterEnabled)
-                .accessibilityLabel("등록")
-                .accessibilityHint("입력한 내용으로 스팟을 등록합니다")
-            }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            headerView
         }
+        .background(Color.spotBackground.ignoresSafeArea())
+        .navigationBarBackButtonHidden()
+        .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $isDateSheetPresented) {
             CaptureDatePickerSheet(initialDate: viewModel.capturedDate) { date in
                 viewModel.setCapturedDate(date)
