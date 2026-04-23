@@ -16,8 +16,10 @@ struct SpotRegistrationDraft: Sendable {
     let comment: String?
 }
 
-struct SpotId: Hashable, Sendable {
+struct SpotId: Hashable, Sendable, Identifiable {
     let rawValue: String
+
+    var id: String { rawValue }
 }
 
 enum PhotoCategory: String, CaseIterable, Sendable, Hashable {

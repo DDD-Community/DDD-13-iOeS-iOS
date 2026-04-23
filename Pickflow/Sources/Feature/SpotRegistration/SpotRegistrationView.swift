@@ -6,10 +6,14 @@ struct SpotRegistrationView: View {
     @StateObject private var viewModel: SpotRegistrationViewModel
     @State private var isDateSheetPresented = false
     @State private var isTimeSheetPresented = false
-    @State private var pushedSpotId: SpotId?
+    private let onRegistered: @MainActor (SpotId) -> Void
 
-    init(viewModel: SpotRegistrationViewModel) {
+    init(
+        viewModel: SpotRegistrationViewModel,
+        onRegistered: @escaping @MainActor (SpotId) -> Void
+    ) {
         _viewModel = StateObject(wrappedValue: viewModel)
+        self.onRegistered = onRegistered
     }
 
     private var spotNameBinding: Binding<String> {
@@ -135,7 +139,12 @@ struct SpotRegistrationView: View {
 
                 SpotSearchLocationButton(
                     action: {
+                        #if DEBUG
+                        // TODO(KAN-XX): 주소 검색 화면 연결 전까지 탭 시 mock 주소를 주입해 QA를 돕는다.
+                        viewModel.applyMockAddressSelection()
+                        #else
                         // TODO(KAN-XX): 주소 검색 화면 연결
+                        #endif
                     },
                     debugLongPressAction: {
                         #if DEBUG
@@ -207,11 +216,9 @@ struct SpotRegistrationView: View {
         } message: {
             Text(viewModel.errorMessage ?? "")
         }
-        .navigationDestination(item: $pushedSpotId) { spotId in
-            SpotDetailPlaceholderView(spotId: spotId)
-        }
         .onChange(of: viewModel.registeredSpotId) { _, newValue in
-            pushedSpotId = newValue
+            guard let newValue else { return }
+            onRegistered(newValue)
         }
     }
 }
@@ -219,7 +226,8 @@ struct SpotRegistrationView: View {
 #Preview {
     NavigationStack {
         SpotRegistrationView(
-            viewModel: SpotRegistrationViewModel(spotService: SpotRegistrationPreviewService())
+            viewModel: SpotRegistrationViewModel(spotService: SpotRegistrationPreviewService()),
+            onRegistered: { _ in }
         )
     }
 }
