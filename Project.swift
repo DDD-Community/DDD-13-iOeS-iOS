@@ -41,5 +41,22 @@ let project = Project(
                 ]
             )
         ),
+        .target(
+            name: "\(ProjectEnvironment.name)Tests",
+            destinations: [.iPhone],
+            product: .unitTests,
+            bundleId: "\(ProjectEnvironment.bundleID).tests",
+            deploymentTargets: .iOS(ProjectEnvironment.deploymentTarget),
+            infoPlist: .default,
+            sources: ["PickflowTests/**"],
+            dependencies: [
+                .target(name: ProjectEnvironment.name),
+            ],
+            settings: .settings(
+                base: [
+                    "SWIFT_STRICT_CONCURRENCY": "complete",
+                ]
+            )
+        ),
     ]
 )
