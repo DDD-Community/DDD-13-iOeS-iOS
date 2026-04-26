@@ -4,6 +4,14 @@ struct SavedHomeView: View {
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 24) {
+                NavigationLink("2 depth로 이동", value: DummyRoute.detail(from: "저장"))
+                    .pretendard(.label(.medium))
+                    .foregroundStyle(.gray0)
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
+                    .background(.gray90)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+
                 HeroCard(
                     eyebrow: "SAVED",
                     title: "저장 탭",
