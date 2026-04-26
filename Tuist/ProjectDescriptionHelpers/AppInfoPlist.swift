@@ -6,8 +6,8 @@ public enum URLScheme {
     public static let portrait = "UIInterfaceOrientationPortrait"
 }
 
-public extension InfoPlist {
-    static let app: Self = .extendingDefault(with: [
+extension InfoPlist {
+    public static let app: Self = .extendingDefault(with: [
         "CFBundleDisplayName": .string(ProjectEnvironment.name),
         "FirebaseAppDelegateProxyEnabled": .boolean(false),
         "FirebaseMessagingAutoInitEnabled": .boolean(true),
@@ -17,12 +17,12 @@ public extension InfoPlist {
                 "CFBundleTypeRole": .string(URLScheme.editorRole),
                 "CFBundleURLName": .string("$(PRODUCT_BUNDLE_IDENTIFIER)"),
                 "CFBundleURLSchemes": .array([
-                    .string("$(KAKAO_CALLBACK_SCHEME)"),
+                    .string("$(KAKAO_CALLBACK_SCHEME)")
                 ]),
-            ]),
+            ])
         ]),
         "LSApplicationQueriesSchemes": .array([
-            .string(URLScheme.kakaoCompassAuth),
+            .string(URLScheme.kakaoCompassAuth)
         ]),
         "NMFNcpKeyId": .string("$(NAVER_MAPS_CLIENT_ID)"),
         "UILaunchScreen": .dictionary([
@@ -30,7 +30,8 @@ public extension InfoPlist {
             "UIImageName": .string(""),
         ]),
         "UISupportedInterfaceOrientations": .array([
-            .string(URLScheme.portrait),
+            .string(URLScheme.portrait)
         ]),
+        "UIUserInterfaceStyle": .string("Dark"),
     ])
 }
