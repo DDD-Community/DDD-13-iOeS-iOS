@@ -1,21 +1,6 @@
 import CoreLocation
 import Foundation
 
-// 무드 필터 (노을/윤슬). API 명세 확정 시 서버 enum 과 매핑 필요
-enum MoodFilter: String, CaseIterable, Identifiable {
-    case sunset = "노을"
-    case ripple = "윤슬"
-
-    var id: String { rawValue }
-
-    var imageName: String {
-        switch self {
-        case .sunset: "sunset"
-        case .ripple: "sparklingRipple"
-        }
-    }
-}
-
 // 지도에 표시할 장소 모델 (API 명세 확정 후 필드 보강 예정)
 struct MapPlace: Identifiable, Equatable {
     let id: String
