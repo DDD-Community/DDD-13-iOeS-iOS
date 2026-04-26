@@ -70,14 +70,14 @@ struct LoginView: View {
 
             Text("일상 속 반짝임,\n실패 없이 포착하세요")
                 .pretendard(.display(.medium))
-                .foregroundStyle(Color("gray0"))
+                .foregroundStyle(.gray0)
                 .multilineTextAlignment(.center)
                 .accessibilityAddTraits(.isHeader)
                 .padding(.bottom, 32)
 
             Text("파편화된 포토스팟 정보는 이제 그만.\n정확한 일몰 시간과 촬영 팁을 한눈에 보세요.")
                 .pretendard(.body(.small()))
-                .foregroundStyle(Color("gray10"))
+                .foregroundStyle(.gray10)
                 .multilineTextAlignment(.center)
         }
     }
@@ -96,7 +96,7 @@ struct LoginView: View {
                         .fill(Color.loginLogoBackground)
                     Image(systemName: "camera.fill")
                         .font(.system(size: 32, weight: .bold))
-                        .foregroundStyle(Color("gray0"))
+                        .foregroundStyle(.gray0)
                 }
             }
         }
