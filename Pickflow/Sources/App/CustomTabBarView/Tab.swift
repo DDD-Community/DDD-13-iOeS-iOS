@@ -17,4 +17,15 @@ enum Tab: String, CaseIterable, Identifiable {
             "my"
         }
     }
+
+    var selectedIconName: String {
+        switch self {
+        case .explore:
+            self.iconName
+        case .saved:
+            "selectedBookmark"
+        case .my:
+            self.iconName
+        }
+    }
 }

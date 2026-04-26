@@ -22,13 +22,14 @@ struct CustomTabBar: View {
             selectedTab = tab
         } label: {
             VStack(spacing: 8) {
-                Image(tab.iconName)
+                Image(isSelected ? tab.selectedIconName : tab.iconName)
                     .renderingMode(.template)
+                    .foregroundStyle(isSelected ? .gray0 : .gray50)
 
                 Text(tab.rawValue)
                     .pretendard(.label(.medium))
+                    .foregroundStyle(isSelected ? .gray0 : .gray50)
             }
-            .foregroundStyle(isSelected ? .gray0 : .gray50)
             .frame(maxWidth: .infinity)
             .padding(.top, 14)
         }
