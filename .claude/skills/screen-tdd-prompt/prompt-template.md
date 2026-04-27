@@ -3,9 +3,9 @@
 > **이 프롬프트의 사용법**: `screen-tdd-prompt` 스킬이 이 템플릿을 복제·치환해서 `docs/{{TICKET}}/{{SCREEN_SLUG}}-implementation-prompt.md`로 저장한다.
 >
 > **방법론은 여기 없다.** TDD 단계별 디테일은 단계 진입 시 리프 문서를 읽는다:
-> - Phase A: `.claude/skills/screen-tdd-prompt/phases/phase-a-viewmodel-tdd.md`
-> - Phase B: `.claude/skills/screen-tdd-prompt/phases/phase-b-ui-cases.md`
-> - Phase C: `.claude/skills/screen-tdd-prompt/phases/phase-c-snapshot.md`
+> - Phase A: `docs/phases/phase-a-viewmodel-tdd.md`
+> - Phase B: `docs/phases/phase-b-ui-cases.md`
+> - Phase C: `docs/phases/phase-c-snapshot.md`
 >
 > 본 문서는 **이 화면에만 해당하는 사실**(스코프, API, 정책, 에셋, 컴포넌트 매핑)을 담는다.
 
@@ -156,19 +156,19 @@ Phase A — ViewModel TDD (Gate 1A)
   · 진입: §3, §6, §9 모두 확정
   · 작업: 인터랙션별 RED → GREEN, SwiftUI 뷰 0줄
   · 종료: ViewModel 테스트 100% green, 뷰 파일 0개
-  · 가이드: phases/phase-a-viewmodel-tdd.md ← Phase A 들어갈 때 읽기
+  · 가이드: docs/phases/phase-a-viewmodel-tdd.md ← Phase A 들어갈 때 읽기
         ↓
 Phase B — ui-test-cases.md (Gate 1B + Gate 2)
   · 진입: Phase A 종료 조건 통과
   · 작업: docs/{{TICKET}}/ui-test-cases.md 8컬럼 표 작성
   · 종료: TODO 0개, 행마다 스냅샷 파일명 결정
-  · 가이드: phases/phase-b-ui-cases.md ← Phase B 들어갈 때 읽기
+  · 가이드: docs/phases/phase-b-ui-cases.md ← Phase B 들어갈 때 읽기
         ↓
 Phase C — Snapshot + UI (Gate 1C + Gate 3)
   · 진입: Phase B 종료 조건 통과
   · 작업: swift-snapshot-testing 케이스 RED → SwiftUI 뷰 → GREEN
   · 종료: 매트릭스 전 케이스 green, Figma 비교 루프 1회
-  · 가이드: phases/phase-c-snapshot.md ← Phase C 들어갈 때 읽기
+  · 가이드: docs/phases/phase-c-snapshot.md ← Phase C 들어갈 때 읽기
 ```
 
 > 각 Phase에 **들어갈 때** 해당 리프 문서를 read한다. 미리 다 읽어두지 않는다 — 단계 격리가 게이트의 본체다.
@@ -231,11 +231,11 @@ Button("{{SCREEN_NAME}} 열기") { is{{SCREEN_NAME_PASCAL}}Presented = true }
 ```
 0. §0~§8 합의 → §9 에셋 매트릭스 채움 (Gate 4)
         ↓
-1. phase-a-viewmodel-tdd.md 읽기 → Phase A 수행 (Gate 1A)
+1. docs/phases/phase-a-viewmodel-tdd.md 읽기 → Phase A 수행 (Gate 1A)
         ↓
-2. phase-b-ui-cases.md 읽기 → Phase B 수행 (Gate 1B + 2)
+2. docs/phases/phase-b-ui-cases.md 읽기 → Phase B 수행 (Gate 1B + 2)
         ↓
-3. phase-c-snapshot.md 읽기 → Phase C 수행 (Gate 1C + 3) → §11 Figma 루프
+3. docs/phases/phase-c-snapshot.md 읽기 → Phase C 수행 (Gate 1C + 3) → §11 Figma 루프
         ↓
 4. §12 디버그 검증 → §13 논의 포인트 → §14 통과 → PR
 ```
