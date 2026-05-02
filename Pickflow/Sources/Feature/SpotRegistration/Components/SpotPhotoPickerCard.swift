@@ -9,7 +9,6 @@ struct SpotPhotoPickerCard: View {
 
     var body: some View {
         let currentPhotoData = photoData
-        let placeholderToken = PretendardStyle.body(.medium(.bold)).token
 
         ZStack(alignment: .topTrailing) {
             PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
@@ -23,27 +22,7 @@ struct SpotPhotoPickerCard: View {
                                 .scaledToFill()
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                         } else {
-                            VStack(spacing: 8) {
-                                if UIImage(named: "icon_image_search") != nil {
-                                    Image("icon_image_search")
-                                        .renderingMode(.original)
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 32, height: 32)
-                                } else {
-                                    Image(systemName: "photo.badge.plus")
-                                        .font(.system(size: 32, weight: .medium))
-                                        .foregroundStyle(Color.spotPlaceholderText)
-                                }
-
-                                Text("등록할 스팟의 사진을\n선택해 주세요.")
-                                    .font(placeholderToken.font)
-                                    .tracking(placeholderToken.kerning)
-                                    .lineSpacing(placeholderToken.lineSpacing)
-                                    .foregroundStyle(Color.spotPlaceholderText)
-                                    .multilineTextAlignment(.center)
-                            }
-                            .padding(24)
+                            SpotPhotoPlaceholder()
                         }
                     }
                     .clipShape(RoundedRectangle(cornerRadius: 8))
@@ -74,5 +53,29 @@ struct SpotPhotoPickerCard: View {
                 .accessibilityLabel("선택한 스팟 사진 제거")
             }
         }
+    }
+}
+
+private struct SpotPhotoPlaceholder: View {
+    var body: some View {
+        VStack(spacing: 8) {
+            if UIImage(named: "icon_image_search") != nil {
+                Image("icon_image_search")
+                    .renderingMode(.original)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
+            } else {
+                Image(systemName: "photo.badge.plus")
+                    .font(.system(size: 32, weight: .medium))
+                    .foregroundStyle(Color.spotPlaceholderText)
+            }
+
+            Text("등록할 스팟의 사진을\n선택해 주세요.")
+                .pretendard(.body(.medium(.bold)))
+                .foregroundStyle(Color.spotPlaceholderText)
+                .multilineTextAlignment(.center)
+        }
+        .padding(24)
     }
 }
