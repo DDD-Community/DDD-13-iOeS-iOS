@@ -1,7 +1,9 @@
+import CoreLocation
 import Foundation
 
 protocol LocationServiceProtocol: Sendable {
     func requestAuthorization()
+    func authorizationStatus() -> CLAuthorizationStatus
     func currentLocation() async throws -> Coordinate
     func startUpdatingLocation() -> AsyncStream<Coordinate>
 }

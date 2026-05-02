@@ -1,42 +1,54 @@
 import SwiftUI
 
+/// 앱 런치 시 첫 뷰. 실질 라우팅은 `AppRootView`에서 수행한다.
 struct ContentView: View {
-    @State private var path: [ContentRoute] = []
-    @State private var pendingRegisteredSpotId: SpotId?
-    @State private var presentedSpotId: SpotId?
+    @State private var selectedTab: Tab = .explore
+    @State private var explorePath = NavigationPath()
+    @State private var savedPath = NavigationPath()
+    @State private var myPath = NavigationPath()
+
+    private var isTabBarVisible: Bool {
+        switch selectedTab {
+        case .explore: explorePath.isEmpty
+        case .saved: savedPath.isEmpty
+        case .my: myPath.isEmpty
+        }
+    }
 
     var body: some View {
-        NavigationStack(path: $path) {
-            VStack(spacing: 16) {
-                Text("Pickflow")
-                    .pretendard(.display(.medium))
-
-                Button("스팟 등록 열기") {
-                    path.append(.spotRegistration)
+        Group {
+            switch selectedTab {
+            case .explore:
+                NavigationStack(path: $explorePath) {
+                    ExploreHomeView()
+                        .navigationDestination(for: DummyRoute.self) { route in
+                            DetailDummyView(route: route)
+                        }
                 }
-                .pretendard(.body(.large(.bold)))
-                .buttonStyle(.plain)
-            }
-            .navigationDestination(for: ContentRoute.self) { route in
-                switch route {
-                case .spotRegistration:
-                    SpotRegistrationAssembly.make { spotId in
-                        pendingRegisteredSpotId = spotId
-                        path.removeLast()
-                    }
+            case .saved:
+                NavigationStack(path: $savedPath) {
+                    SavedHomeView()
+                        .navigationDestination(for: DummyRoute.self) { route in
+                            DetailDummyView(route: route)
+                        }
+                }
+            case .my:
+                NavigationStack(path: $myPath) {
+                    MyHomeView()
+                        .navigationDestination(for: DummyRoute.self) { route in
+                            DetailDummyView(route: route)
+                        }
                 }
             }
         }
-        .onChange(of: path, initial: false) { _, newValue in
-            guard newValue.isEmpty, let pendingRegisteredSpotId else { return }
-            presentedSpotId = pendingRegisteredSpotId
-            self.pendingRegisteredSpotId = nil
-        }
-        .fullScreenCover(item: $presentedSpotId) { spotId in
-            NavigationStack {
-                SpotDetailPlaceholderView(spotId: spotId)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if isTabBarVisible {
+                CustomTabBar(selectedTab: $selectedTab)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
+        .animation(.easeInOut(duration: 0.25), value: isTabBarVisible)
     }
 }
 
