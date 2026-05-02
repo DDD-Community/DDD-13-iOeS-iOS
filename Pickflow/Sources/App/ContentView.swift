@@ -1,41 +1,62 @@
 import SwiftUI
 import UIKit
 
+/// 앱 런치 시 첫 뷰. 실질 라우팅은 `AppRootView`에서 수행한다.
 struct ContentView: View {
-    @State private var isSpotDetailPresented = false
-    private let debugSpotId: Int64 = 1
+    @State private var selectedTab: Tab = .explore
+    @State private var explorePath = NavigationPath()
+    @State private var savedPath = NavigationPath()
+    @State private var myPath = NavigationPath()
+
+    private var isTabBarVisible: Bool {
+        switch selectedTab {
+        case .explore: explorePath.isEmpty
+        case .saved: savedPath.isEmpty
+        case .my: myPath.isEmpty
+        }
+    }
 
     var body: some View {
-        VStack(spacing: 16) {
-            Text("Pickflow")
-                .font(.largeTitle)
-
-            Button("Spot Detail 열기") {
-                isSpotDetailPresented = true
+        Group {
+            switch selectedTab {
+            case .explore:
+                NavigationStack(path: $explorePath) {
+                    ExploreHomeView()
+                        .navigationDestination(for: DummyRoute.self) { route in
+                            DetailDummyView(route: route)
+                        }
+                }
+            case .saved:
+                NavigationStack(path: $savedPath) {
+                    SavedHomeView()
+                        .navigationDestination(for: DummyRoute.self) { route in
+                            DetailDummyView(route: route)
+                        }
+                }
+            case .my:
+                NavigationStack(path: $myPath) {
+                    MyHomeView()
+                        .navigationDestination(for: DummyRoute.self) { route in
+                            DetailDummyView(route: route)
+                        }
+                }
             }
         }
-        .fullScreenCover(isPresented: $isSpotDetailPresented) {
-#if DEBUG
-            // TODO: KAN-51 API 사용 가능해지면 실제 DI 서비스 주입으로 되돌리기
-            SpotDetailView(viewModel: SpotDetailDebugFactory.makeViewModel(spotId: debugSpotId))
-#else
-            SpotDetailView(
-                viewModel: SpotDetailViewModel(
-                    spotId: debugSpotId,
-                    spotService: getSpotService(),
-                    bookmarkService: getBookmarkService(),
-                    shareIntentService: getShareIntentService(),
-                    locationService: getLocationService(),
-                    externalAppLauncher: getExternalAppLauncher(),
-                    shareSheetPresenter: getShareSheetPresenter(),
-                    deviceIdProvider: { UIDevice.current.identifierForVendor?.uuidString ?? "unknown-device" }
-                )
-            )
-#endif
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if isTabBarVisible {
+                CustomTabBar(selectedTab: $selectedTab)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
         }
+        .animation(.easeInOut(duration: 0.25), value: isTabBarVisible)
     }
 }
 
 #Preview {
     ContentView()
+}
+
+private enum ContentRoute: Hashable {
+    case spotRegistration
 }

@@ -6,6 +6,7 @@ enum DesignSystemFontRegister {
         "Pretendard-Medium.otf",
         "Pretendard-SemiBold.otf",
         "Pretendard-Bold.otf",
+        "Rambla-Bold.ttf",
     ]
 
     static func registerAllCustomFonts() {
@@ -21,8 +22,9 @@ enum DesignSystemFontRegister {
         }
 
         guard let dataProvider = CGDataProvider(url: fontURL as CFURL),
-              let font = CGFont(dataProvider),
-              let postScriptName = font.postScriptName as String? else {
+            let font = CGFont(dataProvider),
+            let postScriptName = font.postScriptName as String?
+        else {
             print("\(displayName) 등록 실패")
             return
         }
