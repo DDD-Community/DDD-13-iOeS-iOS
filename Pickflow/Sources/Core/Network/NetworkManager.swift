@@ -33,8 +33,6 @@ final class NetworkManager: NetworkManagerProtocol, Sendable {
         .validate()
         .serializingData()
         .response
-        .serializingDecodable(T.self, decoder: Self.snakeCaseDecoder)
-        .value
 
         if response.response?.statusCode == 409 {
             throw BookmarkError.alreadyBookmarked

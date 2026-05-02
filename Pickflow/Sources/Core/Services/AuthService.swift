@@ -84,7 +84,3 @@ final class AuthService: AuthServiceProtocol, Sendable {
     }
 }
 
-// MARK: - EmptyResponse
-
-/// 본문 없는 응답(예: 204 No Content) 디코딩용.
-private struct EmptyResponse: Decodable, Sendable {}

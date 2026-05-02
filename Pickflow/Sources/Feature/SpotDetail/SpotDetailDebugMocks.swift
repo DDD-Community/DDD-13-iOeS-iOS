@@ -1,4 +1,5 @@
 #if DEBUG
+import CoreLocation
 import Foundation
 
 enum SpotDetailDebugFixture {
@@ -31,6 +32,10 @@ final class DebugSpotService: SpotServiceProtocol, Sendable {
         // TODO: KAN-51 API 사용 가능해지면 ContentView debug 진입점에서 실제 SpotService로 복구
         SpotDetailDebugFixture.spot
     }
+
+    func registerSpot(draft: SpotRegistrationDraft) async throws -> SpotId {
+        SpotId(rawValue: "debug-spot-id")
+    }
 }
 
 final class DebugBookmarkService: BookmarkServiceProtocol, Sendable {
@@ -51,6 +56,8 @@ final class DebugShareIntentService: ShareIntentServiceProtocol, Sendable {
 
 final class DebugLocationService: LocationServiceProtocol, Sendable {
     func requestAuthorization() {}
+
+    func authorizationStatus() -> CLAuthorizationStatus { .authorizedWhenInUse }
 
     func currentLocation() async throws -> Coordinate {
         Coordinate(latitude: 37.501, longitude: 126.951)

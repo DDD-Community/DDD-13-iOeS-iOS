@@ -227,6 +227,10 @@ struct SpotRegistrationView: View {
 }
 
 private struct SpotRegistrationPreviewService: SpotServiceProtocol {
+    func fetchSpotDetail(id: Int64, latitude: Double?, longitude: Double?) async throws -> SpotDetail {
+        throw URLError(.notConnectedToInternet)
+    }
+
     func registerSpot(draft: SpotRegistrationDraft) async throws -> SpotId {
         SpotId(rawValue: "preview-spot-id")
     }
