@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 struct PhotoCategoryChipGroup: View {
     @Binding var selectedCategory: PhotoCategory?
@@ -12,13 +11,7 @@ struct PhotoCategoryChipGroup: View {
                         selectedCategory = selectedCategory == category ? nil : category
                     } label: {
                         HStack(spacing: 6) {
-                            if UIImage(named: category.iconAssetName) != nil {
-                                Image(category.iconAssetName)
-                                    .renderingMode(.original)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 20, height: 20)
-                            } else {
+                            AssetImage(named: category.iconAssetName, size: 20) {
                                 Text(category.iconEmoji)
                                     .font(.system(size: 20))
                             }

@@ -59,13 +59,7 @@ struct SpotPhotoPickerCard: View {
 private struct SpotPhotoPlaceholder: View {
     var body: some View {
         VStack(spacing: 8) {
-            if UIImage(named: "icon_image_search") != nil {
-                Image("icon_image_search")
-                    .renderingMode(.original)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 32, height: 32)
-            } else {
+            AssetImage(named: "icon_image_search", size: 32) {
                 Image(systemName: "photo.badge.plus")
                     .font(.system(size: 32, weight: .medium))
                     .foregroundStyle(Color.spotPlaceholderText)

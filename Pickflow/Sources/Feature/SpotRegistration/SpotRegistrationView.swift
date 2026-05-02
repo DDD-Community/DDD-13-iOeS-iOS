@@ -67,13 +67,7 @@ struct SpotRegistrationView: View {
                 dismiss()
             } label: {
                 Group {
-                    if UIImage(named: "icon_back_arrow") != nil {
-                        Image("icon_back_arrow")
-                            .renderingMode(.template)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 28, height: 28)
-                    } else {
+                    AssetImage(named: "icon_back_arrow", renderingMode: .template, size: 28) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 28, weight: .regular))
                             .frame(width: 28, height: 28)
