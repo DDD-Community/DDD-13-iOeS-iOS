@@ -55,3 +55,7 @@ struct ContentView: View {
 #Preview {
     ContentView()
 }
+
+private enum ContentRoute: Hashable {
+    case spotRegistration
+}
