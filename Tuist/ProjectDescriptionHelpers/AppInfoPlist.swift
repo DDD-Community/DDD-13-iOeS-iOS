@@ -3,6 +3,7 @@ import ProjectDescription
 public enum URLScheme {
     public static let editorRole = "Editor"
     public static let kakaoCompassAuth = "kakaokompassauth"
+    public static let naverMap = "nmap"
     public static let portrait = "UIInterfaceOrientationPortrait"
 }
 
@@ -23,7 +24,8 @@ extension InfoPlist {
             ])
         ]),
         "LSApplicationQueriesSchemes": .array([
-            .string(URLScheme.kakaoCompassAuth)
+            .string(URLScheme.kakaoCompassAuth),
+            .string(URLScheme.naverMap),
         ]),
         "NMFNcpKeyId": .string("$(NAVER_MAPS_CLIENT_ID)"),
         "UILaunchScreen": .dictionary([
