@@ -39,16 +39,23 @@ struct SpotDetailView: View {
             .presentationDragIndicator(.visible)
             .presentationBackground(UIAsset.Colors.gray95.swiftUIColor)
         }
-        .overlay(alignment: .bottom) {
+        .overlay {
             if let toast = viewModel.toast {
-                Text(toast)
-                    .pretendard(.body(.small(.bold)))
-                    .foregroundStyle(.gray0)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(.gray80)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .padding(.bottom, 24)
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(.gray95)
+                    Text(toast)
+                        .pretendard(.body(.medium(.bold)))
+                        .foregroundStyle(.gray95)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 14)
+                .background(.gray0)
+                .clipShape(Capsule())
+                .shadow(color: .black.opacity(0.12), radius: 12, x: 0, y: 4)
+                .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                .animation(.easeInOut(duration: 0.2), value: viewModel.toast)
             }
         }
     }
