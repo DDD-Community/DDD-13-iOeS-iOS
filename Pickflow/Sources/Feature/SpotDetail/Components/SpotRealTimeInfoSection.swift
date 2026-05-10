@@ -52,11 +52,15 @@ struct SpotRealTimeInfoSection: View {
             .background(.gray90)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
-        .sheet(isPresented: $isCongestionInfoPresented) {
-            CongestionInfoPopup { isCongestionInfoPresented = false }
-                .presentationDetents([.height(480)])
-                .presentationDragIndicator(.visible)
-                .presentationBackground(UIAsset.Colors.gray90.swiftUIColor)
+        .fullScreenCover(isPresented: $isCongestionInfoPresented) {
+            ZStack {
+                Color.black.opacity(0.5)
+                    .ignoresSafeArea()
+                    .onTapGesture { isCongestionInfoPresented = false }
+                CongestionInfoPopup { isCongestionInfoPresented = false }
+                    .padding(.horizontal, 24)
+            }
+            .presentationBackground(.clear)
         }
     }
 

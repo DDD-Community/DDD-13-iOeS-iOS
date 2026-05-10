@@ -49,10 +49,10 @@ struct CongestionInfoPopup: View {
                     }
                 }
             }
-
-            Spacer()
         }
         .padding(24)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .frame(maxWidth: .infinity)
+        .background(UIAsset.Colors.gray90.swiftUIColor)
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 }
