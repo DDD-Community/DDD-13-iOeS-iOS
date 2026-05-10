@@ -4,11 +4,19 @@ struct SpotRealTimeInfoSection: View {
     let weather: SpotWeather
     let isMine: Bool
 
+    private var realtimeDescriptionText: AttributedString {
+        var str = AttributedString("공공 API를 활용한 실시간 정보를 확인해 보세요")
+        if let range = str.range(of: "실시간 정보") {
+            str[range].foregroundColor = UIAsset.Colors.sunsetOrange.swiftUIColor
+        }
+        return str
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("공공 API를 활용한 실시간 정보를 확인해 보세요")
+            Text(realtimeDescriptionText)
                 .pretendard(.body(.medium()))
-                .foregroundStyle(.sunsetOrange)
+                .foregroundStyle(.gray0)
                 .frame(maxWidth: .infinity, alignment: .center)
                 .multilineTextAlignment(.center)
 
