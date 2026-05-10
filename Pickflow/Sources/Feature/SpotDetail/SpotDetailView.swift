@@ -3,6 +3,7 @@ import SwiftUI
 struct SpotDetailView: View {
     @StateObject var viewModel: SpotDetailViewModel
     @Environment(\.dismiss) private var dismiss
+    @State private var isReportSheetPresented = false
 
     var body: some View {
         ZStack {
@@ -25,6 +26,18 @@ struct SpotDetailView: View {
             if isRequested {
                 dismiss()
             }
+        }
+        .sheet(isPresented: $isReportSheetPresented) {
+            ReportSheet(
+                onDismiss: { isReportSheetPresented = false },
+                onSubmit: { _ in
+                    viewModel.reportInvalidInfo()
+                    isReportSheetPresented = false
+                }
+            )
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(UIAsset.Colors.gray95.swiftUIColor)
         }
         .overlay(alignment: .bottom) {
             if let toast = viewModel.toast {
@@ -79,7 +92,7 @@ struct SpotDetailView: View {
                         weather: spot.weather,
                         isMine: spot.isMine
                     )
-                    ReportButton(action: viewModel.reportInvalidInfo)
+                    ReportButton(action: { isReportSheetPresented = true })
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
