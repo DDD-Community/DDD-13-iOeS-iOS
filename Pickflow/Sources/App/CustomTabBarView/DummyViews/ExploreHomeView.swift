@@ -1,9 +1,29 @@
 import SwiftUI
 
 struct ExploreHomeView: View {
+    #if DEBUG
+    @State private var isSpotDetailPresented = false
+    #endif
+
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 24) {
+                #if DEBUG
+                // TODO: KAN-84 테스트용 — 머지 전 삭제
+                Button("🧪 스팟 상세 열기 (KAN-84)") {
+                    isSpotDetailPresented = true
+                }
+                .pretendard(.body(.medium(.bold)))
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(.sunsetOrange)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .fullScreenCover(isPresented: $isSpotDetailPresented) {
+                    SpotDetailView(viewModel: SpotDetailDebugFactory.makeViewModel(spotId: 1))
+                }
+                #endif
+
                 NavigationLink("2 depth로 이동", value: DummyRoute.detail(from: "탐색"))
                     .pretendard(.label(.medium))
                     .foregroundStyle(.gray0)
