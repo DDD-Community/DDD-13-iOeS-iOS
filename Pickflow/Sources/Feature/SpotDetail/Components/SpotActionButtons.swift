@@ -37,7 +37,9 @@ struct SpotActionButtons: View {
             Button(action: onBookmark) {
                 Image(isBookmarked ? "icBookmarkFilled" : "icBookmarkBorder", bundle: PickflowResources.bundle)
                     .resizable()
+                    .renderingMode(.template)
                     .scaledToFit()
+                    .foregroundStyle(.gray95)
                     .frame(width: 24, height: 24)
                     .frame(width: 56, height: 56)
             }

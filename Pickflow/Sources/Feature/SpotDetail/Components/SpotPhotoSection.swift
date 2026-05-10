@@ -38,7 +38,7 @@ struct SpotPhotoSection: View {
         .frame(maxWidth: .infinity)
         .frame(height: 200)
         .clipShape(RoundedRectangle(cornerRadius: 8))
-        .overlay(alignment: .bottomTrailing) {
+        .overlay(alignment: .topLeading) {
             if imageURL != nil, let recordedTime {
                 Text(DateFormatter.pickflowDisplayTime(from: recordedTime))
                     .pretendard(.body(.small(.bold)))

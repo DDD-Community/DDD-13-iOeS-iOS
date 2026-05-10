@@ -10,7 +10,6 @@ struct SpotDetailView: View {
 
             VStack(spacing: 0) {
                 SpotDetailNavBar(
-                    onBack: viewModel.close,
                     onShare: viewModel.share,
                     onClose: viewModel.close
                 )

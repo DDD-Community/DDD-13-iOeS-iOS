@@ -214,7 +214,7 @@ final class SpotDetailSnapshotTests: XCTestCase {
         ZStack {
             UIAsset.Colors.gray95.color
             VStack(spacing: 0) {
-                SpotDetailNavBar(onBack: {}, onShare: {}, onClose: {})
+                SpotDetailNavBar(onShare: {}, onClose: {})
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
                         SpotHeaderSection(spot: spot)
@@ -240,7 +240,7 @@ final class SpotDetailSnapshotTests: XCTestCase {
     }
 
     private func navBarView() -> some View {
-        SpotDetailNavBar(onBack: {}, onShare: {}, onClose: {})
+        SpotDetailNavBar(onShare: {}, onClose: {})
     }
 
     private func headerView(spot: SpotDetail) -> some View {
