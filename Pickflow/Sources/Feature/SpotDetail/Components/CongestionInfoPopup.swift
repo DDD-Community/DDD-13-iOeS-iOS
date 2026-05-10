@@ -3,17 +3,18 @@ import SwiftUI
 struct CongestionInfoPopup: View {
     let onDismiss: () -> Void
 
-    private let levels: [(level: Congestion, color: Color, description: String)] = [
-        (.relaxed,         .green,                                        "방문객이 적어 여유롭게 즐길 수 있어요."),
-        (.normal,          .yellow,                                       "적당한 인원이 있어 쾌적하게 즐길 수 있어요."),
-        (.slightlyCrowded, UIAsset.Colors.sunsetOrange.swiftUIColor,     "방문객이 다소 많아 붐빌 수 있어요."),
-        (.crowded,         .red,                                          "방문객이 많아 혼잡할 수 있어요."),
+    private let levels: [(level: Congestion, range: String, description: String)] = [
+        (.relaxed,         "50% 이하",  "인구가 평소와 비교하여 적음"),
+        (.normal,          "50~75%",   "인구가 평소와 비교하여 비슷함"),
+        (.slightlyCrowded, "75~100%",  "인구가 평소와 비교하여 많음"),
+        (.crowded,         "100% 초과", "인구가 평소와 비교하여 매우 많음"),
     ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text("혼잡도 안내")
+                Spacer()
+                Text("혼잡도 표시 기준")
                     .pretendard(.body(.large(.bold)))
                     .foregroundStyle(.gray0)
                 Spacer()
@@ -25,26 +26,31 @@ struct CongestionInfoPopup: View {
                     }
                 }
             }
-            .padding(.bottom, 20)
+            .padding(.bottom, 28)
 
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 24) {
                 ForEach(levels, id: \.level) { item in
-                    HStack(alignment: .top, spacing: 10) {
-                        Circle()
-                            .fill(item.color)
-                            .frame(width: 8, height: 8)
-                            .padding(.top, 5)
-                        VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: 8) {
                             Text(item.level.rawValue)
-                                .pretendard(.body(.medium(.bold)))
+                                .pretendard(.heading(.large))
                                 .foregroundStyle(.gray0)
-                            Text(item.description)
-                                .pretendard(.body(.small()))
-                                .foregroundStyle(.gray50)
+                            Text(item.range)
+                                .pretendard(.body(.small(.bold)))
+                                .foregroundStyle(.sunsetOrange)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color(red: 0.29, green: 0.10, blue: 0.04))
+                                .clipShape(RoundedRectangle(cornerRadius: 4))
                         }
+                        Text(item.description)
+                            .pretendard(.body(.medium()))
+                            .foregroundStyle(.gray50)
                     }
                 }
             }
+
+            Spacer()
         }
         .padding(24)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

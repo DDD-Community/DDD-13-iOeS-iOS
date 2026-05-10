@@ -54,7 +54,7 @@ struct SpotRealTimeInfoSection: View {
         }
         .sheet(isPresented: $isCongestionInfoPresented) {
             CongestionInfoPopup { isCongestionInfoPresented = false }
-                .presentationDetents([.height(320)])
+                .presentationDetents([.height(480)])
                 .presentationDragIndicator(.visible)
                 .presentationBackground(UIAsset.Colors.gray90.swiftUIColor)
         }
