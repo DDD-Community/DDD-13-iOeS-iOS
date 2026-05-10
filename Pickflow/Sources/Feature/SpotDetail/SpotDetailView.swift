@@ -52,7 +52,7 @@ struct SpotDetailView: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 14)
                 .background(.gray0)
-                .clipShape(Capsule())
+                .clipShape(RoundedRectangle(cornerRadius: 8))
                 .shadow(color: .black.opacity(0.12), radius: 12, x: 0, y: 4)
                 .transition(.opacity.combined(with: .scale(scale: 0.95)))
                 .animation(.easeInOut(duration: 0.2), value: viewModel.toast)
