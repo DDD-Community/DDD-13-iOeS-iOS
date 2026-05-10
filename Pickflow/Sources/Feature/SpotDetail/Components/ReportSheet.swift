@@ -6,6 +6,12 @@ struct ReportSheet: View {
 
     @State private var text = ""
     private let maxLength = 200
+    private let minLength = 5
+    private let placeholder = "실제 위치가 지도와 달라요, 현재 공사 중이라 출입이 안 돼요 등 상세한 내용을 적어주세요 (최소 5자 이상)"
+
+    private var isSubmittable: Bool {
+        text.trimmingCharacters(in: .whitespacesAndNewlines).count >= minLength
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -27,24 +33,34 @@ struct ReportSheet: View {
                 } label: {
                     Text("등록")
                         .pretendard(.body(.large(.bold)))
-                        .foregroundStyle(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .gray50 : .sunsetOrange)
+                        .foregroundStyle(isSubmittable ? .sunsetOrange : .gray50)
                 }
-                .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .disabled(!isSubmittable)
             }
             .padding(.horizontal, 20)
             .padding(.top, 20)
             .padding(.bottom, 16)
 
             ZStack(alignment: .bottomTrailing) {
-                TextEditor(text: $text)
-                    .pretendard(.body(.medium()))
-                    .foregroundStyle(.gray0)
-                    .scrollContentBackground(.hidden)
-                    .onChange(of: text) { _, newValue in
-                        if newValue.count > maxLength {
-                            text = String(newValue.prefix(maxLength))
-                        }
+                ZStack(alignment: .topLeading) {
+                    if text.isEmpty {
+                        Text(placeholder)
+                            .pretendard(.body(.medium()))
+                            .foregroundStyle(.gray50)
+                            .padding(.top, 8)
+                            .padding(.leading, 5)
+                            .allowsHitTesting(false)
                     }
+                    TextEditor(text: $text)
+                        .pretendard(.body(.medium()))
+                        .foregroundStyle(.gray0)
+                        .scrollContentBackground(.hidden)
+                        .onChange(of: text) { _, newValue in
+                            if newValue.count > maxLength {
+                                text = String(newValue.prefix(maxLength))
+                            }
+                        }
+                }
 
                 HStack(spacing: 0) {
                     Text("\(text.count)")

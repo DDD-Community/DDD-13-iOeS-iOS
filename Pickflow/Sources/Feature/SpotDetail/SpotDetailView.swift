@@ -35,7 +35,7 @@ struct SpotDetailView: View {
                     isReportSheetPresented = false
                 }
             )
-            .presentationDetents([.large])
+            .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
             .presentationBackground(UIAsset.Colors.gray95.swiftUIColor)
         }
