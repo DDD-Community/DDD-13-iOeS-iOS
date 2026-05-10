@@ -8,12 +8,15 @@ struct SpotRealTimeInfoSection: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("공공 API를 활용한 실시간 정보를 확인해 보세요")
                 .pretendard(.body(.medium()))
-                .foregroundStyle(.gray0)
+                .foregroundStyle(.sunsetOrange)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .multilineTextAlignment(.center)
 
             VStack(alignment: .leading, spacing: 0) {
                 Text("\(DateFormatter.pickflowDisplayTime(from: weather.sunsetTime)) 기준 정보입니다.")
                     .pretendard(.body(.small()))
                     .foregroundStyle(.gray50)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
                     .padding(.bottom, 8)
 
                 infoRow(
@@ -42,9 +45,11 @@ struct SpotRealTimeInfoSection: View {
         }
     }
 
+    private static let whiteIconNames: Set<String> = ["icSunny", "icTwilight"]
+
     private func infoRow(iconName: String, label: String, value: String, sub: String?) -> some View {
         HStack(spacing: 12) {
-            iconContainer(named: iconName)
+            iconContainer(named: iconName, white: Self.whiteIconNames.contains(iconName))
             VStack(alignment: .leading, spacing: 2) {
                 Text(label)
                     .pretendard(.body(.small()))
@@ -88,12 +93,13 @@ struct SpotRealTimeInfoSection: View {
         .frame(height: 54)
     }
 
-    private func iconContainer(named: String) -> some View {
-        AssetImage(named: named, size: 36) {
+    private func iconContainer(named: String, white: Bool = false) -> some View {
+        AssetImage(named: named, renderingMode: white ? .template : .original, size: 36) {
             Rectangle()
                 .fill(.gray90)
                 .frame(width: 36, height: 36)
         }
+        .foregroundStyle(.gray0)
         .frame(width: 54, height: 54)
     }
 }
