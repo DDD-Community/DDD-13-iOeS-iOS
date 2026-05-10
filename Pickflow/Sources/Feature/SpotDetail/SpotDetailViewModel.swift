@@ -13,6 +13,7 @@ final class SpotDetailViewModel: ObservableObject {
     @Published private(set) var isBookmarked = false
     @Published var dismissRequested = false
     @Published var toast: String?
+    @Published var isLoginRequired = false
 
     private let spotId: Int64
     private let spotService: SpotServiceProtocol
@@ -66,6 +67,11 @@ final class SpotDetailViewModel: ObservableObject {
 
     func toggleBookmark() async {
         guard case let .loaded(spot) = state else { return }
+
+        guard (try? getTokenStore().load()) != nil else {
+            isLoginRequired = true
+            return
+        }
 
         let previousValue = isBookmarked
         isBookmarked.toggle()

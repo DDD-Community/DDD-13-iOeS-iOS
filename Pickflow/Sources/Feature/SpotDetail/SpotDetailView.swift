@@ -4,6 +4,7 @@ struct SpotDetailView: View {
     @StateObject var viewModel: SpotDetailViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var isReportSheetPresented = false
+    @State private var isLoginViewPresented = false
 
     var body: some View {
         ZStack {
@@ -38,6 +39,44 @@ struct SpotDetailView: View {
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
             .presentationBackground(UIAsset.Colors.gray95.swiftUIColor)
+        }
+        .overlay {
+            if viewModel.isLoginRequired {
+                ZStack {
+                    Color.black.opacity(0.5).ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                viewModel.isLoginRequired = false
+                            }
+                        }
+                    LoginPromptPopup(
+                        onCancel: {
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                viewModel.isLoginRequired = false
+                            }
+                        },
+                        onLogin: {
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                viewModel.isLoginRequired = false
+                            }
+                            isLoginViewPresented = true
+                        }
+                    )
+                    .padding(.horizontal, 32)
+                }
+                .transition(.opacity)
+                .animation(.easeInOut(duration: 0.25), value: viewModel.isLoginRequired)
+            }
+        }
+        .fullScreenCover(isPresented: $isLoginViewPresented) {
+            LoginView(
+                viewModel: LoginViewModel(
+                    authService: getAuthService(),
+                    kakaoAuthProvider: getKakaoAuthProvider(),
+                    tokenStore: getTokenStore()
+                ),
+                onSignInSucceeded: { isLoginViewPresented = false }
+            )
         }
         .overlay {
             if let toast = viewModel.toast {
