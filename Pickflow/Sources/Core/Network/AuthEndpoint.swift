@@ -8,6 +8,7 @@ import Foundation
 /// - 🔒 필요 엔드포인트(`logout`)의 Bearer 헤더 주입은 KAN-48(KeyChain) 완료 후 활성화한다.
 enum AuthEndpoint: APIEndpoint {
     case kakaoSignIn(token: String)
+    case appleSignIn(identityToken: String, nonce: String)
     case refresh(refreshToken: String)
     case logout(accessToken: String)
 
@@ -16,6 +17,7 @@ enum AuthEndpoint: APIEndpoint {
     var path: String {
         switch self {
         case .kakaoSignIn: "/auth/kakao"
+        case .appleSignIn: "/auth/apple"
         case .refresh: "/auth/refresh"
         case .logout: "/auth/logout"
         }
@@ -23,7 +25,7 @@ enum AuthEndpoint: APIEndpoint {
 
     var method: HTTPMethod {
         switch self {
-        case .kakaoSignIn, .refresh, .logout: .post
+        case .kakaoSignIn, .appleSignIn, .refresh, .logout: .post
         }
     }
 
@@ -31,6 +33,11 @@ enum AuthEndpoint: APIEndpoint {
         switch self {
         case let .kakaoSignIn(token):
             ["kakao_access_token": token]
+        case let .appleSignIn(identityToken, nonce):
+            [
+                "identity_token": identityToken,
+                "nonce": nonce,
+            ]
         case let .refresh(refreshToken):
             ["refresh_token": refreshToken]
         case .logout:

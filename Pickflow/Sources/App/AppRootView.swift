@@ -11,6 +11,7 @@ struct AppRootView: View {
     init(
         authService: AuthServiceProtocol,
         kakaoAuthProvider: KakaoAuthProviderProtocol,
+        appleAuthProvider: AppleAuthProviderProtocol,
         tokenStore: TokenStoreProtocol,
         locationService: LocationServiceProtocol
     ) {
@@ -18,6 +19,7 @@ struct AppRootView: View {
             wrappedValue: AppRootViewModel(
                 authService: authService,
                 kakaoAuthProvider: kakaoAuthProvider,
+                appleAuthProvider: appleAuthProvider,
                 tokenStore: tokenStore,
                 locationService: locationService
             )
@@ -34,6 +36,7 @@ struct AppRootView: View {
                     viewModel: LoginViewModel(
                         authService: viewModel.authService,
                         kakaoAuthProvider: viewModel.kakaoAuthProvider,
+                        appleAuthProvider: viewModel.appleAuthProvider,
                         tokenStore: viewModel.tokenStore
                     ),
                     onSignInSucceeded: viewModel.didCompleteSignIn
@@ -66,6 +69,7 @@ final class AppRootViewModel: ObservableObject {
     /// LoginView 생성 시 주입용으로 노출. AppContainer에서 1회 resolve한 인스턴스를 재사용한다.
     let authService: AuthServiceProtocol
     let kakaoAuthProvider: KakaoAuthProviderProtocol
+    let appleAuthProvider: AppleAuthProviderProtocol
     let tokenStore: TokenStoreProtocol
     let locationService: LocationServiceProtocol
     private var didHandleLocationPermission = false
@@ -73,11 +77,13 @@ final class AppRootViewModel: ObservableObject {
     init(
         authService: AuthServiceProtocol,
         kakaoAuthProvider: KakaoAuthProviderProtocol,
+        appleAuthProvider: AppleAuthProviderProtocol,
         tokenStore: TokenStoreProtocol,
         locationService: LocationServiceProtocol
     ) {
         self.authService = authService
         self.kakaoAuthProvider = kakaoAuthProvider
+        self.appleAuthProvider = appleAuthProvider
         self.tokenStore = tokenStore
         self.locationService = locationService
     }

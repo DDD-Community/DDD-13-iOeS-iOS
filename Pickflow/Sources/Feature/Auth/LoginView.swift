@@ -1,8 +1,6 @@
 import SwiftUI
 
 /// 비로그인 사용자가 앱 진입 시 만나는 온보딩/로그인 화면.
-///
-/// - Note: 로고 이미지(`AppLogoMark`), 글로우 컬러, 헤드라인 카피 등은 §9 리소스 요청 확정 필요.
 struct LoginView: View {
     @StateObject var viewModel: LoginViewModel
 
@@ -15,12 +13,16 @@ struct LoginView: View {
                 .ignoresSafeArea()
 
             VStack {
-                Spacer(minLength: 0)
+                header
+                Spacer()
                 centerContent
-                Spacer(minLength: 0)
+                    .padding(.bottom, 108)
+                Spacer()
                 bottomCTA
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+            .padding(.bottom, 66)
         }
         .preferredColorScheme(.dark)
         .onChange(of: viewModel.didSignInSucceed) { _, succeeded in
@@ -41,76 +43,106 @@ struct LoginView: View {
 
     // MARK: - Background
 
-    /// 다크 배경 위에 중앙~하단으로 퍼지는 웜 오렌지/레드 레이디얼 글로우.
-    /// HEX 확정값은 §9 리소스 요청 확인 필요 (현재는 추정치).
     private var backgroundGradient: some View {
-        ZStack {
-            Color.loginBackground
+        LinearGradient(
+            stops: [
+                .init(color: Color(red: 181 / 255, green: 127 / 255, blue: 0 / 255), location: 0),
+                .init(color: Color(red: 188 / 255, green: 59 / 255, blue: 0 / 255), location: 0.2),
+                .init(color: Color(red: 15 / 255, green: 23 / 255, blue: 40 / 255), location: 0.5),
+                .init(color: Color(red: 19 / 255, green: 20 / 255, blue: 22 / 255), location: 1),
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
 
-            Circle()
-                .fill(Color.loginTopGlow)
-                .frame(width: 366, height: 388)
-                .blur(radius: 120)
-                .offset(x: -132, y: -70)
+    // MARK: - Header
 
-            Circle()
-                .fill(Color.loginBottomGlow)
-                .frame(width: 234, height: 248)
-                .blur(radius: 96)
-                .offset(x: 118, y: 188)
+    private var header: some View {
+        HStack {
+            Text("PICKFLOW")
+                .font(.custom(PretendardFontName.bold, size: 24))
+                .tracking(1.2)
+                .foregroundStyle(.gray0)
+                .frame(width: 140, height: 32, alignment: .leading)
+                .accessibilityLabel("PICKFLOW")
+
+            Spacer()
         }
+        .frame(maxWidth: .infinity)
     }
 
     // MARK: - Center Content
 
     private var centerContent: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 24) {
             appLogo
-                .padding(.bottom, 32)
 
-            Text("일상 속 반짝임,\n실패 없이 포착하세요")
-                .pretendard(.display(.medium))
-                .foregroundStyle(.gray0)
-                .multilineTextAlignment(.center)
-                .accessibilityAddTraits(.isHeader)
-                .padding(.bottom, 32)
+            VStack(spacing: 12) {
+                Text("일상 속 반짝임,\n실패 없이 포착하세요")
+                    .pretendard(.display(.large))
+                    .foregroundStyle(.gray0)
+                    .multilineTextAlignment(.center)
+                    .accessibilityAddTraits(.isHeader)
 
-            Text("파편화된 포토스팟 정보는 이제 그만.\n정확한 일몰 시간과 촬영 팁을 한눈에 보세요.")
-                .pretendard(.body(.small()))
-                .foregroundStyle(.gray10)
-                .multilineTextAlignment(.center)
-        }
-    }
-
-    /// 앱 로고 마크. 실제 에셋(`AppLogoMark`)이 없는 환경에서는 SF Symbol로 플레이스홀더 렌더.
-    private var appLogo: some View {
-        Group {
-            if UIImage(named: "AppLogoMark") != nil {
-                Image("AppLogoMark")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-            } else {
-                // TODO(resource): Assets.xcassets/AppLogoMark.imageset 교체 필요 (§9.2).
-                ZStack {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(Color.loginLogoBackground)
-                    Image(systemName: "camera.fill")
-                        .font(.system(size: 32, weight: .bold))
-                        .foregroundStyle(.gray0)
-                }
+                Text("파편화된 포토스팟 정보는 이제 그만.\n정확한 일몰 시간과 촬영 팁을 한눈에 보세요.")
+                    .pretendard(.body(.large()))
+                    .foregroundStyle(.gray20)
+                    .multilineTextAlignment(.center)
             }
         }
-        .frame(width: 72, height: 72)
+        .frame(maxWidth: 295)
+    }
+
+    private var appLogo: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color("gray0"))
+
+            if UIImage(named: "ic_flare") != nil {
+                Image("ic_flare")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 40, height: 40)
+            } else {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 30, weight: .semibold))
+                    .foregroundStyle(Color(red: 188 / 255, green: 59 / 255, blue: 0 / 255))
+            }
+        }
+        .frame(width: 60, height: 60)
         .accessibilityHidden(true)
     }
 
     // MARK: - Bottom CTA
 
     private var bottomCTA: some View {
-        KakaoLoginButton(isLoading: viewModel.isLoading) {
-            Task { await viewModel.signInWithKakaoTapped() }
+        VStack(spacing: 16) {
+            VStack(spacing: 12) {
+                KakaoLoginButton(isLoading: viewModel.activeLoginProvider == .kakao) {
+                    Task { await viewModel.signInWithKakaoTapped() }
+                }
+                .disabled(viewModel.isLoading)
+
+                AppleLoginButton(isLoading: viewModel.activeLoginProvider == .apple) {
+                    Task { await viewModel.signInWithAppleTapped() }
+                }
+                .disabled(viewModel.isLoading)
+            }
+
+            Button {
+                viewModel.continueAsGuestTapped()
+            } label: {
+                Text("비회원으로 시작하기")
+                    .pretendard(.body(.medium()))
+                    .underline()
+                    .foregroundStyle(Color(red: 177 / 255, green: 184 / 255, blue: 190 / 255))
+                    .frame(minHeight: 25)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
         }
-        .padding(.bottom, 60)
+        .frame(maxWidth: 358)
     }
 
     // MARK: - Helpers
@@ -124,24 +156,6 @@ struct LoginView: View {
             }
         )
     }
-}
-
-// MARK: - Colors
-
-private extension Color {
-    /// 디자인 시스템 `gray100` 기반 배경.
-    static let loginBackground = Color("gray100")
-
-    /// Figma 좌상단 블러 글로우.
-    static let loginTopGlow = Color(red: 88 / 255, green: 88 / 255, blue: 88 / 255)
-        .opacity(0.36)
-
-    /// Figma 우하단 오렌지 블러 글로우.
-    static let loginBottomGlow = Color(red: 204 / 255, green: 78 / 255, blue: 22 / 255)
-        .opacity(0.42)
-
-    /// 로고 placeholder 배경색.
-    static let loginLogoBackground = Color(red: 255 / 255, green: 106 / 255, blue: 42 / 255)
 }
 
 // MARK: - Preview
@@ -166,6 +180,16 @@ private final class PreviewAuthService: AuthServiceProtocol, @unchecked Sendable
             refreshToken: "preview",
             isNewUser: false,
             user: AuthUser(id: 1, nickname: "preview", socialProvider: .kakao)
+        )
+    }
+
+    func signInWithApple(identityToken _: String, nonce _: String) async throws -> AppleSignInResponse {
+        try await Task.sleep(nanoseconds: 500_000_000)
+        return AppleSignInResponse(
+            accessToken: "preview",
+            refreshToken: "preview",
+            isNewUser: false,
+            user: AuthUser(id: 1, nickname: "preview", socialProvider: .apple)
         )
     }
 
