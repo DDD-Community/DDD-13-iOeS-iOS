@@ -9,11 +9,9 @@ struct ReportSheet: View {
     private let minLength = 5
     private let placeholder = "실제 위치가 지도와 달라요, 현재 공사 중이라 출입이 안 돼요 등 상세한 내용을 적어주세요 (최소 5자 이상)"
 
-    private var isSubmittable: Bool {
-        text.trimmingCharacters(in: .whitespacesAndNewlines).count >= minLength
-    }
-
     var body: some View {
+        let isSubmittable = text.trimmingCharacters(in: .whitespacesAndNewlines).count >= minLength
+
         VStack(spacing: 0) {
             HStack {
                 Button(action: onDismiss) {
@@ -38,8 +36,8 @@ struct ReportSheet: View {
                 .disabled(!isSubmittable)
             }
             .padding(.horizontal, 20)
-            .padding(.top, 20)
-            .padding(.bottom, 16)
+            .padding(.top, 36)
+            .padding(.bottom, 20)
 
             ZStack(alignment: .bottomTrailing) {
                 ZStack(alignment: .topLeading) {
