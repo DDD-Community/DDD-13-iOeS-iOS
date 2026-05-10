@@ -96,6 +96,14 @@ final class MockExternalAppLauncher: ExternalAppLauncherProtocol {
     }
 }
 
+final class MockTokenStore: TokenStoreProtocol, @unchecked Sendable {
+    var storedToken: AuthToken?
+
+    func save(_ token: AuthToken) throws { storedToken = token }
+    func load() throws -> AuthToken? { storedToken }
+    func clear() throws { storedToken = nil }
+}
+
 @MainActor
 final class MockShareSheetPresenter: ShareSheetPresenterProtocol {
     private(set) var presentedItems: [[String]] = []

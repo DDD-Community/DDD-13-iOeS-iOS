@@ -22,6 +22,7 @@ final class SpotDetailViewModel: ObservableObject {
     private let locationService: LocationServiceProtocol
     private let externalAppLauncher: ExternalAppLauncherProtocol
     private let shareSheetPresenter: ShareSheetPresenterProtocol
+    private let tokenStore: TokenStoreProtocol
     private let deviceIdProvider: @MainActor @Sendable () -> String
     private let clock: @Sendable () -> Date
 
@@ -33,6 +34,7 @@ final class SpotDetailViewModel: ObservableObject {
         locationService: LocationServiceProtocol,
         externalAppLauncher: ExternalAppLauncherProtocol,
         shareSheetPresenter: ShareSheetPresenterProtocol,
+        tokenStore: TokenStoreProtocol = getTokenStore(),
         deviceIdProvider: @escaping @MainActor @Sendable () -> String,
         clock: @escaping @Sendable () -> Date = Date.init
     ) {
@@ -43,6 +45,7 @@ final class SpotDetailViewModel: ObservableObject {
         self.locationService = locationService
         self.externalAppLauncher = externalAppLauncher
         self.shareSheetPresenter = shareSheetPresenter
+        self.tokenStore = tokenStore
         self.deviceIdProvider = deviceIdProvider
         self.clock = clock
     }
@@ -68,7 +71,7 @@ final class SpotDetailViewModel: ObservableObject {
     func toggleBookmark() async {
         guard case let .loaded(spot) = state else { return }
 
-        guard (try? getTokenStore().load()) != nil else {
+        guard (try? tokenStore.load()) != nil else {
             isLoginRequired = true
             return
         }
