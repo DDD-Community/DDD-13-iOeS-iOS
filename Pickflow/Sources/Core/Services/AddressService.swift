@@ -8,8 +8,7 @@ final class AddressService: AddressServiceProtocol, Sendable {
     }
 
     func searchAddress(query: String) async throws -> [Address] {
-        // TODO: Implement with actual endpoint
-        fatalError("Not implemented")
+        try await networkManager.request(endpoint: AddressEndpoint(query: query))
     }
 
     func reverseGeocode(latitude: Double, longitude: Double) async throws -> Address {

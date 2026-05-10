@@ -1,3 +1,4 @@
+import CoreLocation
 import Foundation
 @testable import Pickflow
 
@@ -48,6 +49,10 @@ final class MockLocationService: LocationServiceProtocol, @unchecked Sendable {
     var result: Result<Coordinate, any Error> = .success(Coordinate(latitude: 37.1, longitude: 127.1))
 
     func requestAuthorization() {}
+
+    func authorizationStatus() -> CLAuthorizationStatus {
+        .authorizedWhenInUse
+    }
 
     func currentLocation() async throws -> Coordinate {
         try result.get()

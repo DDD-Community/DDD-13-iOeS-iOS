@@ -45,9 +45,13 @@ final class SpotRegistrationViewModel: ObservableObject {
     }
 
     func applyMockAddressSelection() {
-        selectedAddress = .mockSpotRegistrationAddress
-        selectedAddressName = SpotRegistrationCopy.mockPlaceName
-        selectedDistanceText = SpotRegistrationCopy.mockDistanceText
+        applyAddressSelection(.mockSpotRegistrationAddress)
+    }
+
+    func applyAddressSelection(_ address: Address, distanceText: String? = nil) {
+        selectedAddress = address
+        selectedAddressName = address.name ?? address.fullAddress
+        selectedDistanceText = distanceText ?? SpotRegistrationCopy.mockDistanceText
     }
 
     func setSpotName(_ value: String) {
