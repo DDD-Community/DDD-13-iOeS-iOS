@@ -10,11 +10,10 @@ struct SpotDetailView: View {
 
             VStack(spacing: 0) {
                 SpotDetailNavBar(
-                    isBookmarked: viewModel.isBookmarked,
-                    onBookmark: { Task { await viewModel.toggleBookmark() } },
+                    onBack: viewModel.close,
+                    onShare: viewModel.share,
                     onClose: viewModel.close
                 )
-
                 content
             }
         }
@@ -63,17 +62,24 @@ struct SpotDetailView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         case let .loaded(spot):
             ScrollView {
-                VStack(alignment: .leading, spacing: 28) {
+                VStack(alignment: .leading, spacing: 24) {
                     SpotHeaderSection(spot: spot)
-                    SpotPhotoSection(imageURL: spot.primaryImage?.imageURL)
-                    SpotActionButtons(
-                        onRoute: viewModel.openNaverMapsRoute,
-                        onShare: viewModel.share
+                    SpotPhotoSection(
+                        imageURL: spot.primaryImage?.imageURL,
+                        recordedTime: spot.primaryImage?.recordedTime,
+                        address: spot.address
                     )
-                    SpotCommentSection(comment: spot.comment, recordedTime: spot.primaryImage?.recordedTime)
-                    SpotWeatherSection(weather: spot.weather)
-                    SpotTempCongestionSection(weather: spot.weather)
-                    SunsetTimelineSection(sunsetTime: spot.weather.sunsetTime)
+                    SpotActionButtons(
+                        isMine: spot.isMine,
+                        isBookmarked: viewModel.isBookmarked,
+                        onRoute: viewModel.openNaverMapsRoute,
+                        onBookmark: { Task { await viewModel.toggleBookmark() } },
+                        onOpenSpot: viewModel.openSpot
+                    )
+                    SpotRealTimeInfoSection(
+                        weather: spot.weather,
+                        isMine: spot.isMine
+                    )
                     ReportButton(action: viewModel.reportInvalidInfo)
                 }
                 .padding(.horizontal, 16)

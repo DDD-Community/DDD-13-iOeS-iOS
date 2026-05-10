@@ -2,8 +2,29 @@ import SwiftUI
 
 struct SpotPhotoSection: View {
     let imageURL: String?
+    let recordedTime: String?
+    let address: String
 
     var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            photoView
+            HStack(spacing: 4) {
+                AssetImage(named: "icLocationOn", size: 16) {
+                    Image(systemName: "location.fill")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.gray50)
+                }
+                Text(address)
+                    .pretendard(.label(.medium))
+                    .foregroundStyle(.gray30)
+                    .lineLimit(1)
+                Spacer()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var photoView: some View {
         AsyncImage(url: imageURL.flatMap(URL.init(string:))) { phase in
             switch phase {
             case let .success(image):
@@ -11,16 +32,23 @@ struct SpotPhotoSection: View {
                     .resizable()
                     .scaledToFill()
             default:
-                ZStack {
-                    Rectangle().fill(.gray90)
-                    Image(systemName: "photo")
-                        .font(.system(size: 28))
-                        .foregroundStyle(.gray50)
-                }
+                Rectangle().fill(.gray90)
             }
         }
         .frame(maxWidth: .infinity)
         .frame(height: 200)
         .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(alignment: .bottomTrailing) {
+            if imageURL != nil, let recordedTime {
+                Text(DateFormatter.pickflowDisplayTime(from: recordedTime))
+                    .pretendard(.body(.small(.bold)))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(.black.opacity(0.5))
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                    .padding(8)
+            }
+        }
     }
 }

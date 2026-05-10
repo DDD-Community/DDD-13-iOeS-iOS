@@ -5,14 +5,24 @@ struct SpotHeaderSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(spot.name)
-                .pretendard(.heading(.large))
-                .foregroundStyle(.gray0)
-                .lineLimit(1)
+            HStack(alignment: .center, spacing: 6) {
+                Text(spot.name)
+                    .pretendard(.heading(.large))
+                    .foregroundStyle(.gray0)
+                if spot.isMine {
+                    Text("MY 스팟")
+                        .pretendard(.label(.medium))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(.sunsetOrange)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                }
+            }
 
-            HStack(spacing: 4) {
+            HStack(spacing: 6) {
                 HStack(spacing: 4) {
-                    Image("icTwilight", bundle: PickflowResources.bundle)
+                    Image(spot.theme.chipIconAssetName, bundle: PickflowResources.bundle)
                         .resizable()
                         .scaledToFit()
                         .frame(width: 16, height: 16)
@@ -26,17 +36,29 @@ struct SpotHeaderSection: View {
                 .background(.gray90)
                 .clipShape(RoundedRectangle(cornerRadius: 4))
 
-                if let distance = spot.distance {
-                    Text(String(format: "%.1fkm", distance))
-                        .pretendard(.label(.medium))
-                        .foregroundStyle(.gray10)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .frame(height: 24)
-                        .background(.gray90)
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                if !spot.isMine {
+                    Text("·")
+                        .pretendard(.body(.small()))
+                        .foregroundStyle(.gray30)
+                    Text("북마크 \(spot.bookmarkCount)")
+                        .pretendard(.body(.small()))
+                        .foregroundStyle(.gray30)
                 }
             }
+
+            Text(spot.comment)
+                .pretendard(.body(.medium()))
+                .foregroundStyle(.gray0)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
+private extension SpotTheme {
+    var chipIconAssetName: String {
+        switch self {
+        case .sunset: "icon_photo_category_sunset"
+        case .reflection: "icon_photo_category_reflection"
         }
     }
 }

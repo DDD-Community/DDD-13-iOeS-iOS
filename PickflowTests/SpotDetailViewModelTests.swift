@@ -144,6 +144,38 @@ final class SpotDetailViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.dismissRequested)
     }
 
+    func test_reportInvalidInfo_신고API가호출되고성공토스트가설정된다() async {
+        await viewModel.onAppear()
+
+        viewModel.reportInvalidInfo()
+        await waitForReport()
+
+        XCTAssertEqual(spotService.reportedSpotIds, [1])
+        XCTAssertEqual(viewModel.toast, "신고가 접수됐어요.")
+    }
+
+    func test_reportInvalidInfo_API실패시_실패토스트가설정된다() async {
+        spotService.reportError = TestError.failed
+        await viewModel.onAppear()
+
+        viewModel.reportInvalidInfo()
+        await waitForReport()
+
+        XCTAssertEqual(viewModel.toast, "신고 접수에 실패했어요.")
+    }
+
+    func test_reportInvalidInfo_loaded상태가아니면_API를호출하지않는다() {
+        viewModel.reportInvalidInfo()
+
+        XCTAssertTrue(spotService.reportedSpotIds.isEmpty)
+    }
+
+    func test_openSpot_준비중토스트가설정된다() {
+        viewModel.openSpot()
+
+        XCTAssertEqual(viewModel.toast, "준비 중이에요.")
+    }
+
     private func makeViewModel() -> SpotDetailViewModel {
         SpotDetailViewModel(
             spotId: 1,
@@ -162,5 +194,12 @@ final class SpotDetailViewModelTests: XCTestCase {
         for _ in 0..<20 where shareIntentService.deviceIds.isEmpty {
             await Task.yield()
         }
+    }
+
+    private func waitForReport() async {
+        for _ in 0..<20 where spotService.reportedSpotIds.isEmpty && spotService.reportError == nil {
+            await Task.yield()
+        }
+        for _ in 0..<10 { await Task.yield() }
     }
 }

@@ -1,0 +1,97 @@
+import SwiftUI
+
+struct SpotRealTimeInfoSection: View {
+    let weather: SpotWeather
+    let isMine: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("실시간 정보")
+                .pretendard(.body(.large(.bold)))
+                .foregroundStyle(.gray0)
+
+            Text("기준 시간 \(DateFormatter.pickflowDisplayTime(from: weather.sunsetTime)) 기준")
+                .pretendard(.body(.small()))
+                .foregroundStyle(.gray50)
+                .padding(.top, 4)
+
+            VStack(spacing: 0) {
+                infoRow(
+                    iconName: "icSunny",
+                    label: "현재 날씨",
+                    value: weather.condition.rawValue,
+                    sub: "강수확률 \(weather.precipitationProbability)%"
+                )
+                infoRow(
+                    iconName: "icTwilight",
+                    label: "일몰 시간",
+                    value: DateFormatter.pickflowDisplayTime(from: weather.sunsetTime),
+                    sub: "오차 시간"
+                )
+                infoRow(
+                    iconName: "icLocalParking",
+                    label: "주차 관련",
+                    value: isMine ? "-" : (weather.parking ?? "-"),
+                    sub: nil
+                )
+                congestionRow
+            }
+            .padding(.top, 16)
+        }
+    }
+
+    private func infoRow(iconName: String, label: String, value: String, sub: String?) -> some View {
+        HStack(spacing: 12) {
+            iconContainer(named: iconName)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(label)
+                    .pretendard(.body(.small(.bold)))
+                    .foregroundStyle(.gray50)
+                HStack(spacing: 6) {
+                    Text(value)
+                        .pretendard(.heading(.large))
+                        .foregroundStyle(.gray0)
+                    if let sub {
+                        Text(sub)
+                            .pretendard(.label(.medium))
+                            .foregroundStyle(.gray50)
+                    }
+                }
+            }
+            Spacer()
+        }
+        .frame(height: 54)
+    }
+
+    private var congestionRow: some View {
+        HStack(spacing: 12) {
+            iconContainer(named: "icPeople")
+            VStack(alignment: .leading, spacing: 2) {
+                Text("혼잡도")
+                    .pretendard(.body(.small(.bold)))
+                    .foregroundStyle(.gray50)
+                HStack(spacing: 6) {
+                    Text(isMine ? "-" : weather.congestion.rawValue)
+                        .pretendard(.heading(.large))
+                        .foregroundStyle(.gray0)
+                    AssetImage(named: "icHelpOutline", size: 20) {
+                        Image(systemName: "questionmark.circle")
+                            .font(.system(size: 16))
+                            .foregroundStyle(.gray50)
+                    }
+                }
+            }
+            Spacer()
+        }
+        .frame(height: 54)
+    }
+
+    private func iconContainer(named: String) -> some View {
+        AssetImage(named: named, size: 36) {
+            Rectangle()
+                .fill(.gray90)
+                .frame(width: 36, height: 36)
+        }
+        .frame(width: 54, height: 54)
+    }
+}

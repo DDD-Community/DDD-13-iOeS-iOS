@@ -101,7 +101,19 @@ final class SpotDetailViewModel: ObservableObject {
     }
 
     func reportInvalidInfo() {
-        // TODO: KAN-?? 후속
+        guard case let .loaded(spot) = state else { return }
+        Task {
+            do {
+                try await spotService.reportSpot(id: spot.id, type: .etc)
+                toast = "신고가 접수됐어요."
+            } catch {
+                toast = "신고 접수에 실패했어요."
+            }
+        }
+    }
+
+    func openSpot() {
+        toast = "준비 중이에요."
     }
 
     func close() {
