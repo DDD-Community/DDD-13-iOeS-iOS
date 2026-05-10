@@ -49,7 +49,11 @@ struct SpotHeaderSection: View {
             Text(spot.comment)
                 .pretendard(.body(.medium()))
                 .foregroundStyle(.gray0)
-                .fixedSize(horizontal: false, vertical: true)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+                .padding(16)
+                .background(.gray90)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
     }
 }
