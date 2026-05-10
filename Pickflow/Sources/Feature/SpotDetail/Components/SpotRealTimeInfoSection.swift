@@ -3,6 +3,7 @@ import SwiftUI
 struct SpotRealTimeInfoSection: View {
     let weather: SpotWeather
     let isMine: Bool
+    @State private var isCongestionInfoPresented = false
 
     private var realtimeDescriptionText: AttributedString {
         var str = AttributedString("공공 API를 활용한 실시간 정보를 확인해 보세요")
@@ -51,6 +52,12 @@ struct SpotRealTimeInfoSection: View {
             .background(.gray90)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
+        .sheet(isPresented: $isCongestionInfoPresented) {
+            CongestionInfoPopup { isCongestionInfoPresented = false }
+                .presentationDetents([.height(320)])
+                .presentationDragIndicator(.visible)
+                .presentationBackground(UIAsset.Colors.gray90.swiftUIColor)
+        }
     }
 
     private static let whiteIconNames: Set<String> = ["icSunny", "icTwilight"]
@@ -89,10 +96,14 @@ struct SpotRealTimeInfoSection: View {
                     Text(isMine ? "-" : weather.congestion.rawValue)
                         .pretendard(.heading(.large))
                         .foregroundStyle(.gray0)
-                    AssetImage(named: "icHelpOutline", size: 20) {
-                        Image(systemName: "questionmark.circle")
-                            .font(.system(size: 16))
-                            .foregroundStyle(.gray50)
+                    Button {
+                        isCongestionInfoPresented = true
+                    } label: {
+                        AssetImage(named: "icHelpOutline", size: 20) {
+                            Image(systemName: "questionmark.circle")
+                                .font(.system(size: 16))
+                                .foregroundStyle(.gray50)
+                        }
                     }
                 }
             }
