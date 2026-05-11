@@ -29,7 +29,9 @@ struct OnboardingView: View {
                 page: viewModel.pages[viewModel.currentIndex],
                 currentIndex: viewModel.currentIndex,
                 pageCount: viewModel.pages.count,
-                onPrimaryTap: { viewModel.finishOnboarding() }
+                onPrimaryTap: { viewModel.finishOnboarding() },
+                onSwipeNext: { viewModel.goToNextPage() },
+                onSwipePrevious: { viewModel.goToPreviousPage() }
             )
             .animation(.easeInOut(duration: 0.2), value: viewModel.currentIndex)
         }
