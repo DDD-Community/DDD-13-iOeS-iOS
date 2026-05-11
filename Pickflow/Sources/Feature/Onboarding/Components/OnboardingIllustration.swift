@@ -5,14 +5,11 @@ struct OnboardingIllustration: View {
     let page: OnboardingPage
 
     var body: some View {
-        ZStack {
-            VStack(alignment: .center) {
-                Image(page.imageName)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxWidth: .infinity, alignment: .bottom)
-            }
-            .ignoresSafeArea()
+        VStack(alignment: .center) {
+            Image(page.imageName)
+                .resizable()
+                .scaledToFit()
+                .frame(maxWidth: .infinity, alignment: .bottom)
         }
     }
 }

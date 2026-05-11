@@ -132,6 +132,43 @@ final class OnboardingSnapshotTests: XCTestCase {
         )
     }
 
+    // MARK: - Production OnboardingView regression
+
+    func test_onboardingView_page0_light() {
+        assertOnboardingViewSnapshot(at: 0, style: .light, named: "onboardingView-page0-light")
+    }
+
+    func test_onboardingView_page3_light() {
+        assertOnboardingViewSnapshot(at: 3, style: .light, named: "onboardingView-page3-light")
+    }
+
+    private func assertOnboardingViewSnapshot(
+        at index: Int,
+        style: UIUserInterfaceStyle,
+        named name: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let viewModel = OnboardingViewModel(
+            pages: pages,
+            completionStore: MockOnboardingCompletionStore()
+        )
+        viewModel.setPage(index)
+        let view = OnboardingView(viewModel: viewModel)
+
+        let traits = UITraitCollection(traitsFrom: [
+            UITraitCollection(userInterfaceStyle: style),
+            UITraitCollection(preferredContentSizeCategory: .large)
+        ])
+        assertSnapshot(
+            of: view,
+            as: .image(layout: .device(config: .iPhone13Pro), traits: traits),
+            named: name,
+            file: file,
+            line: line
+        )
+    }
+
     // MARK: - Helpers
 
     private func assertScreenSnapshot(

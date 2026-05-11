@@ -5,6 +5,7 @@ final class OnboardingViewModel: ObservableObject {
     @Published private(set) var pages: [OnboardingPage]
     @Published var currentIndex: Int = 0
     @Published private(set) var isFinished: Bool = false
+    @Published private(set) var toast: String?
 
     private let completionStore: OnboardingCompletionStore
 
@@ -21,7 +22,9 @@ final class OnboardingViewModel: ObservableObject {
 
     func goToNextPage() {
         guard currentIndex < pages.count - 1 else { return }
+        let previous = currentIndex
         currentIndex += 1
+        handlePageTransition(from: previous, to: currentIndex)
     }
 
     func goToPreviousPage() {
@@ -31,8 +34,27 @@ final class OnboardingViewModel: ObservableObject {
 
     func setPage(_ index: Int) {
         let upper = pages.count - 1
-        currentIndex = max(0, min(index, upper))
+        let clamped = max(0, min(index, upper))
+        let previous = currentIndex
+        currentIndex = clamped
+        handlePageTransition(from: previous, to: clamped)
     }
+
+    private func handlePageTransition(from previous: Int, to next: Int) {
+        guard previous == 0 || next == 1 else {
+          dismissToast()
+          return
+        }
+        presentToast("나만의 스팟이 등록되었어요!")
+    }
+
+    private func presentToast(_ message: String) {
+        toast = message
+    }
+  
+  private func dismissToast() {
+    toast = nil
+  }
 
     func finishOnboarding() {
         completionStore.markOnboardingSeen()
