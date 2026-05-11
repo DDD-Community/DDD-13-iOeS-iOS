@@ -34,7 +34,6 @@ struct OnboardingView: View {
             .animation(.easeInOut(duration: 0.2), value: viewModel.currentIndex)
         }
         .background(OnboardingPalette.panelBackground)
-        .ignoresSafeArea(.container, edges: .top)
     }
 
     private var wordmark: some View {
@@ -46,4 +45,11 @@ struct OnboardingView: View {
             .padding(.leading, 20)
             .padding(.top, 16)
     }
+}
+
+#Preview {
+  OnboardingGate(completionStore: getOnboardingCompletionStore()) {
+      ContentView()
+  }
+  
 }

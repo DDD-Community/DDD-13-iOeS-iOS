@@ -6,13 +6,6 @@ struct OnboardingIllustration: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(
-                stops: page.theme.gradientColos,
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-
             VStack(alignment: .center) {
                 Image(page.imageName)
                     .resizable()
@@ -25,7 +18,5 @@ struct OnboardingIllustration: View {
 }
 
 #Preview {
-    let pages = OnboardingPage.defaultPages
-    let index = 3
-    OnboardingPageView(page: pages[index], currentIndex: index, pageCount: pages.count) {}
+    OnboardingIllustration(page: OnboardingPage.defaultPages[3])
 }

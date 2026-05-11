@@ -12,6 +12,7 @@ final class UserDefaultsOnboardingCompletionStore: OnboardingCompletionStore, @u
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+      defaults.set(false, forKey: Self.storageKey)
     }
 
     func hasSeenOnboarding() -> Bool {

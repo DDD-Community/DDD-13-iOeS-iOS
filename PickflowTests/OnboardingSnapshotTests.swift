@@ -142,12 +142,30 @@ final class OnboardingSnapshotTests: XCTestCase {
         file: StaticString = #filePath,
         line: UInt = #line
     ) {
-        let view = OnboardingPageView(
-            page: pages[index],
-            currentIndex: index,
-            pageCount: pages.count,
-            onPrimaryTap: {}
-        )
+        let page = pages[index]
+        let view = VStack(spacing: 0) {
+            ZStack(alignment: .topLeading) {
+                OnboardingIllustration(page: page)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                Text("PICKFLOW")
+                    .font(.custom("Rambla-Bold", size: 28))
+                    .tracking(-0.056)
+                    .lineSpacing(1.11)
+                    .foregroundStyle(OnboardingPalette.title)
+                    .padding(.leading, 20)
+                    .padding(.top, 16)
+            }
+
+            OnboardingPanel(
+                page: page,
+                currentIndex: index,
+                pageCount: pages.count,
+                onPrimaryTap: {}
+            )
+        }
+        .background(OnboardingPalette.panelBackground)
+
         let traits = UITraitCollection(traitsFrom: [
             UITraitCollection(userInterfaceStyle: style),
             UITraitCollection(preferredContentSizeCategory: contentSize)

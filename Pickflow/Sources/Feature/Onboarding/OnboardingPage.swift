@@ -3,6 +3,7 @@ import Foundation
 struct OnboardingPage: Identifiable, Hashable, Sendable {
     enum AccentTheme: Sendable {
         case orange
+      case darkOrange
         case blue
     }
 

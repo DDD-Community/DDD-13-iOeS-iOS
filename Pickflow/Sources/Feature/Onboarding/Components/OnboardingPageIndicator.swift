@@ -5,19 +5,21 @@ struct OnboardingPageIndicator: View {
     let currentIndex: Int
     let activeColor: Color = OnboardingPalette.accentOrange
 
+    private let dotSize: CGFloat = 8
+    private let activeWidth: CGFloat = 20
+    private let spacing: CGFloat = 8
+
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: spacing) {
             ForEach(0..<count, id: \.self) { index in
-                if index == currentIndex {
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(activeColor)
-                        .frame(width: 20, height: 8)
-                } else {
-                    Circle()
-                        .fill(OnboardingPalette.indicatorInactive)
-                        .frame(width: 8, height: 8)
-                }
+                Capsule()
+                    .fill(index == currentIndex ? activeColor : OnboardingPalette.indicatorInactive)
+                    .frame(
+                        width: index == currentIndex ? activeWidth : dotSize,
+                        height: dotSize
+                    )
             }
         }
+        .animation(.spring(response: 0.35, dampingFraction: 0.78), value: currentIndex)
     }
 }
