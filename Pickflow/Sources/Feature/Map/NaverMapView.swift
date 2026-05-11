@@ -155,9 +155,10 @@ final class NaverMapViewController: UIViewController, @preconcurrency NMFMapView
             marker.zIndex = 250  // 큐레이션 클러스터(300)보다 낮고 리프(200)보다 높음
             marker.isForceShowIcon = true
             let spotId = spot.id
-            marker.touchHandler = { [weak self] _ in
+            let box = WeakControllerBox(self)
+            marker.touchHandler = { _ in
                 MainActor.assumeIsolated {
-                    self?.handleSpotTap(spotId)
+                    box.ref?.handleSpotTap(spotId)
                 }
                 return true
             }
@@ -238,6 +239,14 @@ enum ClusteringMarkerImage {
 
 // MARK: - Marker Updaters
 
+/// `marker.touchHandler` 등 nonisolated 클로저에서 `NaverMapViewController`(@MainActor) reference를 캡처할 때
+/// Swift 6 strict concurrency가 data race 경고를 띄운다. weak reference를 sendable wrapper로 감싸 우회.
+/// (NMC SDK는 메인 스레드에서 콜백을 호출한다는 외부 약속을 기반으로 한다.)
+private final class WeakControllerBox: @unchecked Sendable {
+    weak var ref: NaverMapViewController?
+    init(_ ref: NaverMapViewController?) { self.ref = ref }
+}
+
 private final class MapLeafMarkerUpdater: NMCDefaultLeafMarkerUpdater {
     weak var controller: NaverMapViewController?
 
@@ -266,9 +275,10 @@ private final class MapLeafMarkerUpdater: NMCDefaultLeafMarkerUpdater {
         marker.isForceShowIcon = true
 
         if let spotId {
-            marker.touchHandler = { [weak controller] _ in
+            let box = WeakControllerBox(controller)
+            marker.touchHandler = { _ in
                 MainActor.assumeIsolated {
-                    controller?.handleSpotTap(spotId)
+                    box.ref?.handleSpotTap(spotId)
                 }
                 return true
             }
