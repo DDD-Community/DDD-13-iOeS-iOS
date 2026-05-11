@@ -13,13 +13,15 @@ struct PickflowApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .ignoresSafeArea(.keyboard, edges: .bottom)
-                .onOpenURL { url in
-                    if AuthApi.isKakaoTalkLoginUrl(url) {
-                        _ = AuthController.handleOpenUrl(url: url)
-                    }
+            OnboardingGate(completionStore: getOnboardingCompletionStore()) {
+                ContentView()
+            }
+            .ignoresSafeArea(.keyboard, edges: .bottom)
+            .onOpenURL { url in
+                if AuthApi.isKakaoTalkLoginUrl(url) {
+                    _ = AuthController.handleOpenUrl(url: url)
                 }
+            }
         }
     }
 

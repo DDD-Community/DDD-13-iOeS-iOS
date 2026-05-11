@@ -30,5 +30,6 @@ final class AppContainer {
         container.register(LocationServiceProtocol.self, scope: .container) { LocationService() }
         container.register(ExternalAppLauncherProtocol.self, scope: .container) { ExternalAppLauncher() }
         container.register(ShareSheetPresenterProtocol.self, scope: .container) { ShareSheetPresenter() }
+        container.register(OnboardingCompletionStore.self, scope: .container) { UserDefaultsOnboardingCompletionStore() }
     }
 }

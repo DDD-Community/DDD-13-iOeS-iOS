@@ -10,11 +10,18 @@ enum TestError: Error, LocalizedError {
 
 final class MockSpotService: SpotServiceProtocol, @unchecked Sendable {
     var result: Result<SpotDetail, any Error> = .success(.fixture())
+    var registerResult: Result<SpotId, any Error> = .success(SpotId(rawValue: "stub"))
     private(set) var requests: [(id: Int64, latitude: Double?, longitude: Double?)] = []
+    private(set) var registeredDrafts: [SpotRegistrationDraft] = []
 
     func fetchSpotDetail(id: Int64, latitude: Double?, longitude: Double?) async throws -> SpotDetail {
         requests.append((id, latitude, longitude))
         return try result.get()
+    }
+
+    func registerSpot(draft: SpotRegistrationDraft) async throws -> SpotId {
+        registeredDrafts.append(draft)
+        return try registerResult.get()
     }
 }
 
