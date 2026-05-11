@@ -51,6 +51,7 @@ let project = Project(
             sources: ["PickflowTests/**"],
             dependencies: [
                 .target(name: ProjectEnvironment.name),
+                .external(.snapshotTesting),
             ],
             settings: .settings(
                 base: [
