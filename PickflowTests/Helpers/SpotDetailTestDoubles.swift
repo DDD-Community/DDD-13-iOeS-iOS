@@ -1,3 +1,4 @@
+import CoreLocation
 import Foundation
 @testable import Pickflow
 
@@ -14,6 +15,14 @@ final class MockSpotService: SpotServiceProtocol, @unchecked Sendable {
     func fetchSpotDetail(id: Int64, latitude: Double?, longitude: Double?) async throws -> SpotDetail {
         requests.append((id, latitude, longitude))
         return try result.get()
+    }
+
+    var registerSpotResult: Result<SpotId, any Error> = .success(SpotId(rawValue: "mock-spot-id"))
+    private(set) var registerDrafts: [SpotRegistrationDraft] = []
+
+    func registerSpot(draft: SpotRegistrationDraft) async throws -> SpotId {
+        registerDrafts.append(draft)
+        return try registerSpotResult.get()
     }
 }
 
@@ -46,8 +55,13 @@ final class MockShareIntentService: ShareIntentServiceProtocol, @unchecked Senda
 
 final class MockLocationService: LocationServiceProtocol, @unchecked Sendable {
     var result: Result<Coordinate, any Error> = .success(Coordinate(latitude: 37.1, longitude: 127.1))
+    var stubbedAuthorizationStatus: CLAuthorizationStatus = .notDetermined
 
     func requestAuthorization() {}
+
+    func authorizationStatus() -> CLAuthorizationStatus {
+        stubbedAuthorizationStatus
+    }
 
     func currentLocation() async throws -> Coordinate {
         try result.get()
