@@ -1,41 +1,85 @@
 import SwiftUI
 
 /// 온보딩 컨테이너.
-/// 레이아웃 정책:
-/// - PICKFLOW 워드마크 (좌상단): **고정** (모든 페이지 동일 위치, 스크롤되지 않음)
-/// - 일러스트 영역: TabView 가로 페이지 스크롤 (그라데이션 배경 포함, 페이지 단위로 전환)
-/// - 타이틀 / 서브타이틀 / 인디케이터: `viewModel.currentIndex`에 바인딩되어 페이지 전환 시 자연스럽게 갱신
-/// - "시작하기" CTA: **고정** (모든 페이지 동일 위치, 모든 페이지에서 완료 처리)
+/// - PICKFLOW 워드마크(좌상단)와 하단 패널(인디케이터·CTA·타이틀·서브타이틀)은 위치 고정
+/// - 일러스트 영역은 HStack 오프셋 기반 커스텀 페이저로 가로 페이지 전환
+/// - **드래그 제스처는 화면 전체(일러스트 + 패널)에 부착**되어, 패널 영역에서도 위 스크롤뷰처럼 인터랙티브하게 페이지를 끌어올 수 있다.
+/// - 릴리스 시 predictedEndTranslation 기준으로 인접 페이지에 스프링 스냅
 struct OnboardingView: View {
     @ObservedObject var viewModel: OnboardingViewModel
 
+    @State private var dragOffset: CGFloat = 0
+
+    private let snapAnimation: Animation = .interpolatingSpring(stiffness: 220, damping: 24)
+    private let swipeMinimumDistance: CGFloat = 8
+    private let edgeRubberBand: CGFloat = 0.3
+
     var body: some View {
-        VStack(spacing: 0) {
-            ZStack(alignment: .topLeading) {
-                TabView(selection: $viewModel.currentIndex) {
-                    ForEach(Array(viewModel.pages.enumerated()), id: \.element.id) { index, page in
-                        OnboardingIllustration(page: page)
-                            .tag(index)
+        GeometryReader { geo in
+            VStack(spacing: 0) {
+                ZStack(alignment: .topLeading) {
+                    HStack(spacing: 0) {
+                        ForEach(Array(viewModel.pages.enumerated()), id: \.element.id) { _, page in
+                            OnboardingIllustration(page: page)
+                                .frame(width: geo.size.width)
+                        }
                     }
+                    .offset(x: pagerOffset(width: geo.size.width))
+
+                    wordmark
                 }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                .ignoresSafeArea()
+                .frame(maxHeight: .infinity)
+                .clipped()
 
-                wordmark
+                OnboardingPanel(
+                    page: viewModel.pages[viewModel.currentIndex],
+                    currentIndex: viewModel.currentIndex,
+                    pageCount: viewModel.pages.count,
+                    onPrimaryTap: { viewModel.finishOnboarding() }
+                )
+                .animation(.easeInOut(duration: 0.2), value: viewModel.currentIndex)
             }
-            .frame(maxHeight: .infinity)
-
-            OnboardingPanel(
-                page: viewModel.pages[viewModel.currentIndex],
-                currentIndex: viewModel.currentIndex,
-                pageCount: viewModel.pages.count,
-                onPrimaryTap: { viewModel.finishOnboarding() },
-                onSwipeNext: { viewModel.goToNextPage() },
-                onSwipePrevious: { viewModel.goToPreviousPage() }
-            )
-            .animation(.easeInOut(duration: 0.2), value: viewModel.currentIndex)
+            .background(OnboardingPalette.panelBackground)
+            .ignoresSafeArea(.container, edges: .top)
+            .contentShape(Rectangle())
+            .simultaneousGesture(makePagerGesture(pageWidth: geo.size.width))
         }
-        .background(OnboardingPalette.panelBackground)
+    }
+
+    private func pagerOffset(width: CGFloat) -> CGFloat {
+        -CGFloat(viewModel.currentIndex) * width + dragOffset
+    }
+
+    private func makePagerGesture(pageWidth: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: swipeMinimumDistance)
+            .onChanged { value in
+                let proposed = value.translation.width
+                let atLeadingEdge = viewModel.currentIndex == 0 && proposed > 0
+                let atTrailingEdge = viewModel.currentIndex == viewModel.pages.count - 1 && proposed < 0
+                if atLeadingEdge || atTrailingEdge {
+                    dragOffset = proposed * edgeRubberBand
+                } else {
+                    dragOffset = proposed
+                }
+            }
+            .onEnded { value in
+                let predicted = value.predictedEndTranslation.width
+                let threshold = pageWidth / 4
+
+                var nextIndex = viewModel.currentIndex
+                if predicted < -threshold {
+                    nextIndex = min(viewModel.currentIndex + 1, viewModel.pages.count - 1)
+                } else if predicted > threshold {
+                    nextIndex = max(viewModel.currentIndex - 1, 0)
+                }
+
+                withAnimation(snapAnimation) {
+                    if nextIndex != viewModel.currentIndex {
+                        viewModel.setPage(nextIndex)
+                    }
+                    dragOffset = 0
+                }
+            }
     }
 
     private var wordmark: some View {
@@ -50,8 +94,7 @@ struct OnboardingView: View {
 }
 
 #Preview {
-  OnboardingGate(completionStore: getOnboardingCompletionStore()) {
-      ContentView()
-  }
-  
+    OnboardingGate(completionStore: getOnboardingCompletionStore()) {
+        ContentView()
+    }
 }
