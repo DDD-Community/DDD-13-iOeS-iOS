@@ -1,5 +1,5 @@
 import CoreLocation
-import NMapsMap
+@preconcurrency import NMapsMap
 import SwiftUI
 
 /// `NMCClusterer` 사용은 `UIViewController` + `UIViewControllerRepresentable` 래핑 필수.
