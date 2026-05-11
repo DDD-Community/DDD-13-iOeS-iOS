@@ -37,6 +37,7 @@ extension PhotoCategory {
 extension Address {
     static let mockSpotRegistrationAddress = Address(
         id: "mock-jamwon",
+        name: SpotRegistrationCopy.mockPlaceName,
         fullAddress: "서울 서초구 잠원로 221-124 잠원한강공원",
         roadAddress: "서울 서초구 잠원로 221-124 잠원한강공원",
         jibunAddress: nil,

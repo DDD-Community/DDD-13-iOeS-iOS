@@ -55,7 +55,7 @@ final class MockShareIntentService: ShareIntentServiceProtocol, @unchecked Senda
 
 final class MockLocationService: LocationServiceProtocol, @unchecked Sendable {
     var result: Result<Coordinate, any Error> = .success(Coordinate(latitude: 37.1, longitude: 127.1))
-    var stubbedAuthorizationStatus: CLAuthorizationStatus = .notDetermined
+    var stubbedAuthorizationStatus: CLAuthorizationStatus = .authorizedWhenInUse
 
     func requestAuthorization() {}
 
