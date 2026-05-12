@@ -9,6 +9,9 @@ protocol AuthServiceProtocol: Sendable {
     /// `POST /auth/kakao` 호출.
     func signInWithKakao(kakaoAccessToken: String) async throws -> KakaoSignInResponse
 
+    /// `POST /auth/apple` 호출.
+    func signInWithApple(identityToken: String, nonce: String) async throws -> AppleSignInResponse
+
     /// `POST /auth/refresh` 호출.
     func refreshToken(_ refreshToken: String) async throws -> AuthToken
 

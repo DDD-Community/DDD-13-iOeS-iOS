@@ -20,8 +20,8 @@ final class MockSpotService: SpotServiceProtocol, @unchecked Sendable {
         return try result.get()
     }
 
-    func registerSpot(draft: SpotRegistrationDraft) async throws -> SpotId {
-        SpotId(rawValue: "mock-spot-id")
+    func registerSpot(draft _: SpotRegistrationDraft) async throws -> SpotId {
+        SpotId(rawValue: "spot-1")
     }
 
     func reportSpot(id: Int64, type: SpotReportType) async throws {
@@ -63,7 +63,9 @@ final class MockLocationService: LocationServiceProtocol, @unchecked Sendable {
 
     func requestAuthorization() {}
 
-    func authorizationStatus() -> CLAuthorizationStatus { .authorizedWhenInUse }
+    func authorizationStatus() -> CLAuthorizationStatus {
+        .authorizedWhenInUse
+    }
 
     func currentLocation() async throws -> Coordinate {
         try result.get()

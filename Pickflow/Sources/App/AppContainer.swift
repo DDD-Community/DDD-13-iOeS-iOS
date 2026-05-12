@@ -22,6 +22,7 @@ final class AppContainer {
         container.register(UserServiceProtocol.self) { UserService(networkManager: networkManager) }
         container.register(AuthServiceProtocol.self) { AuthService(networkManager: networkManager, tokenStore: tokenStore) }
         container.register(KakaoAuthProviderProtocol.self, scope: .container) { KakaoAuthProvider() }
+        container.register(AppleAuthProviderProtocol.self, scope: .container) { AppleAuthProvider() }
         container.register(MapServiceProtocol.self) { MapService(networkManager: networkManager) }
         container.register(AddressServiceProtocol.self) { AddressService(networkManager: networkManager) }
         container.register(SpotServiceProtocol.self) { SpotService(networkManager: networkManager) }

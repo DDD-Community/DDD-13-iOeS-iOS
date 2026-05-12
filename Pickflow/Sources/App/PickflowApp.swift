@@ -13,7 +13,14 @@ struct PickflowApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            AppRootView(
+                authService: getAuthService(),
+                kakaoAuthProvider: getKakaoAuthProvider(),
+                appleAuthProvider: getAppleAuthProvider(),
+                tokenStore: getTokenStore(),
+                locationService: getLocationService()
+            )
+                .ignoresSafeArea(.keyboard, edges: .bottom)
                 .onOpenURL { url in
                     if AuthApi.isKakaoTalkLoginUrl(url) {
                         _ = AuthController.handleOpenUrl(url: url)

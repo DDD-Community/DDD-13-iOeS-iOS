@@ -6,6 +6,7 @@ struct SpotRegistrationView: View {
     @StateObject private var viewModel: SpotRegistrationViewModel
     @State private var isDateSheetPresented = false
     @State private var isTimeSheetPresented = false
+    @State private var isSpotSearchPresented = false
     private let onRegistered: @MainActor (SpotId) -> Void
 
     init(
@@ -133,12 +134,7 @@ struct SpotRegistrationView: View {
 
                 SpotSearchLocationButton(
                     action: {
-                        #if DEBUG
-                        // TODO(KAN-XX): 주소 검색 화면 연결 전까지 탭 시 mock 주소를 주입해 QA를 돕는다.
-                        viewModel.applyMockAddressSelection()
-                        #else
-                        // TODO(KAN-XX): 주소 검색 화면 연결
-                        #endif
+                        isSpotSearchPresented = true
                     },
                     debugLongPressAction: {
                         #if DEBUG
@@ -198,6 +194,18 @@ struct SpotRegistrationView: View {
             ) { time in
                 viewModel.setCapturedTime(time)
             }
+        }
+        .fullScreenCoverKeyboardFixed(isPresented: $isSpotSearchPresented) {
+            SpotSearchView(
+                viewModel: SpotSearchViewModel(
+                    addressService: getAddressService(),
+                    locationService: getLocationService()
+                ),
+                onSelectAddress: { address in
+                    viewModel.applyAddressSelection(address)
+                    isSpotSearchPresented = false
+                }
+            )
         }
         .alert(
             "등록 실패",

@@ -5,8 +5,9 @@ protocol AddressServiceProtocol: Sendable {
     func reverseGeocode(latitude: Double, longitude: Double) async throws -> Address
 }
 
-struct Address: Codable, Sendable, Identifiable {
+struct Address: Codable, Sendable, Identifiable, Equatable {
     let id: String
+    let name: String?
     let fullAddress: String
     let roadAddress: String?
     let jibunAddress: String?
