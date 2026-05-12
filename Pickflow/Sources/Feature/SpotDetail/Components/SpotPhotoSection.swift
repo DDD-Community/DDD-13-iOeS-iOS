@@ -42,7 +42,7 @@ struct SpotPhotoSection: View {
             if imageURL != nil, let recordedTime {
                 Text(DateFormatter.pickflowDisplayTime(from: recordedTime))
                     .pretendard(.body(.small(.bold)))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color(red: 1, green: 161/255, blue: 0))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(.black.opacity(0.5))
