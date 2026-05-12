@@ -6,7 +6,7 @@ import SwiftUI
 /// - **드래그 제스처는 화면 전체(일러스트 + 패널)에 부착**되어, 패널 영역에서도 위 스크롤뷰처럼 인터랙티브하게 페이지를 끌어올 수 있다.
 /// - 릴리스 시 predictedEndTranslation 기준으로 인접 페이지에 스프링 스냅
 struct OnboardingView: View {
-    @ObservedObject var viewModel: OnboardingViewModel
+    @StateObject var viewModel: OnboardingViewModel
 
     /// 온보딩 완료 시 상위(`AppRootView`)로 전파되는 콜백.
     var onOnboardingFinished: () -> Void = {}

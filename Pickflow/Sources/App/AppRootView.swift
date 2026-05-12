@@ -33,7 +33,9 @@ struct AppRootView: View {
                 SplashView()
             case .onboarding:
                 OnboardingView(
-                    viewModel: viewModel.onboardingViewModel,
+                    viewModel: OnboardingViewModel(
+                        completionStore: viewModel.onboardingCompletionStore
+                    ),
                     onOnboardingFinished: viewModel.didCompleteOnboarding
                 )
                 .transition(.opacity)
@@ -73,14 +75,14 @@ final class AppRootViewModel: ObservableObject {
 
     @Published private(set) var routeState: AuthRouteState = .loading
 
-    /// LoginView 생성 시 주입용으로 노출. AppContainer에서 1회 resolve한 인스턴스를 재사용한다.
+    /// 하위 ViewModel(LoginViewModel, OnboardingViewModel 등) 생성 시 주입용으로 노출.
+    /// AppContainer에서 1회 resolve한 인스턴스를 재사용한다.
     let authService: AuthServiceProtocol
     let kakaoAuthProvider: KakaoAuthProviderProtocol
     let tokenStore: TokenStoreProtocol
     let locationService: LocationServiceProtocol
-    let onboardingViewModel: OnboardingViewModel
+    let onboardingCompletionStore: OnboardingCompletionStore
 
-    private let onboardingCompletionStore: OnboardingCompletionStore
     private var didHandleLocationPermission = false
 
     init(
@@ -95,7 +97,6 @@ final class AppRootViewModel: ObservableObject {
         self.tokenStore = tokenStore
         self.locationService = locationService
         self.onboardingCompletionStore = onboardingCompletionStore
-        self.onboardingViewModel = OnboardingViewModel(completionStore: onboardingCompletionStore)
     }
 
     func bootstrap() async {
