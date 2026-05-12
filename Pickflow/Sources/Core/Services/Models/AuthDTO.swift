@@ -14,37 +14,6 @@ enum AuthState: Sendable {
     case signedIn(AuthToken)
 }
 
-// MARK: - Requests
-
-/// `POST /auth/kakao` 요청 바디.
-struct KakaoSignInRequest: Encodable, Sendable {
-    let kakaoAccessToken: String
-
-    enum CodingKeys: String, CodingKey {
-        case kakaoAccessToken = "kakao_access_token"
-    }
-}
-
-/// `POST /auth/apple` 요청 바디.
-struct AppleSignInRequest: Encodable, Sendable {
-    let identityToken: String
-    let nonce: String
-
-    enum CodingKeys: String, CodingKey {
-        case identityToken = "identity_token"
-        case nonce
-    }
-}
-
-/// `POST /auth/refresh` 요청 바디.
-struct RefreshTokenRequest: Encodable, Sendable {
-    let refreshToken: String
-
-    enum CodingKeys: String, CodingKey {
-        case refreshToken = "refresh_token"
-    }
-}
-
 // MARK: - Responses
 
 /// `POST /auth/kakao` 응답. snake_case → camelCase 는

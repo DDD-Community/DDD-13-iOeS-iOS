@@ -63,10 +63,9 @@ struct LoginView: View {
 
     private var header: some View {
         HStack {
-            Text("PICKFLOW")
-                .font(.custom(PretendardFontName.bold, size: 24))
-                .tracking(1.2)
-                .foregroundStyle(.gray0)
+            Image("pickflow_wordmark")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
                 .frame(width: 140, height: 32, alignment: .leading)
                 .accessibilityLabel("PICKFLOW")
 
