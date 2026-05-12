@@ -6,6 +6,9 @@ struct LoginView: View {
 
     /// 로그인 성공 시 상위(`AppRootView`)로 전파되는 콜백.
     var onSignInSucceeded: () -> Void = {}
+    var isClosable: Bool = false
+
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         ZStack {
@@ -68,6 +71,19 @@ struct LoginView: View {
                 .accessibilityLabel("PICKFLOW")
 
             Spacer()
+
+            if isClosable {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.gray0)
+                        .frame(width: 44, height: 44)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("닫기")
+            }
         }
         .frame(maxWidth: .infinity)
     }
@@ -165,8 +181,10 @@ struct LoginView: View {
         viewModel: LoginViewModel(
             authService: PreviewAuthService(),
             kakaoAuthProvider: PreviewKakaoAuthProvider(),
+            appleAuthProvider: PreviewAppleAuthProvider(),
             tokenStore: PreviewTokenStore()
-        )
+        ),
+        isClosable: true
     )
 }
 
@@ -205,6 +223,12 @@ private final class PreviewAuthService: AuthServiceProtocol, @unchecked Sendable
 private final class PreviewKakaoAuthProvider: KakaoAuthProviderProtocol, @unchecked Sendable {
     func obtainAccessToken() async throws -> String {
         "preview-kakao-access-token"
+    }
+}
+
+private final class PreviewAppleAuthProvider: AppleAuthProviderProtocol, @unchecked Sendable {
+    func obtainCredential() async throws -> AppleCredential {
+        AppleCredential(identityToken: "preview-apple-identity-token", nonce: "preview-apple-nonce")
     }
 }
 

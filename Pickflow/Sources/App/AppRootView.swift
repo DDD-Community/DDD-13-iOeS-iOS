@@ -39,7 +39,8 @@ struct AppRootView: View {
                         appleAuthProvider: viewModel.appleAuthProvider,
                         tokenStore: viewModel.tokenStore
                     ),
-                    onSignInSucceeded: viewModel.didCompleteSignIn
+                    onSignInSucceeded: viewModel.didCompleteSignIn,
+                    isClosable: false
                 )
             case .signedIn:
                 HomePlaceholderView()

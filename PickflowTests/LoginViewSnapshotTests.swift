@@ -125,7 +125,6 @@ final class LoginViewSnapshotTests: XCTestCase {
                 traits: UITraitCollection(userInterfaceStyle: userInterfaceStyle)
             ),
             named: name,
-            record: .all,
             file: file,
             testName: testName,
             line: line
