@@ -11,6 +11,7 @@ struct OnboardingIllustration: View {
                 .scaledToFit()
                 .frame(maxWidth: .infinity, alignment: .bottom)
         }
+        .drawingGroup()
     }
 }
 

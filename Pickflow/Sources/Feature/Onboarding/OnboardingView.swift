@@ -12,7 +12,7 @@ struct OnboardingView: View {
     var onOnboardingFinished: () -> Void = {}
 
     @State private var dragOffset: CGFloat = 0
-    @State private var pagerWidth: CGFloat = 0
+    @State private var pagerSize: CGSize = .zero
 
     private let snapAnimation: Animation = .interpolatingSpring(stiffness: 220, damping: 24)
     private let swipeMinimumDistance: CGFloat = 8
@@ -25,21 +25,18 @@ struct OnboardingView: View {
                 .clipped()
                 .ignoresSafeArea(edges: .top)
                 .overlay(alignment: .top) {
-                    GeometryReader { geo in
-                        toastOverlay
-                            .frame(maxWidth: .infinity)
-                            .position(x: geo.size.width / 2, y: geo.size.height * 0.20)
-                    }
+                    toastOverlay
+                    .offset(y: 50)
                 }
                 .background(
                     GeometryReader { geo in
                         Color.clear.preference(
-                            key: PagerWidthKey.self,
-                            value: geo.size.width
+                            key: PagerSizeKey.self,
+                            value: geo.size
                         )
                     }
                 )
-                .onPreferenceChange(PagerWidthKey.self) { pagerWidth = $0 }
+                .onPreferenceChange(PagerSizeKey.self) { pagerSize = $0 }
 
             OnboardingPanel(
                 page: viewModel.pages[viewModel.currentIndex],
@@ -51,7 +48,7 @@ struct OnboardingView: View {
         }
         .background(OnboardingPalette.panelBackground)
         .contentShape(Rectangle())
-        .simultaneousGesture(makePagerGesture(pageWidth: pagerWidth))
+        .simultaneousGesture(makePagerGesture(pageWidth: pagerSize.width))
         .overlay(alignment: .topLeading) {
             logo
         }
@@ -144,9 +141,9 @@ struct OnboardingView: View {
     )
 }
 
-private struct PagerWidthKey: PreferenceKey {
-    static let defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+private struct PagerSizeKey: PreferenceKey {
+    static let defaultValue: CGSize = .zero
+    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
         value = nextValue()
     }
 }
