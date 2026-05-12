@@ -107,16 +107,11 @@ struct SpotDetailView: View {
                 .tint(UIAsset.Colors.gray0.color)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         case let .failed(message):
-            VStack(spacing: 12) {
-                Text("스팟 정보를 불러오지 못했어요.")
-                    .pretendard(.body(.large(.bold)))
-                    .foregroundStyle(.gray0)
-                Text(message)
-                    .pretendard(.body(.small()))
-                    .foregroundStyle(.gray50)
-                    .multilineTextAlignment(.center)
-            }
-            .padding(24)
+            ContentUnavailableView(
+                "스팟 정보를 불러오지 못했어요.",
+                systemImage: "exclamationmark.triangle",
+                description: Text(message)
+            )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         case let .loaded(spot):
             ScrollView {
