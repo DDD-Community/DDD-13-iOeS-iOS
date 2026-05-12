@@ -10,5 +10,6 @@ let package = Package(
         .package(url: "https://github.com/navermaps/SPM-NMapsMap.git", from: "3.23.2"),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing.git", from: "1.18.7"),
         .package(url: "https://github.com/Swinject/Swinject.git", from: "2.9.0"),
+        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing.git", from: "1.17.0"),
     ]
 )

@@ -13,6 +13,7 @@ final class SpotDetailViewModel: ObservableObject {
     @Published private(set) var isBookmarked = false
     @Published var dismissRequested = false
     @Published var toast: String?
+    @Published var isLoginRequired = false
 
     private let spotId: Int64
     private let spotService: SpotServiceProtocol
@@ -21,6 +22,7 @@ final class SpotDetailViewModel: ObservableObject {
     private let locationService: LocationServiceProtocol
     private let externalAppLauncher: ExternalAppLauncherProtocol
     private let shareSheetPresenter: ShareSheetPresenterProtocol
+    private let tokenStore: TokenStoreProtocol
     private let deviceIdProvider: @MainActor @Sendable () -> String
     private let clock: @Sendable () -> Date
 
@@ -32,6 +34,7 @@ final class SpotDetailViewModel: ObservableObject {
         locationService: LocationServiceProtocol,
         externalAppLauncher: ExternalAppLauncherProtocol,
         shareSheetPresenter: ShareSheetPresenterProtocol,
+        tokenStore: TokenStoreProtocol = getTokenStore(),
         deviceIdProvider: @escaping @MainActor @Sendable () -> String,
         clock: @escaping @Sendable () -> Date = Date.init
     ) {
@@ -42,6 +45,7 @@ final class SpotDetailViewModel: ObservableObject {
         self.locationService = locationService
         self.externalAppLauncher = externalAppLauncher
         self.shareSheetPresenter = shareSheetPresenter
+        self.tokenStore = tokenStore
         self.deviceIdProvider = deviceIdProvider
         self.clock = clock
     }
@@ -66,6 +70,11 @@ final class SpotDetailViewModel: ObservableObject {
 
     func toggleBookmark() async {
         guard case let .loaded(spot) = state else { return }
+
+        guard (try? tokenStore.load()) != nil else {
+            isLoginRequired = true
+            return
+        }
 
         let previousValue = isBookmarked
         isBookmarked.toggle()
@@ -101,7 +110,27 @@ final class SpotDetailViewModel: ObservableObject {
     }
 
     func reportInvalidInfo() {
-        // TODO: KAN-?? 후속
+        guard case let .loaded(spot) = state else { return }
+        Task {
+            do {
+                try await spotService.reportSpot(id: spot.id, type: .etc)
+                showToast("제보가 접수되었습니다.")
+            } catch {
+                showToast("제보 접수에 실패했어요.")
+            }
+        }
+    }
+
+    private func showToast(_ message: String) {
+        toast = message
+        Task {
+            try? await Task.sleep(for: .seconds(3))
+            toast = nil
+        }
+    }
+
+    func openSpot() {
+        toast = "준비 중이에요."
     }
 
     func close() {

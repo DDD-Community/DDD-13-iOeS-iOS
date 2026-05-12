@@ -5,38 +5,33 @@ struct SpotHeaderSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(spot.name)
-                .pretendard(.heading(.large))
-                .foregroundStyle(.gray0)
-                .lineLimit(1)
-
-            HStack(spacing: 4) {
-                HStack(spacing: 4) {
-                    Image("icTwilight", bundle: PickflowResources.bundle)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 16, height: 16)
-                    Text(spot.theme.rawValue)
-                        .pretendard(.body(.small(.bold)))
-                }
-                .foregroundStyle(.gray10)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .frame(height: 24)
-                .background(.gray90)
-                .clipShape(RoundedRectangle(cornerRadius: 4))
-
-                if let distance = spot.distance {
-                    Text(String(format: "%.1fkm", distance))
+            HStack(alignment: .center, spacing: 6) {
+                Text(spot.name)
+                    .pretendard(.heading(.large))
+                    .foregroundStyle(.gray0)
+                if spot.isMine {
+                    Text("MY 스팟")
                         .pretendard(.label(.medium))
-                        .foregroundStyle(.gray10)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .frame(height: 24)
-                        .background(.gray90)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(.sunsetOrange)
                         .clipShape(RoundedRectangle(cornerRadius: 4))
                 }
             }
+
+            Text(spot.isMine ? spot.theme.rawValue : "\(spot.theme.rawValue) · 북마크 \(spot.bookmarkCount)")
+                .pretendard(.body(.small()))
+                .foregroundStyle(.gray30)
+
+            Text(spot.comment)
+                .pretendard(.body(.medium()))
+                .foregroundStyle(.gray0)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+                .padding(16)
+                .background(.gray90)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
     }
 }

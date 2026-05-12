@@ -18,4 +18,10 @@ final class SpotService: SpotServiceProtocol, Sendable {
         try await Task.sleep(for: .seconds(1))
         return SpotId(rawValue: UUID().uuidString)
     }
+
+    func reportSpot(id: Int64, type: SpotReportType) async throws {
+        let _: EmptyResponse = try await networkManager.request(
+            endpoint: ReportEndpoint(spotId: id, reportType: type)
+        )
+    }
 }
