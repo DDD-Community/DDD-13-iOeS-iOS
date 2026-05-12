@@ -20,6 +20,7 @@ struct PickflowApp: App {
                 tokenStore: getTokenStore(),
                 locationService: getLocationService()
             )
+                .ignoresSafeArea(.keyboard, edges: .bottom)
                 .onOpenURL { url in
                     if AuthApi.isKakaoTalkLoginUrl(url) {
                         _ = AuthController.handleOpenUrl(url: url)

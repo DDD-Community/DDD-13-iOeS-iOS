@@ -3,7 +3,7 @@ import CoreLocation
 
 /// 앱 최상위 라우팅 컨테이너.
 ///
-/// 인증 상태에 따라 `LoginView`와 홈(현재는 placeholder)을 분기한다.
+/// 인증 상태에 따라 `LoginView`와 홈 화면을 분기한다.
 /// 초기 인증 상태 판정은 `AuthService.currentAuthState()`에 위임한다.
 struct AppRootView: View {
     @StateObject private var viewModel: AppRootViewModel
@@ -43,7 +43,7 @@ struct AppRootView: View {
                     isClosable: false
                 )
             case .signedIn:
-                HomePlaceholderView()
+                ContentView()
                     .task {
                         viewModel.prepareLocationPermissionIfNeeded()
                     }
@@ -133,18 +133,6 @@ private struct SplashView: View {
             Color.black.ignoresSafeArea()
             ProgressView()
                 .tint(.white)
-        }
-    }
-}
-
-/// 로그인 후 진입할 홈 화면 플레이스홀더. 본 티켓 범위 밖.
-private struct HomePlaceholderView: View {
-    var body: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
-            Text("Home (WIP)")
-                .foregroundStyle(.white)
-                .font(.largeTitle)
         }
     }
 }
