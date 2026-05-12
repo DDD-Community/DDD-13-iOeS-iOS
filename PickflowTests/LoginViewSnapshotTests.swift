@@ -24,6 +24,14 @@ final class LoginViewSnapshotTests: XCTestCase {
         )
     }
 
+    func test_login_header_closable_dark() {
+        assertLoginSnapshot(
+            named: "login-header-closable-dark",
+            viewModel: makeViewModel(),
+            isClosable: true
+        )
+    }
+
     func test_login_center_content_idle_dark() {
         assertLoginSnapshot(
             named: "login-center-content-idle-dark",
@@ -110,11 +118,12 @@ final class LoginViewSnapshotTests: XCTestCase {
         height: CGFloat = 844,
         userInterfaceStyle: UIUserInterfaceStyle = .dark,
         dynamicTypeSize: DynamicTypeSize = .large,
+        isClosable: Bool = false,
         file: StaticString = #filePath,
         testName: String = #function,
         line: UInt = #line
     ) {
-        let view = LoginView(viewModel: viewModel)
+        let view = LoginView(viewModel: viewModel, isClosable: isClosable)
             .environment(\.locale, Locale(identifier: "ko_KR"))
             .environment(\.dynamicTypeSize, dynamicTypeSize)
 
