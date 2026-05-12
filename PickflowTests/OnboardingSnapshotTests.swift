@@ -185,13 +185,9 @@ final class OnboardingSnapshotTests: XCTestCase {
                 OnboardingIllustration(page: page)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                Text("PICKFLOW")
-                    .font(.custom("Rambla-Bold", size: 28))
-                    .tracking(-0.056)
-                    .lineSpacing(1.11)
-                    .foregroundStyle(OnboardingPalette.title)
-                    .padding(.leading, 20)
-                    .padding(.top, 16)
+              Image(.logo)
+                    .padding(.leading, 16)
+                    .padding(.top, 12)
             }
 
             OnboardingPanel(

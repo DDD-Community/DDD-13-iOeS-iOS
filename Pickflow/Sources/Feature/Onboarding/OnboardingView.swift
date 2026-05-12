@@ -8,6 +8,9 @@ import SwiftUI
 struct OnboardingView: View {
     @ObservedObject var viewModel: OnboardingViewModel
 
+    /// 온보딩 완료 시 상위(`AppRootView`)로 전파되는 콜백.
+    var onOnboardingFinished: () -> Void = {}
+
     @State private var dragOffset: CGFloat = 0
     @State private var pagerWidth: CGFloat = 0
 
@@ -49,6 +52,14 @@ struct OnboardingView: View {
         .background(OnboardingPalette.panelBackground)
         .contentShape(Rectangle())
         .simultaneousGesture(makePagerGesture(pageWidth: pagerWidth))
+        .overlay(alignment: .topLeading) {
+            logo
+        }
+        .onChange(of: viewModel.isFinished) { _, isFinished in
+            if isFinished {
+                onOnboardingFinished()
+            }
+        }
     }
 
     @ViewBuilder
@@ -74,17 +85,13 @@ struct OnboardingView: View {
 
     private var illustrationPager: some View {
         GeometryReader { geo in
-            ZStack(alignment: .topLeading) {
-                HStack(spacing: 0) {
-                    ForEach(Array(viewModel.pages.enumerated()), id: \.element.id) { _, page in
-                        OnboardingIllustration(page: page)
-                            .frame(width: geo.size.width, height: geo.size.height)
-                    }
+            HStack(spacing: 0) {
+                ForEach(Array(viewModel.pages.enumerated()), id: \.element.id) { _, page in
+                    OnboardingIllustration(page: page)
+                        .frame(width: geo.size.width, height: geo.size.height)
                 }
-                .offset(x: pagerOffset(width: geo.size.width))
-
-                wordmark
             }
+            .offset(x: pagerOffset(width: geo.size.width))
         }
     }
 
@@ -124,21 +131,17 @@ struct OnboardingView: View {
             }
     }
 
-    private var wordmark: some View {
-        Text("PICKFLOW")
-            .font(.custom("Rambla-Bold", size: 28))
-            .tracking(-0.056)
-            .lineSpacing(1.11)
-            .foregroundStyle(OnboardingPalette.title)
-            .padding(.leading, 20)
-            .padding(.top, 16)
+    private var logo: some View {
+      Image(.logo)
+            .padding(.leading, 16)
+            .padding(.top, 12)
     }
 }
 
 #Preview {
-    OnboardingGate(completionStore: getOnboardingCompletionStore()) {
-        ContentView()
-    }
+    OnboardingView(
+        viewModel: OnboardingViewModel(completionStore: UserDefaultsOnboardingCompletionStore())
+    )
 }
 
 private struct PagerWidthKey: PreferenceKey {

@@ -3,8 +3,8 @@ import CoreLocation
 
 /// 앱 최상위 라우팅 컨테이너.
 ///
-/// 인증 상태에 따라 `LoginView`와 홈(현재는 placeholder)을 분기한다.
-/// 초기 인증 상태 판정은 `AuthService.currentAuthState()`에 위임한다.
+/// 부트스트랩 결과에 따라 Splash → (Onboarding) → Login → Main(TabView) 으로 분기한다.
+/// 온보딩 완료 여부는 `OnboardingCompletionStore`, 인증 상태는 `AuthService.currentAuthState()`에 위임한다.
 struct AppRootView: View {
     @StateObject private var viewModel: AppRootViewModel
 
@@ -12,23 +12,31 @@ struct AppRootView: View {
         authService: AuthServiceProtocol,
         kakaoAuthProvider: KakaoAuthProviderProtocol,
         tokenStore: TokenStoreProtocol,
-        locationService: LocationServiceProtocol
+        locationService: LocationServiceProtocol,
+        onboardingCompletionStore: OnboardingCompletionStore
     ) {
         _viewModel = StateObject(
             wrappedValue: AppRootViewModel(
                 authService: authService,
                 kakaoAuthProvider: kakaoAuthProvider,
                 tokenStore: tokenStore,
-                locationService: locationService
+                locationService: locationService,
+                onboardingCompletionStore: onboardingCompletionStore
             )
         )
     }
 
     var body: some View {
         Group {
-            switch viewModel.authState {
+            switch viewModel.routeState {
             case .loading:
                 SplashView()
+            case .onboarding:
+                OnboardingView(
+                    viewModel: viewModel.onboardingViewModel,
+                    onOnboardingFinished: viewModel.didCompleteOnboarding
+                )
+                .transition(.opacity)
             case .signedOut:
                 LoginView(
                     viewModel: LoginViewModel(
@@ -39,12 +47,13 @@ struct AppRootView: View {
                     onSignInSucceeded: viewModel.didCompleteSignIn
                 )
             case .signedIn:
-                HomePlaceholderView()
+                ContentView()
                     .task {
                         viewModel.prepareLocationPermissionIfNeeded()
                     }
             }
         }
+        .animation(.easeInOut(duration: 0.25), value: viewModel.routeState)
         .task {
             await viewModel.bootstrap()
         }
@@ -57,42 +66,60 @@ struct AppRootView: View {
 final class AppRootViewModel: ObservableObject {
     enum AuthRouteState: Equatable {
         case loading
+        case onboarding
         case signedOut
         case signedIn
     }
 
-    @Published private(set) var authState: AuthRouteState = .loading
+    @Published private(set) var routeState: AuthRouteState = .loading
 
     /// LoginView 생성 시 주입용으로 노출. AppContainer에서 1회 resolve한 인스턴스를 재사용한다.
     let authService: AuthServiceProtocol
     let kakaoAuthProvider: KakaoAuthProviderProtocol
     let tokenStore: TokenStoreProtocol
     let locationService: LocationServiceProtocol
+    let onboardingViewModel: OnboardingViewModel
+
+    private let onboardingCompletionStore: OnboardingCompletionStore
     private var didHandleLocationPermission = false
 
     init(
         authService: AuthServiceProtocol,
         kakaoAuthProvider: KakaoAuthProviderProtocol,
         tokenStore: TokenStoreProtocol,
-        locationService: LocationServiceProtocol
+        locationService: LocationServiceProtocol,
+        onboardingCompletionStore: OnboardingCompletionStore
     ) {
         self.authService = authService
         self.kakaoAuthProvider = kakaoAuthProvider
         self.tokenStore = tokenStore
         self.locationService = locationService
+        self.onboardingCompletionStore = onboardingCompletionStore
+        self.onboardingViewModel = OnboardingViewModel(completionStore: onboardingCompletionStore)
     }
 
     func bootstrap() async {
+        guard onboardingCompletionStore.hasSeenOnboarding() else {
+            routeState = .onboarding
+            return
+        }
         let state = await authService.currentAuthState()
-        authState = state.toRoute()
+        routeState = state.toRoute()
+    }
+
+    func didCompleteOnboarding() {
+        Task { @MainActor in
+            let state = await authService.currentAuthState()
+            routeState = state.toRoute()
+        }
     }
 
     func didCompleteSignIn() {
-        authState = .signedIn
+        routeState = .signedIn
     }
 
     func prepareLocationPermissionIfNeeded() {
-        guard authState == .signedIn, !didHandleLocationPermission else { return }
+        guard routeState == .signedIn, !didHandleLocationPermission else { return }
         guard ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1" else { return }
 
         switch locationService.authorizationStatus() {
@@ -126,18 +153,6 @@ private struct SplashView: View {
             Color.black.ignoresSafeArea()
             ProgressView()
                 .tint(.white)
-        }
-    }
-}
-
-/// 로그인 후 진입할 홈 화면 플레이스홀더. 본 티켓 범위 밖.
-private struct HomePlaceholderView: View {
-    var body: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
-            Text("Home (WIP)")
-                .foregroundStyle(.white)
-                .font(.largeTitle)
         }
     }
 }

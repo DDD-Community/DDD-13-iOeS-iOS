@@ -6,7 +6,6 @@ enum DesignSystemFontRegister {
         "Pretendard-Medium.otf",
         "Pretendard-SemiBold.otf",
         "Pretendard-Bold.otf",
-        "Rambla-Bold.ttf",
     ]
 
     static func registerAllCustomFonts() {
