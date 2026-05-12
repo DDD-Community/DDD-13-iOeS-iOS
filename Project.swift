@@ -20,9 +20,13 @@ let project = Project(
             infoPlist: .app,
             sources: ["Pickflow/Sources/**"],
             resources: [
-                "Pickflow/Resources/**",
+                .glob(
+                    pattern: "Pickflow/Resources/**",
+                    excluding: ["Pickflow/Resources/Pickflow.entitlements"]
+                ),
                 "Configs/GoogleService-Info.plist",
             ],
+            entitlements: .file(path: "Pickflow/Resources/Pickflow.entitlements"),
             dependencies: [
                 .external(.alamofire),
                 .external(.firebaseMessaging),
@@ -51,6 +55,7 @@ let project = Project(
             sources: ["PickflowTests/**"],
             dependencies: [
                 .target(name: ProjectEnvironment.name),
+                .external(.snapshotTesting),
             ],
             settings: .settings(
                 base: [

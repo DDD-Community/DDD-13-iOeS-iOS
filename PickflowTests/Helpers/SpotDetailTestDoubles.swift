@@ -16,6 +16,10 @@ final class MockSpotService: SpotServiceProtocol, @unchecked Sendable {
         requests.append((id, latitude, longitude))
         return try result.get()
     }
+
+    func registerSpot(draft _: SpotRegistrationDraft) async throws -> SpotId {
+        SpotId(rawValue: "spot-1")
+    }
 }
 
 final class MockBookmarkService: BookmarkServiceProtocol, @unchecked Sendable {
