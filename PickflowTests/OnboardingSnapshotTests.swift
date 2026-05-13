@@ -132,6 +132,69 @@ final class OnboardingSnapshotTests: XCTestCase {
         )
     }
 
+    // MARK: - Illustration component (KAN-106)
+
+    func test_onboarding_illustration_step0_light() {
+        assertIllustrationSnapshot(at: 0, style: .light, named: "onboarding-illustration-step0-light")
+    }
+
+    func test_onboarding_illustration_step0_dark() {
+        assertIllustrationSnapshot(at: 0, style: .dark, named: "onboarding-illustration-step0-dark")
+    }
+
+    func test_onboarding_illustration_step1_light() {
+        assertIllustrationSnapshot(at: 1, style: .light, named: "onboarding-illustration-step1-light")
+    }
+
+    func test_onboarding_illustration_step1_dark() {
+        assertIllustrationSnapshot(at: 1, style: .dark, named: "onboarding-illustration-step1-dark")
+    }
+
+    func test_onboarding_illustration_step2_light() {
+        assertIllustrationSnapshot(at: 2, style: .light, named: "onboarding-illustration-step2-light")
+    }
+
+    func test_onboarding_illustration_step2_dark() {
+        assertIllustrationSnapshot(at: 2, style: .dark, named: "onboarding-illustration-step2-dark")
+    }
+
+    func test_onboarding_illustration_step3_light() {
+        assertIllustrationSnapshot(at: 3, style: .light, named: "onboarding-illustration-step3-light")
+    }
+
+    func test_onboarding_illustration_step3_dark() {
+        assertIllustrationSnapshot(at: 3, style: .dark, named: "onboarding-illustration-step3-dark")
+    }
+
+    private func assertIllustrationSnapshot(
+        at index: Int,
+        style: UIUserInterfaceStyle,
+        named name: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let view = OnboardingIllustration(
+            page: pages[index],
+            isCarouselAnimating: false
+        )
+        .frame(width: 393, height: 600)
+
+        let traits = UITraitCollection(traitsFrom: [
+            UITraitCollection(userInterfaceStyle: style),
+            UITraitCollection(preferredContentSizeCategory: .large)
+        ])
+        assertSnapshot(
+            of: view,
+            as: .image(
+                layout: .fixed(width: 393, height: 600),
+                traits: traits
+            ),
+            named: name,
+            file: file,
+            line: line
+        )
+    }
+
     // MARK: - Production OnboardingView regression
 
     func test_onboardingView_page0_light() {

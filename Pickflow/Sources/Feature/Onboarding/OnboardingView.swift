@@ -24,10 +24,6 @@ struct OnboardingView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .clipped()
                 .ignoresSafeArea(edges: .top)
-                .overlay(alignment: .top) {
-                    toastOverlay
-                    .offset(y: 50)
-                }
                 .background(
                     GeometryReader { geo in
                         Color.clear.preference(
@@ -59,33 +55,16 @@ struct OnboardingView: View {
         }
     }
 
-    @ViewBuilder
-    private var toastOverlay: some View {
-        if let toast = viewModel.toast {
-            HStack(spacing: 8) {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 20))
-                    .foregroundStyle(.gray95)
-                Text(toast)
-                    .pretendard(.body(.medium(.bold)))
-                    .foregroundStyle(.gray95)
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 14)
-            .background(.gray0)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .shadow(color: .black.opacity(0.12), radius: 12, x: 0, y: 4)
-            .transition(.move(edge: .bottom).combined(with: .opacity))
-            .animation(.easeInOut(duration: 0.25), value: viewModel.toast)
-        }
-    }
-
     private var illustrationPager: some View {
         GeometryReader { geo in
             HStack(spacing: 0) {
                 ForEach(Array(viewModel.pages.enumerated()), id: \.element.id) { _, page in
-                    OnboardingIllustration(page: page)
-                        .frame(width: geo.size.width, height: geo.size.height)
+                    OnboardingIllustration(
+                        page: page,
+                        toastText: page.layout == .bottomAlignedImage ? viewModel.toast : nil
+                    )
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .animation(.easeInOut(duration: 0.25), value: viewModel.toast)
                 }
             }
             .offset(x: pagerOffset(width: geo.size.width))

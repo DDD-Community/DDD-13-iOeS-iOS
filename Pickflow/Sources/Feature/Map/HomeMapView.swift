@@ -1,7 +1,7 @@
 import SwiftUI
 
 // 무드 필터 (노을/윤슬).
-enum MoodFilter: String, CaseIterable {
+enum MoodFilter: String, CaseIterable, Sendable {
     case sunset = "노을"
     case ripple = "윤슬"
 
