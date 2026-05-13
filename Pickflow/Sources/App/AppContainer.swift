@@ -26,6 +26,7 @@ final class AppContainer {
         container.register(MapServiceProtocol.self) { MapService(networkManager: networkManager) }
         container.register(AddressServiceProtocol.self) { AddressService(networkManager: networkManager) }
         container.register(SpotServiceProtocol.self) { SpotService(networkManager: networkManager) }
+        container.register(ClusteringServiceProtocol.self) { ClusteringService(networkManager: networkManager) }
         container.register(BookmarkServiceProtocol.self) { BookmarkService(networkManager: networkManager) }
         container.register(ShareIntentServiceProtocol.self) { ShareIntentService(networkManager: networkManager) }
         container.register(LocationServiceProtocol.self, scope: .container) { LocationService() }

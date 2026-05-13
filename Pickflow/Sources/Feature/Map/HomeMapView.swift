@@ -20,12 +20,29 @@ struct HomeMapView: View {
     @State private var selectedMood: MoodFilter? = nil
     @State private var mapListMode: MapListMode = .map
     @State private var isAddPlacePresented = false
+    @StateObject private var clustering = MapClusteringViewModel(clusteringService: getClusteringService())
 
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
-                NaverMapView()
-                    .ignoresSafeArea()
+                NaverMapView(
+                    spots: clustering.state.spots,
+                    mySpots: clustering.mySpots,
+                    selectedSpotId: clustering.selectedSpotId,
+                    onViewportChange: { viewport in
+                        Task { await clustering.viewportChanged(viewport) }
+                    },
+                    onSpotTap: { spotId in
+                        clustering.spotMarkerTapped(spotId)
+                    },
+                    onMapBackgroundTap: {
+                        clustering.mapBackgroundTapped()
+                    }
+                )
+                .ignoresSafeArea()
+                .onChange(of: selectedMood) { _, mood in
+                    Task { await clustering.themeChanged(mood?.rawValue) }
+                }
 
                 // MARK: - Top overlay
                 VStack(spacing: 0) {
@@ -45,7 +62,6 @@ struct HomeMapView: View {
                             .padding(.bottom, Padding.containerBottom)
                     }
                 }
-
                 // MARK: - Bottom overlay
                 VStack {
                     Spacer()

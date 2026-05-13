@@ -20,6 +20,12 @@ final class MockSpotService: SpotServiceProtocol, @unchecked Sendable {
         return try result.get()
     }
 
+    var registerSpotResult: Result<SpotId, any Error> = .success(SpotId(rawValue: "mock-spot-id"))
+    private(set) var registerDrafts: [SpotRegistrationDraft] = []
+
+    func registerSpot(draft: SpotRegistrationDraft) async throws -> SpotId {
+        registerDrafts.append(draft)
+        return try registerSpotResult.get()
     func registerSpot(draft _: SpotRegistrationDraft) async throws -> SpotId {
         SpotId(rawValue: "spot-1")
     }
@@ -60,11 +66,12 @@ final class MockShareIntentService: ShareIntentServiceProtocol, @unchecked Senda
 
 final class MockLocationService: LocationServiceProtocol, @unchecked Sendable {
     var result: Result<Coordinate, any Error> = .success(Coordinate(latitude: 37.1, longitude: 127.1))
+    var stubbedAuthorizationStatus: CLAuthorizationStatus = .authorizedWhenInUse
 
     func requestAuthorization() {}
 
     func authorizationStatus() -> CLAuthorizationStatus {
-        .authorizedWhenInUse
+        stubbedAuthorizationStatus
     }
 
     func currentLocation() async throws -> Coordinate {
