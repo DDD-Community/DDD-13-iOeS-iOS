@@ -33,10 +33,10 @@ struct HomeMapView: View {
                         Task { await clustering.viewportChanged(viewport) }
                     },
                     onSpotTap: { spotId in
-                        Task { await clustering.spotMarkerTapped(spotId) }
+                        clustering.spotMarkerTapped(spotId)
                     },
                     onMapBackgroundTap: {
-                        Task { await clustering.mapBackgroundTapped() }
+                        clustering.mapBackgroundTapped()
                     }
                 )
                 .ignoresSafeArea()

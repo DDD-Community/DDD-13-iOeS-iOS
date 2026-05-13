@@ -32,12 +32,12 @@ final class MapClusteringViewModel: ObservableObject {
         await fetch(viewport: viewport, theme: theme)
     }
 
-    func spotMarkerTapped(_ spotId: Int64) async {
+    func spotMarkerTapped(_ spotId: Int64) {
         selectedSpotId = spotId
     }
 
     /// 지도 빈 공간 탭 시 선택 해제.
-    func mapBackgroundTapped() async {
+    func mapBackgroundTapped() {
         selectedSpotId = nil
     }
 
