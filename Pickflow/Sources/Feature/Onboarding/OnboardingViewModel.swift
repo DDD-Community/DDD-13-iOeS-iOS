@@ -3,7 +3,7 @@ import Foundation
 @MainActor
 final class OnboardingViewModel: ObservableObject {
     @Published private(set) var pages: [OnboardingPage]
-    @Published var currentIndex: Int = 0
+    @Published private(set) var currentIndex: Int = 0
     @Published private(set) var isFinished: Bool = false
     @Published private(set) var toast: String?
 

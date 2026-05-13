@@ -6,7 +6,7 @@ protocol OnboardingCompletionStore: Sendable {
 }
 
 final class UserDefaultsOnboardingCompletionStore: OnboardingCompletionStore, @unchecked Sendable {
-    static let storageKey = "hasSeenOnboarding"
+    private static let storageKey = "hasSeenOnboarding"
 
     private let defaults: UserDefaults
 

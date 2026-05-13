@@ -6,10 +6,10 @@ import SwiftUI
 /// - **드래그 제스처는 화면 전체(일러스트 + 패널)에 부착**되어, 패널 영역에서도 위 스크롤뷰처럼 인터랙티브하게 페이지를 끌어올 수 있다.
 /// - 릴리스 시 predictedEndTranslation 기준으로 인접 페이지에 스프링 스냅
 struct OnboardingView: View {
-    @StateObject var viewModel: OnboardingViewModel
+    @StateObject private var viewModel: OnboardingViewModel
 
     /// 온보딩 완료 시 상위(`AppRootView`)로 전파되는 콜백.
-    var onOnboardingFinished: () -> Void = {}
+    private let onOnboardingFinished: () -> Void
 
     @State private var dragOffset: CGFloat = 0
     @State private var pagerSize: CGSize = .zero
@@ -17,6 +17,14 @@ struct OnboardingView: View {
     private let snapAnimation: Animation = .interpolatingSpring(stiffness: 220, damping: 24)
     private let swipeMinimumDistance: CGFloat = 8
     private let edgeRubberBand: CGFloat = 0.3
+
+    init(
+        viewModel: OnboardingViewModel,
+        onOnboardingFinished: @escaping () -> Void = {}
+    ) {
+        _viewModel = StateObject(wrappedValue: viewModel)
+        self.onOnboardingFinished = onOnboardingFinished
+    }
 
     var body: some View {
         VStack(spacing: 0) {
