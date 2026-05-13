@@ -1,19 +1,8 @@
 {
   "images" : [
     {
-      "filename" : "ic_flare.png",
-      "idiom" : "universal",
-      "scale" : "1x"
-    },
-    {
-      "filename" : "ic_flare@2x.png",
-      "idiom" : "universal",
-      "scale" : "2x"
-    },
-    {
-      "filename" : "ic_flare@3x.png",
-      "idiom" : "universal",
-      "scale" : "3x"
+      "filename" : "ic_flare.svg",
+      "idiom" : "universal"
     }
   ],
   "info" : {
@@ -21,6 +10,6 @@
     "version" : 1
   },
   "properties" : {
-    "template-rendering-intent" : "template"
+    "preserves-vector-representation" : true
   }
 }

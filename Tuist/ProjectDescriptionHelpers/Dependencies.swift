@@ -13,6 +13,7 @@ public enum DoriDependency: String {
     case kakaoSDKUser = "KakaoSDKUser"
     case firebaseMessaging = "FirebaseMessaging"
     case nMapsMap = "NMapsMap"
+    case snapshotTesting = "SnapshotTesting"
     case swinject = "Swinject"
     case snapshotTesting = "SnapshotTesting"
 

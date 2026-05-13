@@ -3,7 +3,7 @@ import CoreLocation
 
 /// 앱 최상위 라우팅 컨테이너.
 ///
-/// 인증 상태에 따라 `LoginView`와 홈(현재는 placeholder)을 분기한다.
+/// 인증 상태에 따라 `LoginView`와 홈 화면을 분기한다.
 /// 초기 인증 상태 판정은 `AuthService.currentAuthState()`에 위임한다.
 struct AppRootView: View {
     @StateObject private var viewModel: AppRootViewModel
@@ -11,6 +11,7 @@ struct AppRootView: View {
     init(
         authService: AuthServiceProtocol,
         kakaoAuthProvider: KakaoAuthProviderProtocol,
+        appleAuthProvider: AppleAuthProviderProtocol,
         tokenStore: TokenStoreProtocol,
         locationService: LocationServiceProtocol
     ) {
@@ -18,6 +19,7 @@ struct AppRootView: View {
             wrappedValue: AppRootViewModel(
                 authService: authService,
                 kakaoAuthProvider: kakaoAuthProvider,
+                appleAuthProvider: appleAuthProvider,
                 tokenStore: tokenStore,
                 locationService: locationService
             )
@@ -34,12 +36,14 @@ struct AppRootView: View {
                     viewModel: LoginViewModel(
                         authService: viewModel.authService,
                         kakaoAuthProvider: viewModel.kakaoAuthProvider,
+                        appleAuthProvider: viewModel.appleAuthProvider,
                         tokenStore: viewModel.tokenStore
                     ),
-                    onSignInSucceeded: viewModel.didCompleteSignIn
+                    onSignInSucceeded: viewModel.didCompleteSignIn,
+                    isClosable: false
                 )
             case .signedIn:
-                HomePlaceholderView()
+                ContentView()
                     .task {
                         viewModel.prepareLocationPermissionIfNeeded()
                     }
@@ -66,6 +70,7 @@ final class AppRootViewModel: ObservableObject {
     /// LoginView 생성 시 주입용으로 노출. AppContainer에서 1회 resolve한 인스턴스를 재사용한다.
     let authService: AuthServiceProtocol
     let kakaoAuthProvider: KakaoAuthProviderProtocol
+    let appleAuthProvider: AppleAuthProviderProtocol
     let tokenStore: TokenStoreProtocol
     let locationService: LocationServiceProtocol
     private var didHandleLocationPermission = false
@@ -73,11 +78,13 @@ final class AppRootViewModel: ObservableObject {
     init(
         authService: AuthServiceProtocol,
         kakaoAuthProvider: KakaoAuthProviderProtocol,
+        appleAuthProvider: AppleAuthProviderProtocol,
         tokenStore: TokenStoreProtocol,
         locationService: LocationServiceProtocol
     ) {
         self.authService = authService
         self.kakaoAuthProvider = kakaoAuthProvider
+        self.appleAuthProvider = appleAuthProvider
         self.tokenStore = tokenStore
         self.locationService = locationService
     }
@@ -126,18 +133,6 @@ private struct SplashView: View {
             Color.black.ignoresSafeArea()
             ProgressView()
                 .tint(.white)
-        }
-    }
-}
-
-/// 로그인 후 진입할 홈 화면 플레이스홀더. 본 티켓 범위 밖.
-private struct HomePlaceholderView: View {
-    var body: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
-            Text("Home (WIP)")
-                .foregroundStyle(.white)
-                .font(.largeTitle)
         }
     }
 }

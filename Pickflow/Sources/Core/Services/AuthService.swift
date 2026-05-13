@@ -22,6 +22,16 @@ final class AuthService: AuthServiceProtocol, Sendable {
         }
     }
 
+    func signInWithApple(identityToken: String, nonce: String) async throws -> AppleSignInResponse {
+        do {
+            return try await networkManager.requestJSON(
+                endpoint: AuthEndpoint.appleSignIn(identityToken: identityToken, nonce: nonce)
+            )
+        } catch {
+            throw Self.map(error)
+        }
+    }
+
     func refreshToken(_ refreshToken: String) async throws -> AuthToken {
         do {
             return try await networkManager.requestJSON(
@@ -83,4 +93,3 @@ final class AuthService: AuthServiceProtocol, Sendable {
         return .unknown(error)
     }
 }
-
