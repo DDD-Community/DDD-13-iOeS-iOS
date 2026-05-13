@@ -4,13 +4,15 @@ import CoreLocation
 /// 앱 최상위 라우팅 컨테이너.
 ///
 /// 부트스트랩 결과에 따라 Splash → (Onboarding) → Login → Main(TabView) 으로 분기한다.
-/// 온보딩 완료 여부는 `OnboardingCompletionStore`, 인증 상태는 `AuthService.currentAuthState()`에 위임한다.
+/// 초기 인증 상태 판정은 `AuthService.currentAuthState()`에 위임한다.
+/// 온보딩 완료 여부는 `OnboardingCompletionStore`에 위임한다.
 struct AppRootView: View {
     @StateObject private var viewModel: AppRootViewModel
 
     init(
         authService: AuthServiceProtocol,
         kakaoAuthProvider: KakaoAuthProviderProtocol,
+        appleAuthProvider: AppleAuthProviderProtocol,
         tokenStore: TokenStoreProtocol,
         locationService: LocationServiceProtocol,
         onboardingCompletionStore: OnboardingCompletionStore
@@ -19,6 +21,7 @@ struct AppRootView: View {
             wrappedValue: AppRootViewModel(
                 authService: authService,
                 kakaoAuthProvider: kakaoAuthProvider,
+                appleAuthProvider: appleAuthProvider,
                 tokenStore: tokenStore,
                 locationService: locationService,
                 onboardingCompletionStore: onboardingCompletionStore
@@ -44,9 +47,11 @@ struct AppRootView: View {
                     viewModel: LoginViewModel(
                         authService: viewModel.authService,
                         kakaoAuthProvider: viewModel.kakaoAuthProvider,
+                        appleAuthProvider: viewModel.appleAuthProvider,
                         tokenStore: viewModel.tokenStore
                     ),
-                    onSignInSucceeded: viewModel.didCompleteSignIn
+                    onSignInSucceeded: viewModel.didCompleteSignIn,
+                    isClosable: false
                 )
             case .signedIn:
                 ContentView()
@@ -79,6 +84,7 @@ final class AppRootViewModel: ObservableObject {
     /// AppContainer에서 1회 resolve한 인스턴스를 재사용한다.
     let authService: AuthServiceProtocol
     let kakaoAuthProvider: KakaoAuthProviderProtocol
+    let appleAuthProvider: AppleAuthProviderProtocol
     let tokenStore: TokenStoreProtocol
     let locationService: LocationServiceProtocol
     let onboardingCompletionStore: OnboardingCompletionStore
@@ -88,12 +94,14 @@ final class AppRootViewModel: ObservableObject {
     init(
         authService: AuthServiceProtocol,
         kakaoAuthProvider: KakaoAuthProviderProtocol,
+        appleAuthProvider: AppleAuthProviderProtocol,
         tokenStore: TokenStoreProtocol,
         locationService: LocationServiceProtocol,
         onboardingCompletionStore: OnboardingCompletionStore
     ) {
         self.authService = authService
         self.kakaoAuthProvider = kakaoAuthProvider
+        self.appleAuthProvider = appleAuthProvider
         self.tokenStore = tokenStore
         self.locationService = locationService
         self.onboardingCompletionStore = onboardingCompletionStore

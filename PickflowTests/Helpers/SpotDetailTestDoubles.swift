@@ -13,6 +13,10 @@ final class MockSpotService: SpotServiceProtocol, @unchecked Sendable {
     var registerResult: Result<SpotId, any Error> = .success(SpotId(rawValue: "stub"))
     private(set) var requests: [(id: Int64, latitude: Double?, longitude: Double?)] = []
     private(set) var registeredDrafts: [SpotRegistrationDraft] = []
+    var reportError: (any Error)?
+    private(set) var requests: [(id: Int64, latitude: Double?, longitude: Double?)] = []
+    private(set) var reportedSpotIds: [Int64] = []
+    private(set) var reportedTypes: [SpotReportType] = []
 
     func fetchSpotDetail(id: Int64, latitude: Double?, longitude: Double?) async throws -> SpotDetail {
         requests.append((id, latitude, longitude))
@@ -22,6 +26,20 @@ final class MockSpotService: SpotServiceProtocol, @unchecked Sendable {
     func registerSpot(draft: SpotRegistrationDraft) async throws -> SpotId {
         registeredDrafts.append(draft)
         return try registerResult.get()
+    var registerSpotResult: Result<SpotId, any Error> = .success(SpotId(rawValue: "mock-spot-id"))
+    private(set) var registerDrafts: [SpotRegistrationDraft] = []
+
+    func registerSpot(draft: SpotRegistrationDraft) async throws -> SpotId {
+        registerDrafts.append(draft)
+        return try registerSpotResult.get()
+    func registerSpot(draft _: SpotRegistrationDraft) async throws -> SpotId {
+        SpotId(rawValue: "spot-1")
+    }
+
+    func reportSpot(id: Int64, type: SpotReportType) async throws {
+        reportedSpotIds.append(id)
+        reportedTypes.append(type)
+        if let reportError { throw reportError }
     }
 }
 
@@ -54,11 +72,12 @@ final class MockShareIntentService: ShareIntentServiceProtocol, @unchecked Senda
 
 final class MockLocationService: LocationServiceProtocol, @unchecked Sendable {
     var result: Result<Coordinate, any Error> = .success(Coordinate(latitude: 37.1, longitude: 127.1))
+    var stubbedAuthorizationStatus: CLAuthorizationStatus = .authorizedWhenInUse
 
     func requestAuthorization() {}
 
     func authorizationStatus() -> CLAuthorizationStatus {
-        .authorizedWhenInUse
+        stubbedAuthorizationStatus
     }
 
     func currentLocation() async throws -> Coordinate {
@@ -92,6 +111,14 @@ final class MockExternalAppLauncher: ExternalAppLauncherProtocol {
     }
 }
 
+final class MockTokenStore: TokenStoreProtocol, @unchecked Sendable {
+    var storedToken: AuthToken?
+
+    func save(_ token: AuthToken) throws { storedToken = token }
+    func load() throws -> AuthToken? { storedToken }
+    func clear() throws { storedToken = nil }
+}
+
 @MainActor
 final class MockShareSheetPresenter: ShareSheetPresenterProtocol {
     private(set) var presentedItems: [[String]] = []
@@ -102,26 +129,37 @@ final class MockShareSheetPresenter: ShareSheetPresenterProtocol {
 }
 
 extension SpotDetail {
-    static func fixture(isBookmarked: Bool = false) -> SpotDetail {
-        SpotDetail(
+    static func fixture(
+        isBookmarked: Bool = false,
+        bookmarkCount: Int = 34,
+        isMine: Bool = false,
+        theme: SpotTheme = .sunset,
+        imageURL: String? = "https://example.com/spot.jpg",
+        comment: String = "걷다 보면 멀리 노을이 번져요."
+    ) -> SpotDetail {
+        let images: [SpotImage] = imageURL.map {
+            [SpotImage(imageURL: $0, displayOrder: 0, recordedTime: "19:30")]
+        } ?? []
+        return SpotDetail(
             id: 1,
             name: "동작구 산책로",
-            comment: "걷다 보면 멀리 노을이 번져요.",
-            theme: .sunset,
+            comment: comment,
+            theme: theme,
             latitude: 37.501,
             longitude: 126.951,
             distance: 2.5,
             address: "서울 동작구",
-            images: [
-                SpotImage(imageURL: "https://example.com/spot.jpg", displayOrder: 0, recordedTime: "19:30"),
-            ],
+            images: images,
             isBookmarked: isBookmarked,
+            bookmarkCount: bookmarkCount,
+            isMine: isMine,
             weather: SpotWeather(
                 temperature: 22,
-                precipitationProbability: 10,
+                precipitationProbability: 15,
                 condition: .clear,
-                sunsetTime: "19:44",
-                congestion: .relaxed
+                sunsetTime: "18:40",
+                congestion: .relaxed,
+                parking: isMine ? nil : "무료 주차장"
             )
         )
     }

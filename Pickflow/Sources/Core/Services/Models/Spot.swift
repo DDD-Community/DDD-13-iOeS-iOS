@@ -11,6 +11,8 @@ struct SpotDetail: Codable, Sendable, Identifiable, Equatable {
     let address: String
     let images: [SpotImage]
     let isBookmarked: Bool
+    let bookmarkCount: Int
+    let isMine: Bool
     let weather: SpotWeather
 
     var primaryImage: SpotImage? {
@@ -30,6 +32,7 @@ struct SpotWeather: Codable, Sendable, Equatable {
     let condition: WeatherCondition
     let sunsetTime: String
     let congestion: Congestion
+    let parking: String?
 }
 
 enum SpotTheme: String, Codable, Sendable, Equatable {
@@ -52,6 +55,12 @@ enum Congestion: String, Codable, Sendable, Equatable {
     case normal = "보통"
     case slightlyCrowded = "약간 붐빔"
     case crowded = "붐빔"
+}
+
+enum SpotReportType: String, Codable, Sendable {
+    case locationError = "LOCATION_ERROR"
+    case wrongName = "WRONG_NAME"
+    case etc = "ETC"
 }
 
 struct EmptyResponse: Decodable, Sendable, Equatable {}

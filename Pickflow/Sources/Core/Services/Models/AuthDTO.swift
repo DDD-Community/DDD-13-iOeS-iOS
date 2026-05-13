@@ -14,31 +14,19 @@ enum AuthState: Sendable {
     case signedIn(AuthToken)
 }
 
-// MARK: - Requests
-
-/// `POST /auth/kakao` 요청 바디.
-struct KakaoSignInRequest: Encodable, Sendable {
-    let kakaoAccessToken: String
-
-    enum CodingKeys: String, CodingKey {
-        case kakaoAccessToken = "kakao_access_token"
-    }
-}
-
-/// `POST /auth/refresh` 요청 바디.
-struct RefreshTokenRequest: Encodable, Sendable {
-    let refreshToken: String
-
-    enum CodingKeys: String, CodingKey {
-        case refreshToken = "refresh_token"
-    }
-}
-
 // MARK: - Responses
 
 /// `POST /auth/kakao` 응답. snake_case → camelCase 는
 /// `JSONDecoder.keyDecodingStrategy = .convertFromSnakeCase` 로 매핑.
 struct KakaoSignInResponse: Decodable, Sendable {
+    let accessToken: String
+    let refreshToken: String
+    let isNewUser: Bool
+    let user: AuthUser
+}
+
+/// `POST /auth/apple` 응답. 카카오 로그인 응답과 동일한 shape를 사용한다.
+struct AppleSignInResponse: Decodable, Sendable {
     let accessToken: String
     let refreshToken: String
     let isNewUser: Bool

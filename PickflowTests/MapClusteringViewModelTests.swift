@@ -1,0 +1,128 @@
+import XCTest
+@testable import Pickflow
+
+@MainActor
+final class MapClusteringViewModelTests: XCTestCase {
+    private var clusteringService: MockClusteringService!
+    private var viewModel: MapClusteringViewModel!
+
+    override func setUp() async throws {
+        try await super.setUp()
+        clusteringService = MockClusteringService()
+        viewModel = MapClusteringViewModel(clusteringService: clusteringService)
+    }
+
+    override func tearDown() async throws {
+        viewModel = nil
+        clusteringService = nil
+        try await super.tearDown()
+    }
+
+    // MARK: - viewportChanged
+
+    func test_viewportChanged_정상응답_상태가loaded로전환된다() async throws {
+        let spot = ClusterableSpot.fixture()
+        clusteringService.result = .success([spot])
+
+        await viewModel.viewportChanged(.fixture())
+
+        XCTAssertEqual(viewModel.state, .loaded(spots: [spot]))
+    }
+
+    func test_viewportChanged_서비스실패_상태가failed이고에러메시지가설정된다() async throws {
+        clusteringService.result = .failure(TestError.failed)
+
+        await viewModel.viewportChanged(.fixture())
+
+        guard case let .failed(message) = viewModel.state else {
+            return XCTFail("Expected failed state, got \(viewModel.state)")
+        }
+        XCTAssertTrue(message.contains("test failure"), "message=\(message)")
+    }
+
+    func test_viewportChanged_빈응답_loaded이고spots가비어있다() async throws {
+        clusteringService.result = .success([])
+
+        await viewModel.viewportChanged(.fixture())
+
+        XCTAssertEqual(viewModel.state, .loaded(spots: []))
+    }
+
+    func test_viewportChanged_호출시_clusteringService가현재viewport와nilTheme로호출된다() async throws {
+        let viewport = Viewport.fixture(
+            topLeft: Coordinate(latitude: 38.0, longitude: 126.0),
+            topRight: Coordinate(latitude: 38.0, longitude: 128.0),
+            bottomLeft: Coordinate(latitude: 36.0, longitude: 126.0),
+            bottomRight: Coordinate(latitude: 36.0, longitude: 128.0)
+        )
+
+        await viewModel.viewportChanged(viewport)
+
+        XCTAssertEqual(clusteringService.requests.count, 1)
+        XCTAssertEqual(clusteringService.requests.first?.viewport, viewport)
+        XCTAssertNil(clusteringService.requests.first?.theme)
+    }
+
+    // MARK: - themeChanged
+
+    func test_themeChanged_호출시_마지막viewport와새theme으로재fetch된다() async throws {
+        let viewport = Viewport.fixture()
+        await viewModel.viewportChanged(viewport)
+
+        await viewModel.themeChanged("sunset")
+
+        XCTAssertEqual(clusteringService.requests.count, 2)
+        XCTAssertEqual(clusteringService.requests.last?.viewport, viewport)
+        XCTAssertEqual(clusteringService.requests.last?.theme, "sunset")
+    }
+
+    func test_themeChanged_viewport전이없으면_fetch하지않는다() async throws {
+        await viewModel.themeChanged("sunset")
+
+        XCTAssertEqual(clusteringService.requests.count, 0)
+    }
+
+    // MARK: - spotMarkerTapped
+
+    func test_spotMarkerTapped_호출시_selectedSpotId가설정된다() async throws {
+        await viewModel.spotMarkerTapped(42)
+
+        XCTAssertEqual(viewModel.selectedSpotId, 42)
+    }
+
+    // MARK: - my spots
+
+    func test_viewportChanged_호출시_mySpots도fetch되고state에반영된다() async throws {
+        let mySpot = MySpot.fixture()
+        clusteringService.mySpotsResult = .success([mySpot])
+
+        await viewModel.viewportChanged(.fixture())
+
+        XCTAssertEqual(clusteringService.mySpotsRequests.count, 1)
+        XCTAssertEqual(viewModel.mySpots, [mySpot])
+    }
+
+    func test_viewportChanged_큐레이션실패해도_mySpots는로드된다() async throws {
+        clusteringService.result = .failure(TestError.failed)
+        let mySpot = MySpot.fixture()
+        clusteringService.mySpotsResult = .success([mySpot])
+
+        await viewModel.viewportChanged(.fixture())
+
+        guard case .failed = viewModel.state else {
+            return XCTFail("Expected failed state for curation, got \(viewModel.state)")
+        }
+        XCTAssertEqual(viewModel.mySpots, [mySpot])
+    }
+
+    // MARK: - mapBackgroundTapped
+
+    func test_mapBackgroundTapped_호출시_selectedSpotId가nil로해제된다() async throws {
+        await viewModel.spotMarkerTapped(42)
+        XCTAssertEqual(viewModel.selectedSpotId, 42)
+
+        await viewModel.mapBackgroundTapped()
+
+        XCTAssertNil(viewModel.selectedSpotId)
+    }
+}

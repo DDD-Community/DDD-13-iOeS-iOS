@@ -9,6 +9,7 @@ final class SpotDetailViewModelTests: XCTestCase {
     private var locationService: MockLocationService!
     private var externalAppLauncher: MockExternalAppLauncher!
     private var shareSheetPresenter: MockShareSheetPresenter!
+    private var tokenStore: MockTokenStore!
     private var viewModel: SpotDetailViewModel!
 
     override func setUp() async throws {
@@ -19,11 +20,14 @@ final class SpotDetailViewModelTests: XCTestCase {
         locationService = MockLocationService()
         externalAppLauncher = MockExternalAppLauncher()
         shareSheetPresenter = MockShareSheetPresenter()
+        tokenStore = MockTokenStore()
+        tokenStore.storedToken = AuthToken(accessToken: "test-token", refreshToken: "test-refresh")
         viewModel = makeViewModel()
     }
 
     override func tearDown() async throws {
         viewModel = nil
+        tokenStore = nil
         shareSheetPresenter = nil
         externalAppLauncher = nil
         locationService = nil
@@ -59,6 +63,16 @@ final class SpotDetailViewModelTests: XCTestCase {
         XCTAssertEqual(spotService.requests.first?.id, 1)
         XCTAssertNil(spotService.requests.first?.latitude)
         XCTAssertNil(spotService.requests.first?.longitude)
+    }
+
+    func test_toggleBookmark_비로그인시_isLoginRequired가true로설정된다() async throws {
+        tokenStore.storedToken = nil
+        await viewModel.onAppear()
+
+        await viewModel.toggleBookmark()
+
+        XCTAssertTrue(viewModel.isLoginRequired)
+        XCTAssertTrue(bookmarkService.addedSpotIds.isEmpty)
     }
 
     func test_toggleBookmark_미북마크상태에서_낙관적으로true가되고_POST가호출된다() async throws {
@@ -144,6 +158,38 @@ final class SpotDetailViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.dismissRequested)
     }
 
+    func test_reportInvalidInfo_신고API가호출되고성공토스트가설정된다() async {
+        await viewModel.onAppear()
+
+        viewModel.reportInvalidInfo()
+        await waitForReport()
+
+        XCTAssertEqual(spotService.reportedSpotIds, [1])
+        XCTAssertEqual(viewModel.toast, "제보가 접수되었습니다.")
+    }
+
+    func test_reportInvalidInfo_API실패시_실패토스트가설정된다() async {
+        spotService.reportError = TestError.failed
+        await viewModel.onAppear()
+
+        viewModel.reportInvalidInfo()
+        await waitForReport()
+
+        XCTAssertEqual(viewModel.toast, "제보 접수에 실패했어요.")
+    }
+
+    func test_reportInvalidInfo_loaded상태가아니면_API를호출하지않는다() {
+        viewModel.reportInvalidInfo()
+
+        XCTAssertTrue(spotService.reportedSpotIds.isEmpty)
+    }
+
+    func test_openSpot_준비중토스트가설정된다() {
+        viewModel.openSpot()
+
+        XCTAssertEqual(viewModel.toast, "준비 중이에요.")
+    }
+
     private func makeViewModel() -> SpotDetailViewModel {
         SpotDetailViewModel(
             spotId: 1,
@@ -153,6 +199,7 @@ final class SpotDetailViewModelTests: XCTestCase {
             locationService: locationService,
             externalAppLauncher: externalAppLauncher,
             shareSheetPresenter: shareSheetPresenter,
+            tokenStore: tokenStore,
             deviceIdProvider: { "device-1" },
             clock: { Date(timeIntervalSince1970: 0) }
         )
@@ -162,5 +209,12 @@ final class SpotDetailViewModelTests: XCTestCase {
         for _ in 0..<20 where shareIntentService.deviceIds.isEmpty {
             await Task.yield()
         }
+    }
+
+    private func waitForReport() async {
+        for _ in 0..<20 where spotService.reportedSpotIds.isEmpty && spotService.reportError == nil {
+            await Task.yield()
+        }
+        for _ in 0..<10 { await Task.yield() }
     }
 }
