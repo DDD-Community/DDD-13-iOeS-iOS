@@ -217,7 +217,10 @@ final class OnboardingSnapshotTests: XCTestCase {
             completionStore: MockOnboardingCompletionStore()
         )
         viewModel.setPage(index)
-        let view = OnboardingView(viewModel: viewModel)
+        let view = OnboardingView(
+            viewModel: viewModel,
+            isCarouselAnimating: false
+        )
 
         let traits = UITraitCollection(traitsFrom: [
             UITraitCollection(userInterfaceStyle: style),
@@ -245,8 +248,11 @@ final class OnboardingSnapshotTests: XCTestCase {
         let page = pages[index]
         let view = VStack(spacing: 0) {
             ZStack(alignment: .topLeading) {
-                OnboardingIllustration(page: page)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                OnboardingIllustration(
+                    page: page,
+                    isCarouselAnimating: false
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
               Image(.logo)
                     .padding(.leading, 16)

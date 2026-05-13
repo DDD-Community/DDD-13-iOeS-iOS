@@ -62,11 +62,11 @@ struct OnboardingIllustration: View {
             phoneImage
                 .padding(.horizontal, 60)
                 .frame(maxWidth: .infinity, alignment: .bottom)
-                .overlay(alignment: .top) {
+                .background(alignment: .top) {
                     if let toastText {
                         OnboardingToast(text: toastText)
                             .offset(y: -90)
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                            .transition(.offset(y: 180).combined(with: .opacity))
                     }
                 }
         }

@@ -11,6 +11,9 @@ struct OnboardingView: View {
     /// 온보딩 완료 시 상위(`AppRootView`)로 전파되는 콜백.
     var onOnboardingFinished: () -> Void = {}
 
+    /// Step 2/3 focused carousel의 자동 슬라이딩 활성 여부. 테스트(스냅샷)에서 false로 정적 캡쳐.
+    var isCarouselAnimating: Bool = true
+
     @State private var dragOffset: CGFloat = 0
     @State private var pagerSize: CGSize = .zero
 
@@ -61,6 +64,7 @@ struct OnboardingView: View {
                 ForEach(Array(viewModel.pages.enumerated()), id: \.element.id) { _, page in
                     OnboardingIllustration(
                         page: page,
+                        isCarouselAnimating: isCarouselAnimating,
                         toastText: page.layout == .bottomAlignedImage ? viewModel.toast : nil
                     )
                     .frame(width: geo.size.width, height: geo.size.height)
