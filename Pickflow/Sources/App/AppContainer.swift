@@ -33,5 +33,6 @@ final class AppContainer {
         container.register(ExternalAppLauncherProtocol.self, scope: .container) { ExternalAppLauncher() }
         container.register(ShareSheetPresenterProtocol.self, scope: .container) { ShareSheetPresenter() }
         container.register(AnalyticsLoggerProtocol.self, scope: .container) { FirebaseAnalyticsLogger() }
+        container.register(OnboardingCompletionStore.self, scope: .container) { UserDefaultsOnboardingCompletionStore() }
     }
 }

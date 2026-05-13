@@ -80,11 +80,9 @@ struct HomeMapView: View {
     private var topBar: some View {
         HStack {
             VStack(alignment: .leading, spacing: 14) {
-                Text("PICKFLOW")
-                    .font(.custom("Rambla-Bold", size: 28))
-                    .tracking(-0.056)
-                    .lineSpacing(1.11)
-                    .foregroundStyle(.white)
+              Image(.logo)
+                    .padding(.leading, 16)
+                    .padding(.top, 12)
 
                 HStack(spacing: 8) {
                     ForEach(MoodFilter.allCases, id: \.self) { mood in
