@@ -15,7 +15,6 @@ public enum DoriDependency: String {
     case nMapsMap = "NMapsMap"
     case snapshotTesting = "SnapshotTesting"
     case swinject = "Swinject"
-    case snapshotTesting = "SnapshotTesting"
 
     public var name: String {
         rawValue
