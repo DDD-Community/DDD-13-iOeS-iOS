@@ -29,7 +29,9 @@ let project = Project(
             entitlements: .file(path: "Pickflow/Resources/Pickflow.entitlements"),
             dependencies: [
                 .external(.alamofire),
+                .external(.firebaseCore),
                 .external(.firebaseMessaging),
+                .external(.firebaseAnalytics),
                 .external(.kakaoSDKCommon),
                 .external(.kakaoSDKAuth),
                 .external(.kakaoSDKUser),

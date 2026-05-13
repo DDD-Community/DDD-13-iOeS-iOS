@@ -1,4 +1,5 @@
 import SwiftUI
+import FirebaseCore
 import KakaoSDKAuth
 import KakaoSDKCommon
 
@@ -7,6 +8,7 @@ struct PickflowApp: App {
     private let container = AppContainer.shared
 
     init() {
+        FirebaseApp.configure()
         DesignSystemFontRegister.registerAllCustomFonts()
         initializeKakaoSDK()
     }
