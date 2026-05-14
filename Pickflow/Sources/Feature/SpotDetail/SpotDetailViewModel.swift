@@ -22,6 +22,7 @@ final class SpotDetailViewModel: ObservableObject {
     private let locationService: LocationServiceProtocol
     private let externalAppLauncher: ExternalAppLauncherProtocol
     private let shareSheetPresenter: ShareSheetPresenterProtocol
+    private let analyticsLogger: AnalyticsLoggerProtocol
     private let tokenStore: TokenStoreProtocol
     private let deviceIdProvider: @MainActor @Sendable () -> String
     private let clock: @Sendable () -> Date
@@ -34,6 +35,7 @@ final class SpotDetailViewModel: ObservableObject {
         locationService: LocationServiceProtocol,
         externalAppLauncher: ExternalAppLauncherProtocol,
         shareSheetPresenter: ShareSheetPresenterProtocol,
+        analyticsLogger: AnalyticsLoggerProtocol = getAnalyticsLogger(),
         tokenStore: TokenStoreProtocol = getTokenStore(),
         deviceIdProvider: @escaping @MainActor @Sendable () -> String,
         clock: @escaping @Sendable () -> Date = Date.init
@@ -45,6 +47,7 @@ final class SpotDetailViewModel: ObservableObject {
         self.locationService = locationService
         self.externalAppLauncher = externalAppLauncher
         self.shareSheetPresenter = shareSheetPresenter
+        self.analyticsLogger = analyticsLogger
         self.tokenStore = tokenStore
         self.deviceIdProvider = deviceIdProvider
         self.clock = clock
@@ -100,6 +103,8 @@ final class SpotDetailViewModel: ObservableObject {
 
     func share() {
         guard case let .loaded(spot) = state else { return }
+
+        analyticsLogger.log(SpotDetailAnalyticsEvent.shareButtonTap)
 
         let text = "\(spot.name) - \(spot.comment)\nhttps://pickflow.app/spot/\(spot.id)"
         let deviceId = deviceIdProvider()
