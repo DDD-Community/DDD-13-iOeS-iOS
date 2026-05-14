@@ -14,6 +14,13 @@ enum MoodFilter: String, CaseIterable, Sendable {
         }
 
     }
+
+    var spotTheme: SpotTheme {
+        switch self {
+        case .sunset: .sunset
+        case .ripple: .reflection
+        }
+    }
 }
 
 struct HomeMapView: View {
@@ -21,6 +28,15 @@ struct HomeMapView: View {
     @State private var mapListMode: MapListMode = .map
     @State private var isAddPlacePresented = false
     @StateObject private var clustering = MapClusteringViewModel(clusteringService: getClusteringService())
+    // FIXME(§13a): selectedMood ↔ SpotListViewModel.selectedTheme 양방향 동기화 별도 PR
+    @StateObject private var spotList = SpotListViewModel(
+        spotListService: getSpotListService(),
+        bookmarkService: getBookmarkService(),
+        locationService: getLocationService(),
+        tokenStore: getTokenStore()
+    )
+    @State private var topBarHeight: CGFloat = 0
+    @State private var isSortExpanded: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -42,26 +58,72 @@ struct HomeMapView: View {
                 .ignoresSafeArea()
                 .onChange(of: selectedMood) { _, mood in
                     Task { await clustering.themeChanged(mood?.rawValue) }
+                    // 무드 필터 지도-리스트 공유 (§13(a)): mood 변화 시 SpotListViewModel 도 갱신
+                    Task { await spotList.themeSynced(mood?.spotTheme) }
                 }
 
-                // MARK: - Top overlay
+                // MARK: - List overlay (지도 전체를 덮음, 헤더는 그 위에 오버레이)
+                if mapListMode == .list {
+                    // 헤더 bottom 으로부터 8pt 간격 — Padding.containerTop + topBarHeight + 8
+                    SpotListView(
+                        viewModel: spotList,
+                        contentTopInset: Padding.containerTop + topBarHeight + 8
+                    )
+                    .ignoresSafeArea(edges: .bottom)
+                    .transition(.opacity)
+                }
+
+                // MARK: - Top overlay (List 위로 항상 떠 있는 무드 필터 헤더)
                 VStack(spacing: 0) {
                     topBar
                         .padding(.horizontal, Padding.containerHorizontal)
                         .padding(.top, Padding.containerTop)
+                        .background(
+                            GeometryReader { proxy in
+                                Color.clear.preference(
+                                    key: TopBarHeightKey.self,
+                                    value: proxy.size.height - Padding.containerTop
+                                )
+                            }
+                        )
+                        .overlay(alignment: .bottomTrailing) {
+                            if mapListMode == .list, isSortExpanded {
+                                SpotListSortDropdownOptions(current: spotList.sort) { picked in
+                                    Task { await spotList.sortChanged(picked) }
+                                    withAnimation(.easeInOut(duration: 0.15)) {
+                                        isSortExpanded = false
+                                    }
+                                }
+                                .padding(.trailing, Padding.containerHorizontal)
+                                // PICKFLOW row 높이(~38pt) + 헤더 padding 합 → 정렬 버튼 아래로 떠오름
+                                .offset(y: Padding.containerTop + 38 + 4)
+                                .transition(.opacity.combined(with: .move(edge: .top)))
+                            }
+                        }
                     Spacer()
                 }
-
-                // MARK: - Bottom trailing overlay
-                VStack {
-                    Spacer()
-                    HStack {
-                        Spacer()
-                        trailingControls
-                            .padding(.trailing, Padding.containerHorizontal)
-                            .padding(.bottom, Padding.containerBottom)
+                .onPreferenceChange(TopBarHeightKey.self) { height in
+                    topBarHeight = height
+                }
+                .onChange(of: mapListMode) { _, newMode in
+                    if newMode == .map {
+                        isSortExpanded = false
                     }
                 }
+
+                // MARK: - Bottom trailing overlay (지도 모드에서만 표시)
+                if mapListMode == .map {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            trailingControls
+                                .padding(.trailing, Padding.containerHorizontal)
+                                .padding(.bottom, Padding.containerBottom)
+                        }
+                    }
+                }
+
                 // MARK: - Bottom overlay
                 VStack {
                     Spacer()
@@ -78,22 +140,28 @@ struct HomeMapView: View {
     // MARK: - Top Bar
 
     private var topBar: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 14) {
+          HStack(alignment: .center) {    
               Image(.logo)
                     .padding(.leading, 16)
                     .padding(.top, 12)
 
-                HStack(spacing: 8) {
-                    ForEach(MoodFilter.allCases, id: \.self) { mood in
-                        moodCapsuleButton(mood)
-                    }
+                Spacer()
+
+                if mapListMode == .list {
+                    SpotListSortDropdownHeader(
+                        sort: spotList.sort,
+                        isExpanded: $isSortExpanded
+                    )
                 }
             }
 
-            Spacer()
+            HStack(spacing: 8) {
+                ForEach(MoodFilter.allCases, id: \.self) { mood in
+                    moodCapsuleButton(mood)
+                }
+            }
         }
-
     }
 
     private func moodCapsuleButton(_ mood: MoodFilter) -> some View {
@@ -112,9 +180,9 @@ struct HomeMapView: View {
             }
             .padding(.horizontal, 14)
             .background(.gray95)
-            .clipShape(Capsule())
+            .clipShape(RoundedRectangle(cornerRadius: 8))
             .overlay(
-                Capsule()
+                RoundedRectangle(cornerRadius: 8)
                     .stroke(selectedMood == mood ? Color.orangeBorder : .clear, lineWidth: 1)
             )
 
@@ -157,6 +225,13 @@ struct HomeMapView: View {
 extension Color {
     fileprivate static let orangeBorder: Color = Color(
         red: 250 / 255, green: 97 / 255, blue: 51 / 255)
+}
+
+private struct TopBarHeightKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
 }
 
 extension HomeMapView {
