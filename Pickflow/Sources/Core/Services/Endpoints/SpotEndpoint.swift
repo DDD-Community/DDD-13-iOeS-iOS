@@ -26,7 +26,7 @@ enum SpotEndpoint: APIEndpoint {
             if let longitude { p["longitude"] = longitude }
             return p.isEmpty ? nil : p
         case .detail:
-            nil
+            return nil
         }
     }
 }

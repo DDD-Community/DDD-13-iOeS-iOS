@@ -28,7 +28,7 @@ enum UserEndpoint: APIEndpoint {
     var parameters: Parameters? {
         switch self {
         case .deleteAccount:
-            nil
+            return nil
         case let .updateProfile(nickname, email):
             var p: Parameters = [:]
             if let nickname { p["nickname"] = nickname }
