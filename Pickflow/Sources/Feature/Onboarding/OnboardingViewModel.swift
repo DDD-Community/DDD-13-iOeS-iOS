@@ -48,8 +48,16 @@ final class OnboardingViewModel: ObservableObject {
         presentToast("나만의 스팟이 등록되었어요!")
     }
 
+    /// 페이지 전환 애니메이션이 끝난 직후 토스트가 등장하도록 지연.
+    private static let toastPresentDelay: Double = 0.25
+
     private func presentToast(_ message: String) {
-        toast = message
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: UInt64(Self.toastPresentDelay * 1_000_000_000))
+            // 지연 후에도 여전히 toast가 의미 있는 페이지(1)일 때만 표시.
+            guard currentIndex == 1 else { return }
+            toast = message
+        }
     }
   
   private func dismissToast() {
