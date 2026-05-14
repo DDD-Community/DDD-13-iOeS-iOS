@@ -4,7 +4,6 @@ import Foundation
 enum SpotEndpoint: APIEndpoint {
     case list(page: Int?, theme: String?, latitude: Double?, longitude: Double?)
     case detail(spotId: Int64)
-    case viewport(Viewport)
 
     var baseURL: String { APIBaseURL.current }
 
@@ -12,7 +11,6 @@ enum SpotEndpoint: APIEndpoint {
         switch self {
         case .list: "/v1/spots"
         case let .detail(spotId): "/v1/spots/\(spotId)"
-        case .viewport: "/v1/spots/viewport"
         }
     }
 
@@ -29,17 +27,26 @@ enum SpotEndpoint: APIEndpoint {
             return p.isEmpty ? nil : p
         case .detail:
             nil
-        case let .viewport(viewport):
-            [
-                "topLeftLat": viewport.topLeft.latitude,
-                "topLeftLng": viewport.topLeft.longitude,
-                "topRightLat": viewport.topRight.latitude,
-                "topRightLng": viewport.topRight.longitude,
-                "bottomLeftLat": viewport.bottomLeft.latitude,
-                "bottomLeftLng": viewport.bottomLeft.longitude,
-                "bottomRightLat": viewport.bottomRight.latitude,
-                "bottomRightLng": viewport.bottomRight.longitude,
-            ]
         }
+    }
+}
+
+struct SpotViewportEndpoint: APIEndpoint {
+    let viewport: Viewport
+
+    var baseURL: String { APIBaseURL.current }
+    var path: String { "/v1/spots/viewport" }
+    var method: HTTPMethod { .get }
+    var parameters: Parameters? {
+        [
+            "topLeftLat": viewport.topLeft.latitude,
+            "topLeftLng": viewport.topLeft.longitude,
+            "topRightLat": viewport.topRight.latitude,
+            "topRightLng": viewport.topRight.longitude,
+            "bottomLeftLat": viewport.bottomLeft.latitude,
+            "bottomLeftLng": viewport.bottomLeft.longitude,
+            "bottomRightLat": viewport.bottomRight.latitude,
+            "bottomRightLng": viewport.bottomRight.longitude,
+        ]
     }
 }
