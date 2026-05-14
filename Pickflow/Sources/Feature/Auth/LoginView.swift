@@ -33,6 +33,12 @@ struct LoginView: View {
                 onSignInSucceeded()
             }
         }
+        .onChange(of: viewModel.didRequestGuestEntry) { _, requested in
+            if requested {
+                // 비회원으로 시작하기 — 로그인 없이 홈(지도/리스트) 진입
+                onSignInSucceeded()
+            }
+        }
         .alert(
             "로그인 실패",
             isPresented: errorAlertBinding,

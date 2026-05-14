@@ -90,9 +90,6 @@ final class AppRootViewModel: ObservableObject {
     }
 
     func bootstrap() async {
-        // FIXME(KAN-52 임시): 지도/리스트 화면 검증 위해 로그인 화면 우회. PR 머지 전 원복.
-        authState = .signedIn
-        return
         let state = await authService.currentAuthState()
         authState = state.toRoute()
     }
