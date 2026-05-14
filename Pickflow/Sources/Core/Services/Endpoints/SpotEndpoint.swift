@@ -17,7 +17,7 @@ enum SpotEndpoint: APIEndpoint {
     var method: HTTPMethod { .get }
 
     var parameters: Parameters? {
-        switch self {
+        switch self { 
         case let .list(page, theme, latitude, longitude):
             var p: Parameters = [:]
             if let page { p["page"] = page }
