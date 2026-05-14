@@ -26,8 +26,6 @@ final class MockSpotService: SpotServiceProtocol, @unchecked Sendable {
     func registerSpot(draft: SpotRegistrationDraft) async throws -> SpotId {
         registerDrafts.append(draft)
         return try registerSpotResult.get()
-    func registerSpot(draft _: SpotRegistrationDraft) async throws -> SpotId {
-        SpotId(rawValue: "spot-1")
     }
 
     func reportSpot(id: Int64, type: SpotReportType) async throws {
@@ -103,14 +101,6 @@ final class MockExternalAppLauncher: ExternalAppLauncherProtocol {
             openedURLs.append(URL(string: "https://apps.apple.com/kr/app/id311867728")!)
         }
     }
-}
-
-final class MockTokenStore: TokenStoreProtocol, @unchecked Sendable {
-    var storedToken: AuthToken?
-
-    func save(_ token: AuthToken) throws { storedToken = token }
-    func load() throws -> AuthToken? { storedToken }
-    func clear() throws { storedToken = nil }
 }
 
 @MainActor
