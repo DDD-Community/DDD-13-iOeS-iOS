@@ -141,12 +141,10 @@ struct HomeMapView: View {
 
     private var topBar: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .center) {
-                Text("PICKFLOW")
-                    .font(.custom("Rambla-Bold", size: 28))
-                    .tracking(-0.056)
-                    .lineSpacing(1.11)
-                    .foregroundStyle(.white)
+          HStack(alignment: .center) {    
+              Image(.logo)
+                    .padding(.leading, 16)
+                    .padding(.top, 12)
 
                 Spacer()
 
