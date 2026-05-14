@@ -86,7 +86,7 @@ struct HomeMapView: View {
                                 )
                             }
                         )
-                        .overlay(alignment: .topTrailing) {
+                        .overlay(alignment: .bottomTrailing) {
                             if mapListMode == .list, isSortExpanded {
                                 SpotListSortDropdownOptions(current: spotList.sort) { picked in
                                     Task { await spotList.sortChanged(picked) }

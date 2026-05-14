@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// 인덱스 짝/홀로 두 컬럼에 나눠 배치하는 핀터레스트형 2열 그리드.
-struct PinterestTwoColumn<Item: Identifiable, Cell: View>: View {
+/// 인덱스 짝/홀로 두 컬럼에 나눠 배치하는 Masonry(2열 비대칭) 그리드.
+struct MasonryTwoColumn<Item: Identifiable, Cell: View>: View {
     let items: [Item]
     let spacing: CGFloat
     let onAppearItem: ((Item) -> Void)?

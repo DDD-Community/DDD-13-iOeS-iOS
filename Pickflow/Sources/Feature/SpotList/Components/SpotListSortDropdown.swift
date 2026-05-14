@@ -11,17 +11,8 @@ struct SpotListSortDropdownHeader: View {
         } label: {
             HStack(spacing: 4) {
                 Text(sort.displayName)
-                    .pretendard(.body(.medium(.bold)))
+                .pretendard(.body(.large(.bold)))
                     .foregroundStyle(.white)
-                    .overlay(alignment: .bottom) {
-                        if isExpanded {
-                            // FIXME(Figma 908:19400): 밑줄 컬러 토큰 확정 전 시스템 purple 사용
-                            Rectangle()
-                                .fill(Color.purple)
-                                .frame(height: 1)
-                                .offset(y: 2)
-                        }
-                    }
                 Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.white)
@@ -48,24 +39,22 @@ struct SpotListSortDropdownOptions: View {
             }
         }
         .padding(.vertical, 4)
-        .background(UIAsset.Colors.gray100.swiftUIColor)
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-        .shadow(color: .black.opacity(0.4), radius: 8, x: 0, y: 4)
+        .background(UIAsset.Colors.gray95.swiftUIColor)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .frame(width: 180)
     }
 
     private func row(_ option: SpotListSort) -> some View {
-        Button {
+        let isSelected = option == current
+        return Button {
             onSelect(option)
         } label: {
             HStack {
                 Text(option.displayName)
-                    .pretendard(.body(.medium(.bold)))
-                    .foregroundStyle(option == current
-                        ? UIAsset.Colors.sunsetOrange.swiftUIColor
-                        : .white)
+                    .pretendard(.body(.large()))
+                    .foregroundStyle(isSelected ? .sunsetOrange : .gray0)
                 Spacer()
-                if option == current {
+                if isSelected {
                     Image(systemName: "checkmark")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(UIAsset.Colors.sunsetOrange.swiftUIColor)
@@ -73,8 +62,15 @@ struct SpotListSortDropdownOptions: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
+            .background(rowBackground(isSelected: isSelected))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+
+    private func rowBackground(isSelected: Bool) -> Color {
+        isSelected
+            ? UIAsset.Colors.sunsetOrange.swiftUIColor.opacity(0.2)
+            : UIAsset.Colors.gray95.swiftUIColor
     }
 }

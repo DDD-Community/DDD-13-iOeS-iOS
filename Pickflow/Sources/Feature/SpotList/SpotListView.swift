@@ -6,6 +6,7 @@ import UIKit
 struct SpotListView: View {
     @StateObject var viewModel: SpotListViewModel
     var contentTopInset: CGFloat = 0
+    @State private var isLoginViewPresented: Bool = false
 
     var body: some View {
         SpotListScreenContent(
@@ -25,13 +26,43 @@ struct SpotListView: View {
             contentTopInset: contentTopInset
         )
         .task { await viewModel.onAppear() }
-        .sheet(isPresented: $viewModel.showLoginPrompt) {
-            LoginPromptPopup(
-                onCancel: { viewModel.showLoginPrompt = false },
-                onLogin: { viewModel.showLoginPrompt = false }
+        .overlay {
+            if viewModel.showLoginPrompt {
+                ZStack {
+                    Color.black.opacity(0.5).ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                viewModel.showLoginPrompt = false
+                            }
+                        }
+                    LoginPromptPopup(
+                        onCancel: {
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                viewModel.showLoginPrompt = false
+                            }
+                        },
+                        onLogin: {
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                viewModel.showLoginPrompt = false
+                            }
+                            isLoginViewPresented = true
+                        }
+                    )
+                    .padding(.horizontal, 32)
+                }
+                .transition(.opacity)
+                .animation(.easeInOut(duration: 0.25), value: viewModel.showLoginPrompt)
+            }
+        }
+        .fullScreenCover(isPresented: $isLoginViewPresented) {
+            LoginView(
+                viewModel: LoginViewModel(
+                    authService: getAuthService(),
+                    kakaoAuthProvider: getKakaoAuthProvider(),
+                    tokenStore: getTokenStore()
+                ),
+                onSignInSucceeded: { isLoginViewPresented = false }
             )
-            .padding(.horizontal, 20)
-            .presentationDetents([.medium])
         }
     }
 }
@@ -72,7 +103,7 @@ struct SpotListScreenContent: View {
 
     private func loadedGrid(items: [SpotListItem]) -> some View {
         ScrollView {
-            PinterestTwoColumn(items: items, onAppearItem: onAppearItem) { item in
+            MasonryTwoColumn(items: items, onAppearItem: onAppearItem) { item in
                 SpotListCell(
                     item: item,
                     isBookmarked: isBookmarked(item.spotId),
