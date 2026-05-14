@@ -45,14 +45,14 @@ final class AuthService: AuthServiceProtocol, Sendable {
     func signOut() async throws {
         let storedToken = try? tokenStore.load()
 
-        guard let accessToken = storedToken?.accessToken, accessToken.isEmpty == false else {
+        guard let refreshToken = storedToken?.refreshToken, refreshToken.isEmpty == false else {
             try? tokenStore.clear()
             return
         }
 
         do {
             let _: EmptyResponse = try await networkManager.requestJSON(
-                endpoint: AuthEndpoint.logout(accessToken: accessToken)
+                endpoint: AuthEndpoint.logout(refreshToken: refreshToken)
             )
             try? tokenStore.clear()
         } catch {
