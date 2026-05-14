@@ -8,7 +8,18 @@ final class UserService: UserServiceProtocol, Sendable {
     }
 
     func fetchCurrentUser() async throws -> User {
-        // TODO: Implement with actual endpoint
-        fatalError("Not implemented")
+        return try await networkManager.requestJSON(endpoint: UserEndpoint.me)
+    }
+
+    func updateProfile(nickname: String?, profileImageURL: URL?) async throws -> User {
+        return try await networkManager.requestJSON(
+            endpoint: UserEndpoint.updateProfile(nickname: nickname, profileImageURL: profileImageURL)
+        )
+    }
+
+    func deleteAccount(reason: String, otherFeedback: String?) async throws {
+        let _: EmptyResponse = try await networkManager.requestJSON(
+            endpoint: UserEndpoint.deleteAccount(reason: reason, otherFeedback: otherFeedback)
+        )
     }
 }

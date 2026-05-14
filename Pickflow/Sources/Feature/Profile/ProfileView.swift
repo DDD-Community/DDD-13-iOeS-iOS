@@ -9,7 +9,7 @@ struct ProfileView: View {
                 ProgressView()
             } else if let user = viewModel.user {
                 VStack(spacing: 16) {
-                    Text(user.name)
+                    Text(user.nickname)
                         .font(.title)
                     Text(user.email)
                         .font(.subheadline)
