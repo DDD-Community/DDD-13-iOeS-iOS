@@ -10,13 +10,13 @@ enum TestError: Error, LocalizedError {
 
 final class MockSpotService: SpotServiceProtocol, @unchecked Sendable {
     var result: Result<SpotDetail, any Error> = .success(.fixture())
-    var registerResult: Result<SpotId, any Error> = .success(SpotId(rawValue: "stub"))
-    private(set) var requests: [(id: Int64, latitude: Double?, longitude: Double?)] = []
-    private(set) var registeredDrafts: [SpotRegistrationDraft] = []
+    var registerSpotResult: Result<SpotId, any Error> = .success(SpotId(rawValue: "mock-spot-id"))
     var reportError: (any Error)?
     private(set) var requests: [(id: Int64, latitude: Double?, longitude: Double?)] = []
+    private(set) var registerDrafts: [SpotRegistrationDraft] = []
     private(set) var reportedSpotIds: [Int64] = []
     private(set) var reportedTypes: [SpotReportType] = []
+    private(set) var reportedContents: [String] = []
 
     func fetchSpotDetail(id: Int64, latitude: Double?, longitude: Double?) async throws -> SpotDetail {
         requests.append((id, latitude, longitude))
@@ -24,21 +24,14 @@ final class MockSpotService: SpotServiceProtocol, @unchecked Sendable {
     }
 
     func registerSpot(draft: SpotRegistrationDraft) async throws -> SpotId {
-        registeredDrafts.append(draft)
-        return try registerResult.get()
-    var registerSpotResult: Result<SpotId, any Error> = .success(SpotId(rawValue: "mock-spot-id"))
-    private(set) var registerDrafts: [SpotRegistrationDraft] = []
-
-    func registerSpot(draft: SpotRegistrationDraft) async throws -> SpotId {
         registerDrafts.append(draft)
         return try registerSpotResult.get()
-    func registerSpot(draft _: SpotRegistrationDraft) async throws -> SpotId {
-        SpotId(rawValue: "spot-1")
     }
 
-    func reportSpot(id: Int64, type: SpotReportType) async throws {
+    func reportSpot(id: Int64, type: SpotReportType, content: String) async throws {
         reportedSpotIds.append(id)
         reportedTypes.append(type)
+        reportedContents.append(content)
         if let reportError { throw reportError }
     }
 }

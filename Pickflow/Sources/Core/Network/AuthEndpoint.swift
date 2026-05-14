@@ -10,16 +10,16 @@ enum AuthEndpoint: APIEndpoint {
     case kakaoSignIn(token: String)
     case appleSignIn(identityToken: String, nonce: String)
     case refresh(refreshToken: String)
-    case logout(accessToken: String)
+    case logout(refreshToken: String)
 
     var baseURL: String { AppConfig.baseURL }
 
     var path: String {
         switch self {
-        case .kakaoSignIn: "/auth/kakao"
-        case .appleSignIn: "/auth/apple"
-        case .refresh: "/auth/refresh"
-        case .logout: "/auth/logout"
+        case .kakaoSignIn: "/v1/auth/kakao"
+        case .appleSignIn: "/v1/auth/apple"
+        case .refresh: "/v1/auth/refresh"
+        case .logout: "/v1/auth/logout"
         }
     }
 
@@ -39,18 +39,9 @@ enum AuthEndpoint: APIEndpoint {
                 "nonce": nonce,
             ]
         case let .refresh(refreshToken):
-            ["refresh_token": refreshToken]
-        case .logout:
-            nil
-        }
-    }
-
-    var headers: HTTPHeaders? {
-        switch self {
-        case let .logout(accessToken):
-            ["Authorization": "Bearer \(accessToken)"]
-        default:
-            nil
+            ["refreshToken": refreshToken]
+        case let .logout(refreshToken):
+            ["refreshToken": refreshToken]
         }
     }
 }
