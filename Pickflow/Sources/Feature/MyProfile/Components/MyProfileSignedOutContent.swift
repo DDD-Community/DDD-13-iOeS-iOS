@@ -42,13 +42,13 @@ struct MyProfileSignedOutContent: View {
         VStack(spacing: 12) {
             Text("마이페이지 이용을 위해\n로그인이 필요해요")
                 .pretendard(.heading(.large))
-                .foregroundStyle(Color("gray0"))
+                .foregroundStyle(.gray0)
                 .multilineTextAlignment(.center)
                 .accessibilityAddTraits(.isHeader)
 
             Text("로그인하면 내 스팟을 저장하고\n일몰 알림을 받을 수 있어요.")
                 .pretendard(.body(.medium()))
-                .foregroundStyle(Color("gray40"))
+                .foregroundStyle(.gray40)
                 .multilineTextAlignment(.center)
         }
         .padding(.bottom, 108)
@@ -67,7 +67,7 @@ struct MyProfileSignedOutContent: View {
 
 #Preview {
     ZStack {
-        Color("gray95").ignoresSafeArea()
+        UIAsset.Colors.gray95.color.ignoresSafeArea()
         MyProfileSignedOutContent()
     }
 }

@@ -8,7 +8,7 @@ struct WithdrawalView: View {
 
     var body: some View {
         ZStack {
-            Color("gray95").ignoresSafeArea()
+            UIAsset.Colors.gray95.color.ignoresSafeArea()
 
             switch viewModel.step {
             case .input:
@@ -16,7 +16,7 @@ struct WithdrawalView: View {
 
             case .processing:
                 ProgressView()
-                    .tint(Color("gray0"))
+                    .tint(UIAsset.Colors.gray0.color)
 
             case .done:
                 EmptyView()
@@ -25,11 +25,11 @@ struct WithdrawalView: View {
                 VStack(spacing: 16) {
                     Image(systemName: "exclamationmark.triangle")
                         .font(.system(size: 36, weight: .semibold))
-                        .foregroundStyle(Color("sunsetOrange"))
+                        .foregroundStyle(.sunsetOrange)
 
                     Text(message)
                         .pretendard(.body(.medium()))
-                        .foregroundStyle(Color("gray30"))
+                        .foregroundStyle(.gray30)
                         .multilineTextAlignment(.center)
                 }
                 .padding(.horizontal, 24)
@@ -43,7 +43,7 @@ struct WithdrawalView: View {
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(Color("gray0"))
+                        .foregroundStyle(.gray0)
                 }
                 .buttonStyle(.plain)
             }
@@ -51,7 +51,7 @@ struct WithdrawalView: View {
             ToolbarItem(placement: .principal) {
                 Text("회원탈퇴")
                     .pretendard(.heading(.small))
-                    .foregroundStyle(Color("gray0"))
+                    .foregroundStyle(.gray0)
             }
         }
         .onChange(of: viewModel.step) { _, newStep in
@@ -87,7 +87,7 @@ struct WithdrawalView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("탈퇴 전 꼭 확인해주세요")
                 .pretendard(.body(.medium(.bold)))
-                .foregroundStyle(Color("sunsetOrange"))
+                .foregroundStyle(.sunsetOrange)
 
             VStack(alignment: .leading, spacing: 6) {
                 cautionRow("탈퇴 시 저장한 스팟, 활동 기록이 모두 삭제돼요.")
@@ -96,11 +96,11 @@ struct WithdrawalView: View {
             }
         }
         .padding(16)
-        .background(Color("gray80"))
+        .background(.gray80)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(Color("sunsetOrange").opacity(0.3), lineWidth: 1)
+                .stroke(UIAsset.Colors.sunsetOrange.color.opacity(0.3), lineWidth: 1)
         )
     }
 
@@ -108,11 +108,11 @@ struct WithdrawalView: View {
         HStack(alignment: .top, spacing: 6) {
             Text("•")
                 .pretendard(.body(.small()))
-                .foregroundStyle(Color("gray40"))
+                .foregroundStyle(.gray40)
 
             Text(text)
                 .pretendard(.body(.small()))
-                .foregroundStyle(Color("gray40"))
+                .foregroundStyle(.gray40)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -123,7 +123,7 @@ struct WithdrawalView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("어떤 점이 아쉬우셨나요?")
                 .pretendard(.heading(.small))
-                .foregroundStyle(Color("gray0"))
+                .foregroundStyle(.gray0)
 
             WithdrawalReasonDropdown(
                 selectedReason: viewModel.selectedReason,
@@ -139,10 +139,10 @@ struct WithdrawalView: View {
                     axis: .vertical
                 )
                 .pretendard(.body(.medium()))
-                .foregroundStyle(Color("gray0"))
+                .foregroundStyle(.gray0)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 14)
-                .background(Color("gray80"))
+                .background(.gray80)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 .lineLimit(3...)
             }
@@ -159,25 +159,25 @@ struct WithdrawalView: View {
                 ZStack {
                     RoundedRectangle(cornerRadius: 4, style: .continuous)
                         .stroke(
-                            viewModel.didAgreeToTerms ? Color("sunsetOrange") : Color("gray50"),
+                            viewModel.didAgreeToTerms ? UIAsset.Colors.sunsetOrange.color : UIAsset.Colors.gray50.color,
                             lineWidth: 1.5
                         )
                         .frame(width: 22, height: 22)
 
                     if viewModel.didAgreeToTerms {
                         RoundedRectangle(cornerRadius: 4, style: .continuous)
-                            .fill(Color("sunsetOrange"))
+                            .fill(.sunsetOrange)
                             .frame(width: 22, height: 22)
 
                         Image(systemName: "checkmark")
                             .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(Color("gray0"))
+                            .foregroundStyle(.gray0)
                     }
                 }
 
                 Text("위 유의사항을 모두 확인했으며 동의합니다.")
                     .pretendard(.body(.medium()))
-                    .foregroundStyle(Color("gray20"))
+                    .foregroundStyle(.gray20)
                     .fixedSize(horizontal: false, vertical: true)
 
                 Spacer()
@@ -195,10 +195,10 @@ struct WithdrawalView: View {
         } label: {
             Text("탈퇴하기")
                 .pretendard(.body(.large(.bold)))
-                .foregroundStyle(Color("gray0"))
+                .foregroundStyle(.gray0)
                 .frame(maxWidth: .infinity, minHeight: 56)
                 .background(
-                    viewModel.canSubmit ? Color("sunsetOrange") : Color("gray70")
+                    viewModel.canSubmit ? UIAsset.Colors.sunsetOrange.color : UIAsset.Colors.gray70.color
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }

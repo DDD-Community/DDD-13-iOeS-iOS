@@ -12,12 +12,12 @@ struct WithdrawalReasonDropdown: View {
 
             if isOpen {
                 Divider()
-                    .background(Color("gray70"))
+                    .background(.gray70)
 
                 reasonList
             }
         }
-        .background(Color("gray80"))
+        .background(.gray80)
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
@@ -29,14 +29,14 @@ struct WithdrawalReasonDropdown: View {
                 Text(selectedReason?.displayText ?? "탈퇴 사유를 선택해주세요")
                     .pretendard(.body(.medium()))
                     .foregroundStyle(
-                        selectedReason != nil ? Color("gray0") : Color("gray50")
+                        selectedReason != nil ? UIAsset.Colors.gray0.color : UIAsset.Colors.gray50.color
                     )
 
                 Spacer()
 
                 Image(systemName: isOpen ? "chevron.up" : "chevron.down")
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(Color("gray40"))
+                    .foregroundStyle(.gray40)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
@@ -56,7 +56,7 @@ struct WithdrawalReasonDropdown: View {
 
                 if reason != WithdrawalReason.allCases.last {
                     Divider()
-                        .background(Color("gray70"))
+                        .background(.gray70)
                 }
             }
         }
@@ -70,7 +70,7 @@ struct WithdrawalReasonDropdown: View {
                 Text(reason.displayText)
                     .pretendard(.body(.medium()))
                     .foregroundStyle(
-                        selectedReason == reason ? Color("sunsetOrange") : Color("gray20")
+                        selectedReason == reason ? UIAsset.Colors.sunsetOrange.color : UIAsset.Colors.gray20.color
                     )
 
                 Spacer()
@@ -78,7 +78,7 @@ struct WithdrawalReasonDropdown: View {
                 if selectedReason == reason {
                     Image(systemName: "checkmark")
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(Color("sunsetOrange"))
+                        .foregroundStyle(.sunsetOrange)
                 }
             }
             .padding(.horizontal, 16)
@@ -95,5 +95,5 @@ struct WithdrawalReasonDropdown: View {
         WithdrawalReasonDropdown(selectedReason: .rarelyUsed, isOpen: true)
     }
     .padding()
-    .background(Color("gray95"))
+    .background(.gray95)
 }

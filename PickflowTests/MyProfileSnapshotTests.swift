@@ -283,7 +283,7 @@ final class MyProfileSnapshotTests: XCTestCase {
 
     private func signedOutScreen() -> some View {
         ZStack {
-            Color("gray95").ignoresSafeArea()
+            UIAsset.Colors.gray95.color.ignoresSafeArea()
             MyProfileSignedOutContent()
         }
         .snapshotEnvironment(colorScheme: .dark)
@@ -291,15 +291,15 @@ final class MyProfileSnapshotTests: XCTestCase {
 
     private func loadingScreen() -> some View {
         ZStack {
-            Color("gray95").ignoresSafeArea()
+            UIAsset.Colors.gray95.color.ignoresSafeArea()
             ProgressView()
-                .tint(Color("gray0"))
+                .tint(UIAsset.Colors.gray0.color)
         }
     }
 
     private func signedInScreen(user: User) -> some View {
         ZStack {
-            Color("gray95").ignoresSafeArea()
+            UIAsset.Colors.gray95.color.ignoresSafeArea()
             MyProfileSignedInContent(user: user)
         }
         .snapshotEnvironment(colorScheme: .dark)
@@ -307,15 +307,15 @@ final class MyProfileSnapshotTests: XCTestCase {
 
     private func failedScreen(message: String) -> some View {
         ZStack {
-            Color("gray95").ignoresSafeArea()
+            UIAsset.Colors.gray95.color.ignoresSafeArea()
             VStack(spacing: 16) {
                 Image(systemName: "exclamationmark.triangle")
                     .font(.system(size: 36, weight: .semibold))
-                    .foregroundStyle(Color("sunsetOrange"))
+                    .foregroundStyle(.sunsetOrange)
 
                 Text(message)
                     .pretendard(.body(.medium()))
-                    .foregroundStyle(Color("gray30"))
+                    .foregroundStyle(.gray30)
                     .multilineTextAlignment(.center)
             }
             .padding(.horizontal, 24)
@@ -360,9 +360,9 @@ final class MyProfileSnapshotTests: XCTestCase {
 
     private func withdrawalProcessingScreen() -> some View {
         ZStack {
-            Color("gray95").ignoresSafeArea()
+            UIAsset.Colors.gray95.color.ignoresSafeArea()
             ProgressView()
-                .tint(Color("gray0"))
+                .tint(UIAsset.Colors.gray0.color)
         }
     }
 }
@@ -376,7 +376,7 @@ private struct AccountManagementPreviewView: View {
 
     var body: some View {
         ZStack {
-            Color("gray95").ignoresSafeArea()
+            UIAsset.Colors.gray95.color.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 navBar
@@ -389,7 +389,7 @@ private struct AccountManagementPreviewView: View {
                         nicknameSection
                         socialSection
 
-                        Divider().background(Color("gray80"))
+                        Divider().background(.gray80)
 
                         accountActionsSection
                     }
@@ -405,20 +405,20 @@ private struct AccountManagementPreviewView: View {
         HStack {
             Image(systemName: "chevron.left")
                 .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(Color("gray0"))
+                .foregroundStyle(.gray0)
                 .frame(width: 44, height: 44)
 
             Spacer()
 
             Text("계정 관리")
                 .pretendard(.heading(.small))
-                .foregroundStyle(Color("gray0"))
+                .foregroundStyle(.gray0)
 
             Spacer()
 
             Text("저장")
                 .pretendard(.body(.medium(.bold)))
-                .foregroundStyle(isSaveEnabled ? Color("sunsetOrange") : Color("gray50"))
+                .foregroundStyle(isSaveEnabled ? UIAsset.Colors.sunsetOrange.color : UIAsset.Colors.gray50.color)
                 .frame(width: 44, height: 44)
         }
     }
@@ -426,21 +426,21 @@ private struct AccountManagementPreviewView: View {
     private var profileImageSection: some View {
         ZStack(alignment: .bottomTrailing) {
             Circle()
-                .fill(Color("gray80"))
+                .fill(.gray80)
                 .frame(width: 96, height: 96)
                 .overlay(
                     Image(systemName: "person.fill")
                         .font(.system(size: 40, weight: .semibold))
-                        .foregroundStyle(Color("gray50"))
+                        .foregroundStyle(.gray50)
                 )
 
             Circle()
-                .fill(Color("gray80"))
+                .fill(.gray80)
                 .frame(width: 32, height: 32)
                 .overlay(
                     Image(systemName: "camera.fill")
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(Color("gray0"))
+                        .foregroundStyle(.gray0)
                 )
                 .offset(x: 2, y: 2)
         }
@@ -450,15 +450,15 @@ private struct AccountManagementPreviewView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("닉네임")
                 .pretendard(.label(.medium))
-                .foregroundStyle(Color("gray40"))
+                .foregroundStyle(.gray40)
 
             Text(nicknameDraft)
                 .pretendard(.body(.large()))
-                .foregroundStyle(Color("gray0"))
+                .foregroundStyle(.gray0)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 14)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color("gray80"))
+                .background(.gray80)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
     }
@@ -467,21 +467,21 @@ private struct AccountManagementPreviewView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("연결된 소셜")
                 .pretendard(.label(.medium))
-                .foregroundStyle(Color("gray40"))
+                .foregroundStyle(.gray40)
 
             HStack {
                 Text("카카오로 로그인됨")
                     .pretendard(.body(.medium()))
-                    .foregroundStyle(Color("gray20"))
+                    .foregroundStyle(.gray20)
 
                 Spacer()
 
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(Color("sunsetOrange"))
+                    .foregroundStyle(.sunsetOrange)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
-            .background(Color("gray80"))
+            .background(.gray80)
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
     }
@@ -490,7 +490,7 @@ private struct AccountManagementPreviewView: View {
         VStack(spacing: 0) {
             Text("로그아웃")
                 .pretendard(.body(.medium()))
-                .foregroundStyle(Color("gray40"))
+                .foregroundStyle(.gray40)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.vertical, 16)
 
@@ -517,7 +517,7 @@ private struct WithdrawalPreviewView: View {
 
     var body: some View {
         ZStack {
-            Color("gray95").ignoresSafeArea()
+            UIAsset.Colors.gray95.color.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 navBar
@@ -543,14 +543,14 @@ private struct WithdrawalPreviewView: View {
         HStack {
             Image(systemName: "chevron.left")
                 .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(Color("gray0"))
+                .foregroundStyle(.gray0)
                 .frame(width: 44, height: 44)
 
             Spacer()
 
             Text("회원탈퇴")
                 .pretendard(.heading(.small))
-                .foregroundStyle(Color("gray0"))
+                .foregroundStyle(.gray0)
 
             Spacer()
 
@@ -562,7 +562,7 @@ private struct WithdrawalPreviewView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("탈퇴 전 꼭 확인해주세요")
                 .pretendard(.body(.medium(.bold)))
-                .foregroundStyle(Color("sunsetOrange"))
+                .foregroundStyle(.sunsetOrange)
 
             VStack(alignment: .leading, spacing: 6) {
                 cautionRow("탈퇴 시 저장한 스팟, 활동 기록이 모두 삭제돼요.")
@@ -571,18 +571,18 @@ private struct WithdrawalPreviewView: View {
             }
         }
         .padding(16)
-        .background(Color("gray80"))
+        .background(.gray80)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(Color("sunsetOrange").opacity(0.3), lineWidth: 1)
+                .stroke(UIAsset.Colors.sunsetOrange.color.opacity(0.3), lineWidth: 1)
         )
     }
 
     private func cautionRow(_ text: String) -> some View {
         HStack(alignment: .top, spacing: 6) {
-            Text("•").pretendard(.body(.small())).foregroundStyle(Color("gray40"))
-            Text(text).pretendard(.body(.small())).foregroundStyle(Color("gray40"))
+            Text("•").pretendard(.body(.small())).foregroundStyle(.gray40)
+            Text(text).pretendard(.body(.small())).foregroundStyle(.gray40)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -591,7 +591,7 @@ private struct WithdrawalPreviewView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("어떤 점이 아쉬우셨나요?")
                 .pretendard(.heading(.small))
-                .foregroundStyle(Color("gray0"))
+                .foregroundStyle(.gray0)
 
             WithdrawalReasonDropdown(
                 selectedReason: selectedReason,
@@ -604,19 +604,19 @@ private struct WithdrawalPreviewView: View {
                     if otherFeedback.isEmpty {
                         Text(placeholder)
                             .pretendard(.body(.medium()))
-                            .foregroundStyle(Color("gray50"))
+                            .foregroundStyle(.gray50)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 14)
                     }
                     Text(otherFeedback.isEmpty ? " " : otherFeedback)
                         .pretendard(.body(.medium()))
-                        .foregroundStyle(Color("gray0"))
+                        .foregroundStyle(.gray0)
                         .opacity(otherFeedback.isEmpty ? 0 : 1)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 14)
                 }
                 .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
-                .background(Color("gray80"))
+                .background(.gray80)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
         }
@@ -627,25 +627,25 @@ private struct WithdrawalPreviewView: View {
             ZStack {
                 RoundedRectangle(cornerRadius: 4, style: .continuous)
                     .stroke(
-                        didAgree ? Color("sunsetOrange") : Color("gray50"),
+                        didAgree ? UIAsset.Colors.sunsetOrange.color : UIAsset.Colors.gray50.color,
                         lineWidth: 1.5
                     )
                     .frame(width: 22, height: 22)
 
                 if didAgree {
                     RoundedRectangle(cornerRadius: 4, style: .continuous)
-                        .fill(Color("sunsetOrange"))
+                        .fill(.sunsetOrange)
                         .frame(width: 22, height: 22)
 
                     Image(systemName: "checkmark")
                         .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(Color("gray0"))
+                        .foregroundStyle(.gray0)
                 }
             }
 
             Text("위 유의사항을 모두 확인했으며 동의합니다.")
                 .pretendard(.body(.medium()))
-                .foregroundStyle(Color("gray20"))
+                .foregroundStyle(.gray20)
                 .fixedSize(horizontal: false, vertical: true)
 
             Spacer()
@@ -655,9 +655,9 @@ private struct WithdrawalPreviewView: View {
     private var submitButton: some View {
         Text("탈퇴하기")
             .pretendard(.body(.large(.bold)))
-            .foregroundStyle(Color("gray0"))
+            .foregroundStyle(.gray0)
             .frame(maxWidth: .infinity, minHeight: 56)
-            .background(canSubmit ? Color("sunsetOrange") : Color("gray70"))
+            .background(canSubmit ? UIAsset.Colors.sunsetOrange.color : UIAsset.Colors.gray70.color)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }

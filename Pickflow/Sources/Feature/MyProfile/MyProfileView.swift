@@ -5,7 +5,7 @@ struct MyProfileView: View {
 
     var body: some View {
         ZStack {
-            Color("gray95").ignoresSafeArea()
+            UIAsset.Colors.gray95.color.ignoresSafeArea()
 
             switch viewModel.state {
             case .signedOut:
@@ -13,7 +13,7 @@ struct MyProfileView: View {
 
             case .loading:
                 ProgressView()
-                    .tint(Color("gray0"))
+                    .tint(UIAsset.Colors.gray0.color)
 
             case let .signedIn(user):
                 MyProfileSignedInContent(
@@ -25,11 +25,11 @@ struct MyProfileView: View {
                 VStack(spacing: 16) {
                     Image(systemName: "exclamationmark.triangle")
                         .font(.system(size: 36, weight: .semibold))
-                        .foregroundStyle(Color("sunsetOrange"))
+                        .foregroundStyle(.sunsetOrange)
 
                     Text(message)
                         .pretendard(.body(.medium()))
-                        .foregroundStyle(Color("gray30"))
+                        .foregroundStyle(.gray30)
                         .multilineTextAlignment(.center)
 
                     Button {
@@ -37,10 +37,10 @@ struct MyProfileView: View {
                     } label: {
                         Text("다시 시도")
                             .pretendard(.body(.medium(.bold)))
-                            .foregroundStyle(Color("gray0"))
+                            .foregroundStyle(.gray0)
                             .padding(.horizontal, 24)
                             .padding(.vertical, 12)
-                            .background(Color("sunsetOrange"))
+                            .background(.sunsetOrange)
                             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                     }
                     .buttonStyle(.plain)

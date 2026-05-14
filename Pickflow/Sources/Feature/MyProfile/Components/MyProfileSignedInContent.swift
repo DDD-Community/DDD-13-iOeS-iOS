@@ -10,7 +10,7 @@ struct MyProfileSignedInContent: View {
                 profileHeader
 
                 Divider()
-                    .background(Color("gray80"))
+                    .background(.gray80)
 
                 menuList
             }
@@ -27,18 +27,18 @@ struct MyProfileSignedInContent: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(user.nickname)
                     .pretendard(.heading(.small))
-                    .foregroundStyle(Color("gray0"))
+                    .foregroundStyle(.gray0)
 
                 Text(user.email)
                     .pretendard(.body(.small()))
-                    .foregroundStyle(Color("gray40"))
+                    .foregroundStyle(.gray40)
             }
 
             Spacer()
 
             Image(systemName: "chevron.right")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(Color("gray40"))
+                .foregroundStyle(.gray40)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 24)
@@ -72,11 +72,11 @@ struct MyProfileSignedInContent: View {
 
     private var defaultProfileImage: some View {
         Circle()
-            .fill(Color("gray80"))
+            .fill(.gray80)
             .overlay(
                 Image(systemName: "person.fill")
                     .font(.system(size: 28, weight: .semibold))
-                    .foregroundStyle(Color("gray50"))
+                    .foregroundStyle(.gray50)
             )
     }
 
@@ -97,13 +97,13 @@ struct MyProfileSignedInContent: View {
             HStack {
                 Text(title)
                     .pretendard(.body(.large()))
-                    .foregroundStyle(Color("gray0"))
+                    .foregroundStyle(.gray0)
 
                 Spacer()
 
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(Color("gray50"))
+                    .foregroundStyle(.gray50)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 18)
@@ -115,7 +115,7 @@ struct MyProfileSignedInContent: View {
 
 #Preview {
     ZStack {
-        Color("gray95").ignoresSafeArea()
+        UIAsset.Colors.gray95.color.ignoresSafeArea()
         MyProfileSignedInContent(user: .fixture())
     }
 }

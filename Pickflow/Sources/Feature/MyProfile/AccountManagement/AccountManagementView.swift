@@ -10,7 +10,7 @@ struct AccountManagementView: View {
 
     var body: some View {
         ZStack {
-            Color("gray95").ignoresSafeArea()
+            UIAsset.Colors.gray95.color.ignoresSafeArea()
 
             Group {
                 if let error = viewModel.loadError {
@@ -43,7 +43,7 @@ struct AccountManagementView: View {
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(Color("gray0"))
+                        .foregroundStyle(.gray0)
                 }
                 .buttonStyle(.plain)
             }
@@ -51,7 +51,7 @@ struct AccountManagementView: View {
             ToolbarItem(placement: .principal) {
                 Text("계정 관리")
                     .pretendard(.heading(.small))
-                    .foregroundStyle(Color("gray0"))
+                    .foregroundStyle(.gray0)
             }
 
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -61,7 +61,7 @@ struct AccountManagementView: View {
                     Text("저장")
                         .pretendard(.body(.medium(.bold)))
                         .foregroundStyle(
-                            viewModel.isSaveEnabled ? Color("sunsetOrange") : Color("gray50")
+                            viewModel.isSaveEnabled ? UIAsset.Colors.sunsetOrange.color : UIAsset.Colors.gray50.color
                         )
                 }
                 .buttonStyle(.plain)
@@ -103,7 +103,7 @@ struct AccountManagementView: View {
                 socialSection
 
                 Divider()
-                    .background(Color("gray80"))
+                    .background(.gray80)
 
                 accountActionsSection
             }
@@ -121,12 +121,12 @@ struct AccountManagementView: View {
                 .frame(width: 96, height: 96)
 
             Circle()
-                .fill(Color("gray80"))
+                .fill(.gray80)
                 .frame(width: 32, height: 32)
                 .overlay(
                     Image(systemName: "camera.fill")
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(Color("gray0"))
+                        .foregroundStyle(.gray0)
                 )
                 .offset(x: 2, y: 2)
         }
@@ -158,11 +158,11 @@ struct AccountManagementView: View {
 
     private var defaultProfileCircle: some View {
         Circle()
-            .fill(Color("gray80"))
+            .fill(.gray80)
             .overlay(
                 Image(systemName: "person.fill")
                     .font(.system(size: 40, weight: .semibold))
-                    .foregroundStyle(Color("gray50"))
+                    .foregroundStyle(.gray50)
             )
     }
 
@@ -172,14 +172,14 @@ struct AccountManagementView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("닉네임")
                 .pretendard(.label(.medium))
-                .foregroundStyle(Color("gray40"))
+                .foregroundStyle(.gray40)
 
             TextField("닉네임을 입력하세요", text: $viewModel.nicknameDraft)
                 .pretendard(.body(.large()))
-                .foregroundStyle(Color("gray0"))
+                .foregroundStyle(.gray0)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 14)
-                .background(Color("gray80"))
+                .background(.gray80)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
     }
@@ -190,21 +190,21 @@ struct AccountManagementView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("연결된 소셜")
                 .pretendard(.label(.medium))
-                .foregroundStyle(Color("gray40"))
+                .foregroundStyle(.gray40)
 
             HStack {
                 Text(socialProviderLabel)
                     .pretendard(.body(.medium()))
-                    .foregroundStyle(Color("gray20"))
+                    .foregroundStyle(.gray20)
 
                 Spacer()
 
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(Color("sunsetOrange"))
+                    .foregroundStyle(.sunsetOrange)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
-            .background(Color("gray80"))
+            .background(.gray80)
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
     }
@@ -226,7 +226,7 @@ struct AccountManagementView: View {
             } label: {
                 Text("로그아웃")
                     .pretendard(.body(.medium()))
-                    .foregroundStyle(Color("gray40"))
+                    .foregroundStyle(.gray40)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.vertical, 16)
             }
@@ -251,11 +251,11 @@ struct AccountManagementView: View {
         VStack(spacing: 16) {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 36, weight: .semibold))
-                .foregroundStyle(Color("sunsetOrange"))
+                .foregroundStyle(.sunsetOrange)
 
             Text(message)
                 .pretendard(.body(.medium()))
-                .foregroundStyle(Color("gray30"))
+                .foregroundStyle(.gray30)
                 .multilineTextAlignment(.center)
         }
         .padding(.horizontal, 24)
