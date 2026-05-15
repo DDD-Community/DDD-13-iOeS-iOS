@@ -113,6 +113,14 @@ final class MockShareSheetPresenter: ShareSheetPresenterProtocol {
     }
 }
 
+final class MockAnalyticsLogger: AnalyticsLoggerProtocol, @unchecked Sendable {
+    private(set) var loggedEvents: [AnalyticsEvent] = []
+
+    func log(_ event: AnalyticsEvent) {
+        loggedEvents.append(event)
+    }
+}
+
 extension SpotDetail {
     static func fixture(
         isBookmarked: Bool = false,
