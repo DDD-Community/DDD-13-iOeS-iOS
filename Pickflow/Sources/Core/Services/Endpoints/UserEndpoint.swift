@@ -4,7 +4,7 @@ import Foundation
 enum UserEndpoint: APIEndpoint {
     case me
     case deleteAccount(reason: String, otherFeedback: String?)
-    case updateProfile(nickname: String?, profileImageURL: URL?)
+    case updateProfile(nickname: String?)
     case savedSpots(page: Int?, latitude: Double?, longitude: Double?)
 
     var baseURL: String { APIBaseURL.current }
@@ -25,12 +25,7 @@ enum UserEndpoint: APIEndpoint {
         }
     }
 
-    var encoding: any ParameterEncoding {
-        switch self {
-        case .me, .savedSpots: return URLEncoding.queryString
-        case .deleteAccount, .updateProfile: return JSONEncoding.default
-        }
-    }
+    var encoding: any ParameterEncoding { URLEncoding.queryString }
 
     var parameters: Parameters? {
         switch self {
@@ -40,10 +35,9 @@ enum UserEndpoint: APIEndpoint {
             var p: Parameters = ["reason": reason]
             if let otherFeedback { p["otherFeedback"] = otherFeedback }
             return p
-        case let .updateProfile(nickname, profileImageURL):
+        case let .updateProfile(nickname):
             var p: Parameters = [:]
             if let nickname { p["nickname"] = nickname }
-            if let profileImageURL { p["profileImageUrl"] = profileImageURL.absoluteString }
             return p.isEmpty ? nil : p
         case let .savedSpots(page, latitude, longitude):
             var p: Parameters = [:]

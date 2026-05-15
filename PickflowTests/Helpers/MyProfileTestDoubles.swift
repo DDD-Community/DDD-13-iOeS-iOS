@@ -7,7 +7,7 @@ final class MockUserService: UserServiceProtocol, @unchecked Sendable {
     var deleteError: (any Error)?
 
     private(set) var fetchCallCount = 0
-    private(set) var updateCalls: [(nickname: String?, profileImageURL: URL?)] = []
+    private(set) var updateCalls: [(nickname: String?, profileImageData: Data?)] = []
     private(set) var deleteCalls: [(reason: String, otherFeedback: String?)] = []
 
     func fetchCurrentUser() async throws -> User {
@@ -15,8 +15,8 @@ final class MockUserService: UserServiceProtocol, @unchecked Sendable {
         return try fetchResult.get()
     }
 
-    func updateProfile(nickname: String?, profileImageURL: URL?) async throws -> User {
-        updateCalls.append((nickname, profileImageURL))
+    func updateProfile(nickname: String?, profileImageData: Data?) async throws -> User {
+        updateCalls.append((nickname, profileImageData))
         return try updateResult.get()
     }
 

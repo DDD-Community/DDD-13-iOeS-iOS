@@ -58,9 +58,14 @@ final class AccountManagementViewModel: ObservableObject {
         guard isSaveEnabled else { return }
         saveState = .saving
         do {
-            let updated = try await userService.updateProfile(nickname: trimmed, profileImageURL: nil)
+            let nicknameToSend = trimmed != user?.nickname ? trimmed : nil
+            let updated = try await userService.updateProfile(
+                nickname: nicknameToSend,
+                profileImageData: draftProfileImageData
+            )
             user = updated
             nicknameDraft = updated.nickname
+            draftProfileImageData = nil
             saveState = .saved
         } catch {
             saveState = .failed(error.localizedDescription)
