@@ -11,13 +11,14 @@ struct WithdrawalReasonDropdown: View {
             header
 
             if isOpen {
-                Divider()
-                    .background(.gray70)
+                Rectangle()
+                    .fill(UIAsset.Colors.gray70.color)
+                    .frame(height: 1)
 
                 reasonList
             }
         }
-        .background(.gray80)
+        .background(.gray90)
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
@@ -55,8 +56,9 @@ struct WithdrawalReasonDropdown: View {
                 reasonRow(reason: reason)
 
                 if reason != WithdrawalReason.allCases.last {
-                    Divider()
-                        .background(.gray70)
+                    Rectangle()
+                        .fill(UIAsset.Colors.gray70.color)
+                        .frame(height: 1)
                 }
             }
         }
