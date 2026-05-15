@@ -70,7 +70,7 @@ struct WithdrawalReasonDropdown: View {
                 Text(reason.displayText)
                     .pretendard(.body(.medium()))
                     .foregroundStyle(
-                        selectedReason == reason ? UIAsset.Colors.sunsetOrange.color : UIAsset.Colors.gray20.color
+                        selectedReason == reason ? UIAsset.Colors.sunsetOrange.color : UIAsset.Colors.gray0.color
                     )
 
                 Spacer()

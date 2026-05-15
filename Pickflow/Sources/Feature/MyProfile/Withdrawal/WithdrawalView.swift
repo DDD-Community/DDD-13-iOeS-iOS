@@ -89,7 +89,7 @@ struct WithdrawalView: View {
                     reasonSection
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 24)
+                .padding(.top, 8)
                 .padding(.bottom, 16)
             }
 
