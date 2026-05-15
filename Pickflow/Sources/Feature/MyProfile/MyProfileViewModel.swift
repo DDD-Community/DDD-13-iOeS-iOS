@@ -11,13 +11,21 @@ final class MyProfileViewModel: ObservableObject {
 
     @Published private(set) var state: LoadState = .loading
     @Published var isNavigatingToAccountManagement = false
+    @Published private(set) var isLoginLoading = false
+    @Published private(set) var loginError: String?
 
     let userService: UserServiceProtocol
     let authService: AuthServiceProtocol
+    private let socialLoginService: SocialLoginServiceProtocol
 
-    init(userService: UserServiceProtocol, authService: AuthServiceProtocol) {
+    init(
+        userService: UserServiceProtocol,
+        authService: AuthServiceProtocol,
+        socialLoginService: SocialLoginServiceProtocol
+    ) {
         self.userService = userService
         self.authService = authService
+        self.socialLoginService = socialLoginService
     }
 
     func onAppear() async {
@@ -31,6 +39,32 @@ final class MyProfileViewModel: ObservableObject {
 
     func refresh() async {
         await fetchUser()
+    }
+
+    func signInWithKakao() async {
+        guard !isLoginLoading else { return }
+        isLoginLoading = true
+        loginError = nil
+        do {
+            try await socialLoginService.signInWithKakao()
+            await onAppear()
+        } catch {
+            loginError = error.localizedDescription
+        }
+        isLoginLoading = false
+    }
+
+    func signInWithApple() async {
+        guard !isLoginLoading else { return }
+        isLoginLoading = true
+        loginError = nil
+        do {
+            try await socialLoginService.signInWithApple()
+            await onAppear()
+        } catch {
+            loginError = error.localizedDescription
+        }
+        isLoginLoading = false
     }
 
     func navigateToAccountManagement() {

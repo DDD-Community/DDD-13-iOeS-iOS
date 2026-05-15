@@ -10,11 +10,12 @@ struct MyProfileSignedOutContent: View {
 
             Spacer()
 
-            centerContent
+            VStack(spacing: 32) {
+                centerContent
+                bottomCTA
+            }
 
             Spacer()
-
-            bottomCTA
         }
         .padding(.horizontal, 16)
         .padding(.top, 8)
@@ -51,7 +52,6 @@ struct MyProfileSignedOutContent: View {
                 .foregroundStyle(.gray40)
                 .multilineTextAlignment(.center)
         }
-        .padding(.bottom, 108)
     }
 
     // MARK: - Bottom CTA

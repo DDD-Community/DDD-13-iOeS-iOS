@@ -9,7 +9,10 @@ struct MyProfileView: View {
 
             switch viewModel.state {
             case .signedOut:
-                MyProfileSignedOutContent()
+                MyProfileSignedOutContent(
+                    onKakaoLoginTap: { Task { await viewModel.signInWithKakao() } },
+                    onAppleLoginTap: { Task { await viewModel.signInWithApple() } }
+                )
 
             case .loading:
                 ProgressView()

@@ -70,11 +70,7 @@ struct SpotDetailView: View {
         }
         .fullScreenCover(isPresented: $isLoginViewPresented) {
             LoginView(
-                viewModel: LoginViewModel(
-                    authService: getAuthService(),
-                    kakaoAuthProvider: getKakaoAuthProvider(),
-                    tokenStore: getTokenStore()
-                ),
+                viewModel: LoginViewModel(socialLoginService: getSocialLoginService()),
                 onSignInSucceeded: { isLoginViewPresented = false }
             )
         }

@@ -3,16 +3,25 @@ import UIKit
 
 /// 앱 런치 시 첫 뷰. 실질 라우팅은 `AppRootView`에서 수행한다.
 struct ContentView: View {
-    @State private var selectedTab: Tab = .explore
+    @State private var selectedTab: Tab
+    init(initialTab: Tab = .explore) {
+        _selectedTab = State(initialValue: initialTab)
+    }
+
     @State private var explorePath = NavigationPath()
     @State private var savedPath = NavigationPath()
-    @State private var myPath = NavigationPath()
+
+    @StateObject private var myProfileViewModel = MyProfileViewModel(
+        userService: getUserService(),
+        authService: getAuthService(),
+        socialLoginService: getSocialLoginService()
+    )
 
     private var isTabBarVisible: Bool {
         switch selectedTab {
         case .explore: explorePath.isEmpty
         case .saved: savedPath.isEmpty
-        case .my: myPath.isEmpty
+        case .my: !myProfileViewModel.isNavigatingToAccountManagement
         }
     }
 
@@ -34,11 +43,8 @@ struct ContentView: View {
                         }
                 }
             case .my:
-                NavigationStack(path: $myPath) {
-                    MyHomeView()
-                        .navigationDestination(for: DummyRoute.self) { route in
-                            DetailDummyView(route: route)
-                        }
+                NavigationStack {
+                    MyProfileView(viewModel: myProfileViewModel)
                 }
             }
         }

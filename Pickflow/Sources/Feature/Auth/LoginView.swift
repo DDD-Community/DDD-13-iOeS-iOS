@@ -184,63 +184,17 @@ struct LoginView: View {
 #Preview("LoginView") {
     LoginView(
         viewModel: LoginViewModel(
-            authService: PreviewAuthService(),
-            kakaoAuthProvider: PreviewKakaoAuthProvider(),
-            appleAuthProvider: PreviewAppleAuthProvider(),
-            tokenStore: PreviewTokenStore()
+            socialLoginService: PreviewSocialLoginService()
         ),
         isClosable: true
     )
 }
 
-/// Preview 렌더를 위한 인라인 Mock.
-/// - Note: 실제 실행 환경에서는 `AppContainer`가 주입한 `AuthService`가 사용된다.
-private final class PreviewAuthService: AuthServiceProtocol, @unchecked Sendable {
-    func signInWithKakao(kakaoAccessToken _: String) async throws -> KakaoSignInResponse {
+private final class PreviewSocialLoginService: SocialLoginServiceProtocol, @unchecked Sendable {
+    func signInWithKakao() async throws {
         try await Task.sleep(nanoseconds: 500_000_000)
-        return KakaoSignInResponse(
-            accessToken: "preview",
-            refreshToken: "preview",
-            isNewUser: false,
-            user: AuthUser(id: 1, nickname: "preview", socialProvider: .kakao)
-        )
     }
-
-    func signInWithApple(identityToken _: String, nonce _: String) async throws -> AppleSignInResponse {
+    func signInWithApple() async throws {
         try await Task.sleep(nanoseconds: 500_000_000)
-        return AppleSignInResponse(
-            accessToken: "preview",
-            refreshToken: "preview",
-            isNewUser: false,
-            user: AuthUser(id: 1, nickname: "preview", socialProvider: .apple)
-        )
     }
-
-    func refreshToken(_: String) async throws -> AuthToken {
-        AuthToken(accessToken: "preview", refreshToken: "preview")
-    }
-
-    func signOut() async throws {}
-
-    func currentAuthState() async -> AuthState { .signedOut }
-}
-
-private final class PreviewKakaoAuthProvider: KakaoAuthProviderProtocol, @unchecked Sendable {
-    func obtainAccessToken() async throws -> String {
-        "preview-kakao-access-token"
-    }
-}
-
-private final class PreviewAppleAuthProvider: AppleAuthProviderProtocol, @unchecked Sendable {
-    func obtainCredential() async throws -> AppleCredential {
-        AppleCredential(identityToken: "preview-apple-identity-token", nonce: "preview-apple-nonce")
-    }
-}
-
-private final class PreviewTokenStore: TokenStoreProtocol, @unchecked Sendable {
-    func save(_: AuthToken) throws {}
-
-    func load() throws -> AuthToken? { nil }
-
-    func clear() throws {}
 }
