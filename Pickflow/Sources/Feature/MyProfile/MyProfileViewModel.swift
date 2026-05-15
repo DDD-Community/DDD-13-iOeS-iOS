@@ -75,6 +75,12 @@ final class MyProfileViewModel: ObservableObject {
         state = .signedOut
     }
 
+    #if DEBUG
+    func applySignedInState(user: User) {
+        state = .signedIn(user)
+    }
+    #endif
+
     private func fetchUser() async {
         state = .loading
         do {

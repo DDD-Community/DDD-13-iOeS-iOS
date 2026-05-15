@@ -2,17 +2,31 @@ import SwiftUI
 
 struct MyProfileSignedInContent: View {
     let user: User
+    var savedSpotCount: Int = 0
+    var recordedSpotCount: Int = 0
     var onAccountManagementTap: () -> Void = {}
 
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 0) {
+                Text("마이페이지")
+                    .pretendard(.heading(.large))
+                    .foregroundStyle(.gray0)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 16)
+                    .padding(.bottom, 8)
+
                 profileHeader
+                    .padding(.horizontal, 20)
+                    .padding(.top, 24)
+                    .padding(.bottom, 20)
 
-                Divider()
-                    .background(.gray80)
+                statsCards
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 32)
 
-                menuList
+                menuSection
             }
         }
     }
@@ -24,29 +38,44 @@ struct MyProfileSignedInContent: View {
             profileImage
                 .frame(width: 68, height: 68)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text(user.nickname)
                     .pretendard(.heading(.small))
                     .foregroundStyle(.gray0)
 
-                Text(user.email)
-                    .pretendard(.body(.small()))
-                    .foregroundStyle(.gray40)
+                HStack(spacing: 4) {
+                    Circle()
+                        .fill(.sunsetOrange)
+                        .frame(width: 6, height: 6)
+
+                    Text(socialProviderLabel)
+                        .pretendard(.body(.small()))
+                        .foregroundStyle(.sunsetOrange)
+                }
             }
 
             Spacer()
 
-            Image(systemName: "chevron.right")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.gray40)
+            Button(action: onAccountManagementTap) {
+                Text("계정 관리")
+                    .pretendard(.body(.small(.bold)))
+                    .foregroundStyle(.gray20)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(.gray80)
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            }
+            .buttonStyle(.plain)
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 24)
-        .contentShape(Rectangle())
-        .onTapGesture(perform: onAccountManagementTap)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(user.nickname), 계정 관리")
-        .accessibilityAddTraits(.isButton)
+        .accessibilityLabel("\(user.nickname), \(socialProviderLabel)")
+    }
+
+    private var socialProviderLabel: String {
+        switch user.linkedSocialProvider {
+        case .kakao: return "카카오 계정 연결됨"
+        case .apple: return "Apple 계정 연결됨"
+        }
     }
 
     @ViewBuilder
@@ -55,10 +84,7 @@ struct MyProfileSignedInContent: View {
             AsyncImage(url: imageURL) { phase in
                 switch phase {
                 case let .success(image):
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .clipShape(Circle())
+                    image.resizable().aspectRatio(contentMode: .fill).clipShape(Circle())
                 case .failure, .empty:
                     defaultProfileImage
                 @unknown default:
@@ -80,21 +106,67 @@ struct MyProfileSignedInContent: View {
             )
     }
 
-    // MARK: - Menu List
+    // MARK: - Stats Cards
 
-    private var menuList: some View {
-        VStack(spacing: 0) {
-            menuCell(title: "계정 관리", action: onAccountManagementTap)
-            menuCell(title: "공지사항", action: {})
-            menuCell(title: "고객센터", action: {})
-            menuCell(title: "앱 정보", action: {})
+    private var statsCards: some View {
+        HStack(spacing: 12) {
+            statCard(title: "저장한 스팟", count: savedSpotCount)
+            statCard(title: "기록한 스팟", count: recordedSpotCount)
         }
-        .padding(.top, 8)
     }
 
-    private func menuCell(title: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+    private func statCard(title: String, count: Int) -> some View {
+        VStack(spacing: 8) {
+            Text(title)
+                .pretendard(.body(.small()))
+                .foregroundStyle(.gray0)
+
+            Text("\(count)")
+                .pretendard(.display(.medium))
+                .foregroundStyle(.gray0)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 16)
+        .background(.gray90)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+
+    // MARK: - Menu
+
+    private var menuSection: some View {
+        VStack(spacing: 0) {
+            iconMenuCell(icon: "questionmark.circle", title: "고객센터 및 1:1 문의", action: {})
+            iconMenuCell(icon: "bell", title: "알림 설정", action: {})
+            iconMenuCell(icon: "info.circle", title: "공지사항", action: {})
+
+            Divider()
+                .background(.gray80)
+                .padding(.vertical, 8)
+
+            plainMenuCell(title: "약관 및 정책", action: {})
+
             HStack {
+                Text("앱 버전")
+                    .pretendard(.body(.large()))
+                    .foregroundStyle(.gray0)
+                Spacer()
+                Text(appVersion)
+                    .pretendard(.body(.large()))
+                    .foregroundStyle(.gray40)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 18)
+        }
+    }
+
+    private func iconMenuCell(icon: String, title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.system(size: 18, weight: .regular))
+                    .foregroundStyle(.gray40)
+                    .frame(width: 24)
+
                 Text(title)
                     .pretendard(.body(.large()))
                     .foregroundStyle(.gray0)
@@ -111,11 +183,34 @@ struct MyProfileSignedInContent: View {
         }
         .buttonStyle(.plain)
     }
+
+    private func plainMenuCell(title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack {
+                Text(title)
+                    .pretendard(.body(.large()))
+                    .foregroundStyle(.gray0)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.gray50)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 18)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var appVersion: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+        return "v\(version)"
+    }
 }
 
 #Preview {
     ZStack {
         UIAsset.Colors.gray95.color.ignoresSafeArea()
-        MyProfileSignedInContent(user: .fixture())
+        MyProfileSignedInContent(user: .fixture(), savedSpotCount: 2, recordedSpotCount: 0)
     }
 }

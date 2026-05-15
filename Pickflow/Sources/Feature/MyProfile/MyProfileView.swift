@@ -51,6 +51,7 @@ struct MyProfileView: View {
                 .padding(.horizontal, 24)
             }
         }
+        .navigationBarTitleDisplayMode(.inline)
         .task {
             await viewModel.onAppear()
         }

@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 struct AccountManagementView: View {
     @StateObject var viewModel: AccountManagementViewModel
@@ -7,16 +8,21 @@ struct AccountManagementView: View {
     var onLoggedOut: () -> Void = {}
 
     @State private var isShowingWithdrawal = false
+    @State private var photosPickerItem: PhotosPickerItem?
 
     var body: some View {
         ZStack {
             UIAsset.Colors.gray95.color.ignoresSafeArea()
 
-            Group {
-                if let error = viewModel.loadError {
-                    errorBody(message: error)
-                } else {
-                    mainBody
+            VStack(spacing: 0) {
+                customHeader
+
+                Group {
+                    if let error = viewModel.loadError {
+                        errorBody(message: error)
+                    } else {
+                        mainBody
+                    }
                 }
             }
 
@@ -35,39 +41,7 @@ struct AccountManagementView: View {
                 )
             }
         }
-        .navigationBarBackButtonHidden()
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(.gray0)
-                }
-                .buttonStyle(.plain)
-            }
-
-            ToolbarItem(placement: .principal) {
-                Text("계정 관리")
-                    .pretendard(.heading(.small))
-                    .foregroundStyle(.gray0)
-            }
-
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    Task { await viewModel.saveProfile() }
-                } label: {
-                    Text("저장")
-                        .pretendard(.body(.medium(.bold)))
-                        .foregroundStyle(
-                            viewModel.isSaveEnabled ? UIAsset.Colors.sunsetOrange.color : UIAsset.Colors.gray50.color
-                        )
-                }
-                .buttonStyle(.plain)
-                .disabled(!viewModel.isSaveEnabled)
-            }
-        }
+        .navigationBarHidden(true)
         .task {
             await viewModel.onAppear()
         }
@@ -75,6 +49,13 @@ struct AccountManagementView: View {
             if case .done = newState {
                 onLoggedOut()
                 dismiss()
+            }
+        }
+        .onChange(of: photosPickerItem) { _, newItem in
+            Task {
+                if let data = try? await newItem?.loadTransferable(type: Data.self) {
+                    viewModel.setDraftProfileImage(data)
+                }
             }
         }
         .navigationDestination(isPresented: $isShowingWithdrawal) {
@@ -91,6 +72,45 @@ struct AccountManagementView: View {
         }
     }
 
+    // MARK: - Custom Header
+
+    private var customHeader: some View {
+        HStack {
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(.gray0)
+            }
+            .buttonStyle(.plain)
+
+            Spacer()
+
+            Text("계정 관리")
+                .pretendard(.heading(.small))
+                .foregroundStyle(.gray0)
+
+            Spacer()
+
+            Button {
+                Task { await viewModel.saveProfile() }
+            } label: {
+                Text("저장")
+                    .pretendard(.body(.medium(.bold)))
+                    .foregroundStyle(
+                        viewModel.isSaveEnabled
+                            ? UIAsset.Colors.sunsetOrange.color
+                            : UIAsset.Colors.gray50.color
+                    )
+            }
+            .buttonStyle(.plain)
+            .disabled(!viewModel.isSaveEnabled)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
+    }
+
     // MARK: - Main Body
 
     private var mainBody: some View {
@@ -101,43 +121,51 @@ struct AccountManagementView: View {
                 nicknameSection
 
                 socialSection
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 24)
 
-                Divider()
-                    .background(.gray80)
-
+            VStack(spacing: 0) {
                 accountActionsSection
             }
             .padding(.horizontal, 20)
             .padding(.top, 24)
             .padding(.bottom, 40)
         }
+        .scrollDismissesKeyboard(.immediately)
     }
 
     // MARK: - Profile Image
 
     private var profileImageSection: some View {
-        ZStack(alignment: .bottomTrailing) {
-            profileImageView
-                .frame(width: 96, height: 96)
+        PhotosPicker(selection: $photosPickerItem, matching: .images) {
+            ZStack(alignment: .bottomTrailing) {
+                profileImageView
+                    .frame(width: 96, height: 96)
 
-            Circle()
-                .fill(.gray80)
-                .frame(width: 32, height: 32)
-                .overlay(
-                    Image(systemName: "camera.fill")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(.gray0)
-                )
-                .offset(x: 2, y: 2)
+                Circle()
+                    .fill(.white)
+                    .frame(width: 32, height: 32)
+                    .overlay(
+                        Image(systemName: "camera.fill")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.black)
+                    )
+                    .offset(x: 2, y: 2)
+            }
         }
-        .accessibilityElement(children: .ignore)
+        .buttonStyle(.plain)
         .accessibilityLabel("프로필 사진 변경")
-        .accessibilityAddTraits(.isButton)
     }
 
     @ViewBuilder
     private var profileImageView: some View {
-        if let imageURL = viewModel.user?.profileImageURL {
+        if let data = viewModel.draftProfileImageData, let uiImage = UIImage(data: data) {
+            Image(uiImage: uiImage)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .clipShape(Circle())
+        } else if let imageURL = viewModel.user?.profileImageURL {
             AsyncImage(url: imageURL) { phase in
                 switch phase {
                 case let .success(image):
@@ -195,16 +223,13 @@ struct AccountManagementView: View {
             HStack {
                 Text(socialProviderLabel)
                     .pretendard(.body(.medium()))
-                    .foregroundStyle(.gray20)
+                    .foregroundStyle(.gray50)
 
                 Spacer()
-
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.sunsetOrange)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
-            .background(.gray80)
+            .background(.gray90)
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
     }
@@ -226,8 +251,8 @@ struct AccountManagementView: View {
             } label: {
                 Text("로그아웃")
                     .pretendard(.body(.medium()))
-                    .foregroundStyle(.gray40)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .foregroundStyle(.gray0)
+                    .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
             }
             .buttonStyle(.plain)
@@ -238,7 +263,7 @@ struct AccountManagementView: View {
                 Text("회원탈퇴")
                     .pretendard(.body(.medium()))
                     .foregroundStyle(Color.red)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
             }
             .buttonStyle(.plain)

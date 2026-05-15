@@ -31,6 +31,8 @@ struct PickflowApp: App {
         #if DEBUG
         if CommandLine.arguments.contains("-AnalyticsSample") {
             AnalyticsSampleView()
+        } else if CommandLine.arguments.contains("-debugMyProfileSignedIn") {
+            MyProfileSignedInDebugView()
         } else if CommandLine.arguments.contains("-debugMyProfile") {
             MyProfileDebugView()
         } else {

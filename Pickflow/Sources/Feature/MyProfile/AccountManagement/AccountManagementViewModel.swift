@@ -20,13 +20,19 @@ final class AccountManagementViewModel: ObservableObject {
     @Published private(set) var user: User?
     @Published private(set) var loadError: String?
     @Published var nicknameDraft: String = ""
+    @Published var draftProfileImageData: Data?
     @Published private(set) var saveState: SaveState = .idle
     @Published private(set) var logoutState: LogoutState = .idle
 
     var isSaveEnabled: Bool {
         guard let user else { return false }
         let trimmed = nicknameDraft.trimmingCharacters(in: .whitespaces)
-        return !trimmed.isEmpty && trimmed != user.nickname
+        let nicknameChanged = !trimmed.isEmpty && trimmed != user.nickname
+        return nicknameChanged || draftProfileImageData != nil
+    }
+
+    func setDraftProfileImage(_ data: Data?) {
+        draftProfileImageData = data
     }
 
     let userService: UserServiceProtocol
