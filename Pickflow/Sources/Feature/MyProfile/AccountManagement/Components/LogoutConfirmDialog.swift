@@ -30,9 +30,9 @@ struct LogoutConfirmDialog: View {
                     Button(action: onCancel) {
                         Text("취소")
                             .pretendard(.body(.medium(.bold)))
-                            .foregroundStyle(.gray30)
+                            .foregroundStyle(.gray80)
                             .frame(maxWidth: .infinity, minHeight: 48)
-                            .background(.gray80)
+                            .background(.gray0)
                             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                     }
                     .buttonStyle(.plain)

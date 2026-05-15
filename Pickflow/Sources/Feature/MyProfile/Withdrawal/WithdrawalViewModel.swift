@@ -45,11 +45,10 @@ final class WithdrawalViewModel: ObservableObject {
     }
 
     func submitWithdrawal() async {
-        guard canSubmit, let reason = selectedReason else { return }
+        guard canSubmit else { return }
         step = .processing
-        let feedback = reason == .other ? otherFeedback.trimmingCharacters(in: .whitespaces) : nil
         do {
-            try await userService.deleteAccount(reason: reason.rawValue, otherFeedback: feedback)
+            try await userService.deleteAccount()
             try await authService.signOut()
             step = .done
         } catch {

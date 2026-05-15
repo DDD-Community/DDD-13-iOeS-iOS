@@ -28,7 +28,7 @@ struct MyProfileSignedInDebugView: View {
 private final class MockUserService: UserServiceProtocol, @unchecked Sendable {
     func fetchCurrentUser() async throws -> User { .fixture() }
     func updateProfile(nickname: String?, profileImageData: Data?) async throws -> User { .fixture(nickname: nickname ?? "capybara123") }
-    func deleteAccount(reason: String, otherFeedback: String?) async throws {}
+    func deleteAccount() async throws {}
 }
 
 private final class MockAuthServiceForProfile: AuthServiceProtocol, @unchecked Sendable {

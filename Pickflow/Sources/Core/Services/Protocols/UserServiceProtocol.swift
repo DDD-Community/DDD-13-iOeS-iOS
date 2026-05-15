@@ -3,7 +3,7 @@ import Foundation
 protocol UserServiceProtocol: Sendable {
     func fetchCurrentUser() async throws -> User
     func updateProfile(nickname: String?, profileImageData: Data?) async throws -> User
-    func deleteAccount(reason: String, otherFeedback: String?) async throws
+    func deleteAccount() async throws
 }
 
 struct User: Codable, Equatable, Sendable {

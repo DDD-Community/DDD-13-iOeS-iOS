@@ -8,7 +8,7 @@ final class MockUserService: UserServiceProtocol, @unchecked Sendable {
 
     private(set) var fetchCallCount = 0
     private(set) var updateCalls: [(nickname: String?, profileImageData: Data?)] = []
-    private(set) var deleteCalls: [(reason: String, otherFeedback: String?)] = []
+    private(set) var deleteCallCount: Int = 0
 
     func fetchCurrentUser() async throws -> User {
         fetchCallCount += 1
@@ -20,8 +20,8 @@ final class MockUserService: UserServiceProtocol, @unchecked Sendable {
         return try updateResult.get()
     }
 
-    func deleteAccount(reason: String, otherFeedback: String?) async throws {
-        deleteCalls.append((reason, otherFeedback))
+    func deleteAccount() async throws {
+        deleteCallCount += 1
         if let deleteError { throw deleteError }
     }
 }

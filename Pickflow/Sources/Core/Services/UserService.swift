@@ -23,9 +23,7 @@ final class UserService: UserServiceProtocol, Sendable {
         return try await fetchCurrentUser()
     }
 
-    func deleteAccount(reason: String, otherFeedback: String?) async throws {
-        let _: EmptyResponse = try await networkManager.requestJSON(
-            endpoint: UserEndpoint.deleteAccount(reason: reason, otherFeedback: otherFeedback)
-        )
+    func deleteAccount() async throws {
+        let _: EmptyResponse = try await networkManager.request(endpoint: UserEndpoint.deleteAccount)
     }
 }

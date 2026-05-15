@@ -3,7 +3,7 @@ import Foundation
 
 enum UserEndpoint: APIEndpoint {
     case me
-    case deleteAccount(reason: String, otherFeedback: String?)
+    case deleteAccount
     case updateProfile(nickname: String?)
     case savedSpots(page: Int?, latitude: Double?, longitude: Double?)
 
@@ -31,10 +31,8 @@ enum UserEndpoint: APIEndpoint {
         switch self {
         case .me:
             return nil
-        case let .deleteAccount(reason, otherFeedback):
-            var p: Parameters = ["reason": reason]
-            if let otherFeedback { p["otherFeedback"] = otherFeedback }
-            return p
+        case .deleteAccount:
+            return nil
         case let .updateProfile(nickname):
             var p: Parameters = [:]
             if let nickname { p["nickname"] = nickname }

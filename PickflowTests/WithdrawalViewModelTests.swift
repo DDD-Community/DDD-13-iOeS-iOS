@@ -97,7 +97,7 @@ final class WithdrawalViewModelTests: XCTestCase {
 
         await viewModel.submitWithdrawal()
 
-        XCTAssertTrue(userService.deleteCalls.isEmpty)
+        XCTAssertEqual(userService.deleteCallCount, 0)
         XCTAssertEqual(viewModel.step, .input)
     }
 
@@ -108,9 +108,7 @@ final class WithdrawalViewModelTests: XCTestCase {
         await viewModel.submitWithdrawal()
 
         XCTAssertEqual(viewModel.step, .done)
-        XCTAssertEqual(userService.deleteCalls.count, 1)
-        XCTAssertEqual(userService.deleteCalls[0].reason, WithdrawalReason.rarelyUsed.rawValue)
-        XCTAssertNil(userService.deleteCalls[0].otherFeedback)
+        XCTAssertEqual(userService.deleteCallCount, 1)
         XCTAssertEqual(authService.signOutCallCount, 1)
     }
 
@@ -122,7 +120,7 @@ final class WithdrawalViewModelTests: XCTestCase {
         await viewModel.submitWithdrawal()
 
         XCTAssertEqual(viewModel.step, .done)
-        XCTAssertEqual(userService.deleteCalls[0].otherFeedback, "개선 의견이에요")
+        XCTAssertEqual(userService.deleteCallCount, 1)
     }
 
     func test_submitWithdrawal_API실패_step이failed로전환된다() async throws {
