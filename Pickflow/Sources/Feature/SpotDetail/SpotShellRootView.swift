@@ -8,20 +8,10 @@ struct SpotShellRootView: View {
         Group {
             switch viewModel.presentationPhase {
             case .sheetMedium:
-                if case let .loaded(spot) = viewModel.state {
-                    SheetChromeView {
-                        SpotDetailSheetContentView(
-                            spot: spot,
-                            isBookmarked: viewModel.isBookmarked,
-                            onClose: onDismiss,
-                            onRoute: viewModel.openNaverMapsRoute,
-                            onBookmark: { Task { await viewModel.toggleBookmark() } }
-                        )
-                    }
-                    .transition(.opacity)
-                } else {
-                    SheetChromeView { EmptyView() }
+                SheetChromeView {
+                    sheetMediumContent
                 }
+                .transition(.opacity)
             case .sheetLarge, .fullCover:
                 SpotDetailView(viewModel: viewModel)
                     .transition(.opacity)
@@ -33,6 +23,67 @@ struct SpotShellRootView: View {
                 await viewModel.onAppear()
             }
         }
+        .onAppear {
+            // task가 발화 안 하는 hosting 환경 대비 안전망
+            if viewModel.state == .idle {
+                Task { await viewModel.onAppear() }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var sheetMediumContent: some View {
+        switch viewModel.state {
+        case .idle, .loading:
+            loadingPlaceholder
+        case let .failed(message):
+            errorPlaceholder(message: message)
+        case let .loaded(spot):
+            SpotDetailSheetContentView(
+                spot: spot,
+                isBookmarked: viewModel.isBookmarked,
+                onClose: onDismiss,
+                onRoute: viewModel.openNaverMapsRoute,
+                onBookmark: { Task { await viewModel.toggleBookmark() } }
+            )
+        }
+    }
+
+    private var loadingPlaceholder: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+                .tint(UIAsset.Colors.gray0.swiftUIColor)
+            Text("정보를 불러오는 중…")
+                .pretendard(.body(.medium(.regular)))
+                .foregroundStyle(.gray30)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 60)
+        .padding(.horizontal, 20)
+    }
+
+    private func errorPlaceholder(message: String) -> some View {
+        VStack(spacing: 12) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 32))
+                .foregroundStyle(.gray30)
+            Text("정보를 불러오지 못했어요")
+                .pretendard(.body(.large(.bold)))
+                .foregroundStyle(.gray5)
+            Text(message)
+                .pretendard(.body(.small(.regular)))
+                .foregroundStyle(.gray30)
+                .multilineTextAlignment(.center)
+            Button("다시 시도") {
+                Task { await viewModel.onAppear() }
+            }
+            .pretendard(.body(.medium(.bold)))
+            .foregroundStyle(.sunsetOrange)
+            .padding(.top, 4)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
+        .padding(.horizontal, 20)
     }
 }
 

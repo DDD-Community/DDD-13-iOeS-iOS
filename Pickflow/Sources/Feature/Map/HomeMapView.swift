@@ -21,6 +21,10 @@ struct HomeMapView: View {
     @State private var mapListMode: MapListMode = .map
     @State private var isAddPlacePresented = false
     @StateObject private var clustering = MapClusteringViewModel(clusteringService: getClusteringService())
+    #if DEBUG
+    @State private var isSpotDetailSheetPresented = false
+    @State private var selectedSpotVM: SpotDetailViewModel?
+    #endif
 
     var body: some View {
         NavigationStack {
@@ -34,6 +38,13 @@ struct HomeMapView: View {
                     },
                     onSpotTap: { spotId in
                         clustering.spotMarkerTapped(spotId)
+                        #if DEBUG
+                        let isMine = clustering.mySpots.contains { $0.id == spotId }
+                        selectedSpotVM = isMine
+                            ? SpotDetailDebugFactory.makeMyViewModel(spotId: spotId)
+                            : SpotDetailDebugFactory.makeViewModel(spotId: spotId)
+                        isSpotDetailSheetPresented = true
+                        #endif
                     },
                     onMapBackgroundTap: {
                         clustering.mapBackgroundTapped()
@@ -72,6 +83,20 @@ struct HomeMapView: View {
             .navigationDestination(isPresented: $isAddPlacePresented) {
                 AddPlaceDummyView()
             }
+            #if DEBUG
+            .spotBottomSheet(isPresented: $isSpotDetailSheetPresented, viewModel: selectedSpotVM) {
+                if let vm = selectedSpotVM {
+                    SpotShellRootView(viewModel: vm) {
+                        isSpotDetailSheetPresented = false
+                    }
+                }
+            }
+            .onChange(of: isSpotDetailSheetPresented) { _, isPresented in
+                if !isPresented {
+                    clustering.mapBackgroundTapped()
+                }
+            }
+            #endif
         }
     }
 
