@@ -65,8 +65,17 @@ private struct SpotBottomSheetPresenter<SheetContent: View>: UIViewControllerRep
                 vc.panCoordinator.onBegan = { [weak vc] in
                     vc?.spotPresentationController?.beginInteractive()
                 }
-                vc.panCoordinator.onTranslation = { [weak vc] dy in
-                    vc?.spotPresentationController?.applyInteractiveOffset(dy: dy)
+                vc.panCoordinator.onTranslation = { [weak vc, weak viewModel] dy in
+                    guard let pc = vc?.spotPresentationController else { return }
+                    pc.applyInteractiveOffset(dy: dy)
+                    // 라이브 phase: 손가락 위치가 임계선을 넘는 순간 chrome도 즉시 스왑.
+                    // settle 시점의 cross-fade는 ShellRootView .animation modifier가 처리.
+                    guard let vm = viewModel else { return }
+                    switch pc.currentPhaseFromFrame() {
+                    case .sheetMedium: vm.updateDetent(.medium)
+                    case .sheetLarge:  vm.updateDetent(.large)
+                    case .fullCover:   vm.promoteToFullCover()
+                    }
                 }
                 vc.panCoordinator.onEnded = { [weak vc, weak self] dy, velocity in
                     guard let pc = vc?.spotPresentationController else { return }

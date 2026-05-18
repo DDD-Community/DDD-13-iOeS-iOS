@@ -92,6 +92,15 @@ final class SpotPresentationController: UIPresentationController {
 
     func beginInteractive() { isInteracting = true }
 
+    // 현재 frame 위치 기반으로 가장 가까운 phase 추정 (드래그 중 chrome 라이브 스왑용).
+    func currentPhaseFromFrame() -> SpotPresentationPhase {
+        guard let container = containerView, let presented = presentedView else { return phase }
+        let y = presented.frame.origin.y
+        if y < container.bounds.height * 0.08 { return .fullCover }
+        if y < container.bounds.height * 0.30 { return .sheetLarge }
+        return .sheetMedium
+    }
+
     // 손가락에 맞춰 frame/cornerRadius/grab handle을 실시간 보간.
     func applyInteractiveOffset(dy: CGFloat) {
         guard let container = containerView, let presented = presentedView else { return }
