@@ -11,18 +11,14 @@ struct AppRootView: View {
 
     init(
         authService: AuthServiceProtocol,
-        kakaoAuthProvider: KakaoAuthProviderProtocol,
-        appleAuthProvider: AppleAuthProviderProtocol,
-        tokenStore: TokenStoreProtocol,
+        socialLoginService: SocialLoginServiceProtocol,
         locationService: LocationServiceProtocol,
         onboardingCompletionStore: OnboardingCompletionStore
     ) {
         _viewModel = StateObject(
             wrappedValue: AppRootViewModel(
                 authService: authService,
-                kakaoAuthProvider: kakaoAuthProvider,
-                appleAuthProvider: appleAuthProvider,
-                tokenStore: tokenStore,
+                socialLoginService: socialLoginService,
                 locationService: locationService,
                 onboardingCompletionStore: onboardingCompletionStore
             )
@@ -45,10 +41,7 @@ struct AppRootView: View {
             case .signedOut:
                 LoginView(
                     viewModel: LoginViewModel(
-                        authService: viewModel.authService,
-                        kakaoAuthProvider: viewModel.kakaoAuthProvider,
-                        appleAuthProvider: viewModel.appleAuthProvider,
-                        tokenStore: viewModel.tokenStore
+                        socialLoginService: viewModel.socialLoginService
                     ),
                     onSignInSucceeded: viewModel.didCompleteSignIn,
                     isClosable: false
@@ -83,9 +76,7 @@ final class AppRootViewModel: ObservableObject {
     /// 하위 ViewModel(LoginViewModel, OnboardingViewModel 등) 생성 시 주입용으로 노출.
     /// AppContainer에서 1회 resolve한 인스턴스를 재사용한다.
     let authService: AuthServiceProtocol
-    let kakaoAuthProvider: KakaoAuthProviderProtocol
-    let appleAuthProvider: AppleAuthProviderProtocol
-    let tokenStore: TokenStoreProtocol
+    let socialLoginService: SocialLoginServiceProtocol
     let locationService: LocationServiceProtocol
     let onboardingCompletionStore: OnboardingCompletionStore
 
@@ -93,16 +84,12 @@ final class AppRootViewModel: ObservableObject {
 
     init(
         authService: AuthServiceProtocol,
-        kakaoAuthProvider: KakaoAuthProviderProtocol,
-        appleAuthProvider: AppleAuthProviderProtocol,
-        tokenStore: TokenStoreProtocol,
+        socialLoginService: SocialLoginServiceProtocol,
         locationService: LocationServiceProtocol,
         onboardingCompletionStore: OnboardingCompletionStore
     ) {
         self.authService = authService
-        self.kakaoAuthProvider = kakaoAuthProvider
-        self.appleAuthProvider = appleAuthProvider
-        self.tokenStore = tokenStore
+        self.socialLoginService = socialLoginService
         self.locationService = locationService
         self.onboardingCompletionStore = onboardingCompletionStore
     }

@@ -8,7 +8,7 @@ struct PickflowApp: App {
     private let container = AppContainer.shared
 
     init() {
-        FirebaseApp.configure()
+        configureFirebase()
         DesignSystemFontRegister.registerAllCustomFonts()
         initializeKakaoSDK()
     }
@@ -30,6 +30,11 @@ struct PickflowApp: App {
                 }
             }
         }
+    }
+
+    private func configureFirebase() {
+        guard ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else { return }
+        FirebaseApp.configure()
     }
 
     private func initializeKakaoSDK() {

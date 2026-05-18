@@ -35,6 +35,14 @@ final class AppContainer {
         container.register(LocationServiceProtocol.self, scope: .container) { LocationService() }
         container.register(ExternalAppLauncherProtocol.self, scope: .container) { ExternalAppLauncher() }
         container.register(ShareSheetPresenterProtocol.self, scope: .container) { ShareSheetPresenter() }
+        container.register(SocialLoginServiceProtocol.self, scope: .container) { [container] in
+            SocialLoginService(
+                authService: container.resolve(AuthServiceProtocol.self)!,
+                kakaoAuthProvider: container.resolve(KakaoAuthProviderProtocol.self)!,
+                appleAuthProvider: container.resolve(AppleAuthProviderProtocol.self)!,
+                tokenStore: container.resolve(TokenStoreProtocol.self)!
+            )
+        }
         container.register(AnalyticsLoggerProtocol.self, scope: .container) { FirebaseAnalyticsLogger() }
         container.register(OnboardingCompletionStore.self, scope: .container) { UserDefaultsOnboardingCompletionStore() }
     }
