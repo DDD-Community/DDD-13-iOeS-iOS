@@ -16,7 +16,6 @@ final class MockSpotService: SpotServiceProtocol, @unchecked Sendable {
     private(set) var registerDrafts: [SpotRegistrationDraft] = []
     private(set) var reportedSpotIds: [Int64] = []
     private(set) var reportedTypes: [SpotReportType] = []
-    private(set) var reportedContents: [String] = []
 
     func fetchSpotDetail(id: Int64, latitude: Double?, longitude: Double?) async throws -> SpotDetail {
         requests.append((id, latitude, longitude))
@@ -28,10 +27,9 @@ final class MockSpotService: SpotServiceProtocol, @unchecked Sendable {
         return try registerSpotResult.get()
     }
 
-    func reportSpot(id: Int64, type: SpotReportType, content: String) async throws {
+    func reportSpot(id: Int64, type: SpotReportType) async throws {
         reportedSpotIds.append(id)
         reportedTypes.append(type)
-        reportedContents.append(content)
         if let reportError { throw reportError }
     }
 }
@@ -102,14 +100,6 @@ final class MockExternalAppLauncher: ExternalAppLauncherProtocol {
             openedURLs.append(URL(string: "https://apps.apple.com/kr/app/id311867728")!)
         }
     }
-}
-
-final class MockTokenStore: TokenStoreProtocol, @unchecked Sendable {
-    var storedToken: AuthToken?
-
-    func save(_ token: AuthToken) throws { storedToken = token }
-    func load() throws -> AuthToken? { storedToken }
-    func clear() throws { storedToken = nil }
 }
 
 @MainActor

@@ -217,4 +217,38 @@ final class SpotDetailViewModelTests: XCTestCase {
         }
         for _ in 0..<10 { await Task.yield() }
     }
+
+    // MARK: - presentationPhase (KAN-99)
+
+    func test_초기상태_presentationPhase는sheetMedium이다() {
+        XCTAssertEqual(viewModel.presentationPhase, .sheetMedium)
+    }
+
+    func test_promoteToFullCover_호출시_phase가fullCover로전환된다() {
+        viewModel.promoteToFullCover()
+
+        XCTAssertEqual(viewModel.presentationPhase, .fullCover)
+    }
+
+    func test_demoteToSheet_fullCover에서호출시_phase가sheetLarge로전환된다() {
+        viewModel.promoteToFullCover()
+
+        viewModel.demoteToSheet()
+
+        XCTAssertEqual(viewModel.presentationPhase, .sheetLarge)
+    }
+
+    func test_updateDetent_medium지정시_phase가sheetMedium으로전환된다() {
+        viewModel.promoteToFullCover()
+
+        viewModel.updateDetent(.medium)
+
+        XCTAssertEqual(viewModel.presentationPhase, .sheetMedium)
+    }
+
+    func test_updateDetent_large지정시_phase가sheetLarge로전환된다() {
+        viewModel.updateDetent(.large)
+
+        XCTAssertEqual(viewModel.presentationPhase, .sheetLarge)
+    }
 }
