@@ -41,7 +41,7 @@ struct AuthUser: Decodable, Sendable {
 }
 
 /// 소셜 로그인 제공자.
-enum SocialProvider: String, Decodable, Sendable {
+enum SocialProvider: String, Codable, Sendable {
     case kakao
     case apple
 }

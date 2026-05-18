@@ -8,7 +8,7 @@ struct PickflowApp: App {
     private let container = AppContainer.shared
 
     init() {
-        FirebaseApp.configure()
+        configureFirebase()
         DesignSystemFontRegister.registerAllCustomFonts()
         initializeKakaoSDK()
     }
@@ -31,6 +31,10 @@ struct PickflowApp: App {
         #if DEBUG
         if CommandLine.arguments.contains("-AnalyticsSample") {
             AnalyticsSampleView()
+        } else if CommandLine.arguments.contains("-debugMyProfileSignedIn") {
+            MyProfileSignedInDebugView()
+        } else if CommandLine.arguments.contains("-debugMyProfile") {
+            MyProfileDebugView()
         } else {
             defaultRootView
         }
@@ -42,12 +46,15 @@ struct PickflowApp: App {
     private var defaultRootView: some View {
         AppRootView(
             authService: container.container.resolve(AuthServiceProtocol.self)!,
-            kakaoAuthProvider: container.container.resolve(KakaoAuthProviderProtocol.self)!,
-            appleAuthProvider: container.container.resolve(AppleAuthProviderProtocol.self)!,
-            tokenStore: container.container.resolve(TokenStoreProtocol.self)!,
+            socialLoginService: container.container.resolve(SocialLoginServiceProtocol.self)!,
             locationService: container.container.resolve(LocationServiceProtocol.self)!,
             onboardingCompletionStore: container.container.resolve(OnboardingCompletionStore.self)!
         )
+    }
+
+    private func configureFirebase() {
+        guard ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else { return }
+        FirebaseApp.configure()
     }
 
     private func initializeKakaoSDK() {

@@ -8,7 +8,22 @@ final class UserService: UserServiceProtocol, Sendable {
     }
 
     func fetchCurrentUser() async throws -> User {
-        // TODO: Implement with actual endpoint
-        fatalError("Not implemented")
+        return try await networkManager.requestJSON(endpoint: UserEndpoint.me)
+    }
+
+    func updateProfile(nickname: String?, profileImageData: Data?) async throws -> User {
+        let endpoint = UserEndpoint.updateProfile(nickname: nickname)
+        if let imageData = profileImageData {
+            let _: EmptyResponse = try await networkManager.upload(endpoint: endpoint) { formData in
+                formData.append(imageData, withName: "profileImage", fileName: "profile.jpg", mimeType: "image/jpeg")
+            }
+        } else {
+            let _: EmptyResponse = try await networkManager.request(endpoint: endpoint)
+        }
+        return try await fetchCurrentUser()
+    }
+
+    func deleteAccount() async throws {
+        let _: EmptyResponse = try await networkManager.request(endpoint: UserEndpoint.deleteAccount)
     }
 }

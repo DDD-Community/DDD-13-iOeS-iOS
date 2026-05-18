@@ -23,9 +23,11 @@ struct OnboardingView: View {
 
     init(
         viewModel: OnboardingViewModel,
+        isCarouselAnimating: Bool = true,
         onOnboardingFinished: @escaping () -> Void = {}
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
+        self.isCarouselAnimating = isCarouselAnimating
         self.onOnboardingFinished = onOnboardingFinished
     }
 
