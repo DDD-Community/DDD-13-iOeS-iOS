@@ -151,7 +151,7 @@ struct WithdrawalView: View {
 
             if viewModel.selectedReason == .other {
                 TextField(
-                    "의견을 자유롭게 남겨주세요",
+                    "사용하시면서 아쉬웠던 점을 알려주세요",
                     text: $viewModel.otherFeedback,
                     axis: .vertical
                 )
@@ -162,6 +162,11 @@ struct WithdrawalView: View {
                 .background(.gray80)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 .lineLimit(3...)
+                .onChange(of: viewModel.otherFeedback) { _, newValue in
+                    if newValue.count > 200 {
+                        viewModel.otherFeedback = String(newValue.prefix(200))
+                    }
+                }
             }
         }
     }

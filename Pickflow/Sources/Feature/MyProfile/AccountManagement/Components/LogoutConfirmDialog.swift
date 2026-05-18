@@ -17,8 +17,8 @@ struct LogoutConfirmDialog: View {
                         .foregroundStyle(.gray0)
                         .multilineTextAlignment(.center)
 
-                    Text("로그아웃해도 내 정보는 그대로 유지돼요.\n다시 로그인하면 언제든 이용할 수 있어요.")
-                        .pretendard(.body(.small()))
+                    Text("로그아웃해도 저장하신 스팟 기록은\nSNS 계정에 안전하게 보관됩니다.")
+                        .pretendard(.body(.medium()))
                         .foregroundStyle(.gray30)
                         .multilineTextAlignment(.center)
                 }
