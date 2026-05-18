@@ -7,11 +7,18 @@ struct ContentView: View {
     @State private var explorePath = NavigationPath()
     @State private var savedPath = NavigationPath()
     @StateObject private var myProfileViewModel: MyProfileViewModel
+    @StateObject private var archiveViewModel: ArchiveViewModel
 
     init(initialTab: Tab = .explore, myProfileViewModel: MyProfileViewModel? = nil) {
         _selectedTab = State(initialValue: initialTab)
         _myProfileViewModel = StateObject(wrappedValue: myProfileViewModel ?? MyProfileViewModel(
             userService: getUserService(),
+            authService: getAuthService(),
+            socialLoginService: getSocialLoginService()
+        ))
+        _archiveViewModel = StateObject(wrappedValue: ArchiveViewModel(
+            archiveService: getArchiveService(),
+            bookmarkService: getBookmarkService(),
             authService: getAuthService(),
             socialLoginService: getSocialLoginService()
         ))
@@ -37,10 +44,11 @@ struct ContentView: View {
                 }
             case .saved:
                 NavigationStack(path: $savedPath) {
-                    SavedHomeView()
-                        .navigationDestination(for: DummyRoute.self) { route in
-                            DetailDummyView(route: route)
-                        }
+                    ArchiveView(
+                        viewModel: archiveViewModel,
+                        onExploreTap: { selectedTab = .explore }
+                    )
+                    .navigationBarHidden(true)
                 }
             case .my:
                 NavigationStack {
