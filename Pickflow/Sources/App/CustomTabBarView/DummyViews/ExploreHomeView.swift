@@ -51,7 +51,9 @@ struct ExploreHomeView: View {
                 .background(.gray90)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .spotBottomSheet(isPresented: $isSpotDetailSheetPresented, viewModel: spotDetailSheetVM) {
-                    SpotShellRootView(viewModel: spotDetailSheetVM)
+                    SpotShellRootView(viewModel: spotDetailSheetVM) {
+                        isSpotDetailSheetPresented = false
+                    }
                 }
 
                 Button("🧪 MY 스팟 마이페이지 열기 (KAN-99)") {
@@ -64,7 +66,9 @@ struct ExploreHomeView: View {
                 .background(.gray90)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .spotBottomSheet(isPresented: $isMySpotDetailSheetPresented, viewModel: mySpotDetailSheetVM) {
-                    SpotShellRootView(viewModel: mySpotDetailSheetVM)
+                    SpotShellRootView(viewModel: mySpotDetailSheetVM) {
+                        isMySpotDetailSheetPresented = false
+                    }
                 }
                 #endif
 

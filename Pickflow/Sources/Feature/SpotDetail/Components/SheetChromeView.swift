@@ -1,28 +1,14 @@
 import SwiftUI
 
+// grab handle은 SpotPresentationController가 UIKit 측에서 그린다.
+// SwiftUI 측에서는 콘텐츠 padding + 시트 배경/코너만 책임진다.
 struct SheetChromeView<Content: View>: View {
     @ViewBuilder var content: () -> Content
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Spacer()
-                Capsule()
-                    .fill(.sheetGrabHandle)
-                    .frame(width: 45, height: 3)
-                Spacer()
-            }
-            .padding(.vertical, 8)
-            content()
-                .padding(.top, 16)
-        }
-        .background(.gray95)
-        .clipShape(.rect(topLeadingRadius: 20, topTrailingRadius: 20))
-    }
-}
-
-private extension ShapeStyle where Self == Color {
-    static var sheetGrabHandle: Color {
-        Color(red: 0xD9 / 255, green: 0xD9 / 255, blue: 0xD9 / 255)
+        content()
+            .padding(.top, 24)
+            .background(.gray95)
+            .clipShape(.rect(topLeadingRadius: 20, topTrailingRadius: 20))
     }
 }

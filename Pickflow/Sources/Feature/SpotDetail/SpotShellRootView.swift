@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SpotShellRootView: View {
     @ObservedObject var viewModel: SpotDetailViewModel
+    var onDismiss: () -> Void = {}
 
     var body: some View {
         Group {
@@ -9,7 +10,13 @@ struct SpotShellRootView: View {
             case .sheetMedium:
                 if case let .loaded(spot) = viewModel.state {
                     SheetChromeView {
-                        SpotDetailSheetContentView(spot: spot, isBookmarked: viewModel.isBookmarked)
+                        SpotDetailSheetContentView(
+                            spot: spot,
+                            isBookmarked: viewModel.isBookmarked,
+                            onClose: onDismiss,
+                            onRoute: viewModel.openNaverMapsRoute,
+                            onBookmark: { Task { await viewModel.toggleBookmark() } }
+                        )
                     }
                     .transition(.opacity)
                 } else {

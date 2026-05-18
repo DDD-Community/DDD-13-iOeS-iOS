@@ -3,11 +3,24 @@ import SwiftUI
 struct SpotDetailSheetContentView: View {
     let spot: SpotDetail
     let isBookmarked: Bool
+    let onClose: () -> Void
+    let onRoute: () -> Void
+    let onBookmark: () -> Void
     @State private var isAddressExpanded: Bool
 
-    init(spot: SpotDetail, isBookmarked: Bool, initialAddressExpanded: Bool = false) {
+    init(
+        spot: SpotDetail,
+        isBookmarked: Bool,
+        initialAddressExpanded: Bool = false,
+        onClose: @escaping () -> Void = {},
+        onRoute: @escaping () -> Void = {},
+        onBookmark: @escaping () -> Void = {}
+    ) {
         self.spot = spot
         self.isBookmarked = isBookmarked
+        self.onClose = onClose
+        self.onRoute = onRoute
+        self.onBookmark = onBookmark
         self._isAddressExpanded = State(initialValue: initialAddressExpanded)
     }
 
@@ -19,15 +32,19 @@ struct SpotDetailSheetContentView: View {
     private func content(spot: SpotDetail) -> some View {
         VStack(alignment: .leading, spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
-              HStack {
+              HStack(spacing: 8) {
                 Text(spot.name)
                     .pretendard(.heading(.large))
                     .foregroundStyle(.gray5)
+                if spot.isMine {
+                    mySpotBadge
+                }
                 Spacer(minLength: 0)
-                
-                Button(action: {}) {
+
+                Button(action: onClose) {
                   Circle()
                     .fill(.white.opacity(0.15))
+                    .frame(width: 32, height: 32)
                     .overlay(
                       Image(systemName: "xmark")
                         .imageScale(.small)
@@ -49,10 +66,15 @@ struct SpotDetailSheetContentView: View {
               }
             })
             
-            actionRow(isBookmarked: isBookmarked)
+            SpotBottomSheetActionButtons(
+                isMine: spot.isMine,
+                isBookmarked: isBookmarked,
+                onRoute: onRoute,
+                onBookmark: onBookmark
+            )
         }
         .padding(.horizontal, 20)
-        .padding(.bottom, 60)
+        .padding(.bottom, 24)
     }
 
     @ViewBuilder
@@ -152,46 +174,17 @@ struct SpotDetailSheetContentView: View {
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
-    @ViewBuilder
-    private func actionRow(isBookmarked: Bool) -> some View {
-        HStack(spacing: 12) {
-            Button {} label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "location.north.fill")
-                        .resizable()
-                        .rotationEffect(Angle.degrees(45))
-                        .scaledToFit()
-                        .frame(width: 20, height: 20)
-                        .foregroundStyle(UIAsset.Colors.gray0.swiftUIColor)
-                    Text("길 안내 받기")
-                        .pretendard(.body(.large(.bold)))
-                        .foregroundStyle(UIAsset.Colors.gray0.swiftUIColor)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                }
-                .frame(maxWidth: .infinity)
-                .frame(height: 52)
-            }
-            .background(UIAsset.Colors.sunsetOrange.swiftUIColor)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
 
-            Button {} label: {
-                HStack(spacing: 8) {
-                  Image(isBookmarked ? .icBookmarkFilled : .icBookmarkBorder)
-                        .scaledToFit()
-                        .foregroundStyle(.gray80)
-                    Text(isBookmarked ? "저장됨" : "저장하기")
-                        .pretendard(.body(.large(.bold)))
-                        .foregroundStyle(.gray80)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                }
-                .frame(maxWidth: .infinity)
-                .frame(height: 52)
-            }
-            .background(.gray0)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-        }
+    private var mySpotBadge: some View {
+        Text("MY 스팟")
+            .pretendard(.body(.small(.bold)))
+            .foregroundStyle(.sunsetOrange)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(.sunsetOrange, lineWidth: 1)
+            )
     }
 }
 
