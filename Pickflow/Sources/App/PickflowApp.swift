@@ -15,41 +15,21 @@ struct PickflowApp: App {
 
     var body: some Scene {
         WindowGroup {
-            rootView
-                .ignoresSafeArea(.keyboard, edges: .bottom)
-                .onOpenURL { url in
-                    if AuthApi.isKakaoTalkLoginUrl(url) {
-                        _ = AuthController.handleOpenUrl(url: url)
-                    }
+            AppRootView(
+                authService: container.container.resolve(AuthServiceProtocol.self)!,
+                kakaoAuthProvider: container.container.resolve(KakaoAuthProviderProtocol.self)!,
+                appleAuthProvider: container.container.resolve(AppleAuthProviderProtocol.self)!,
+                tokenStore: container.container.resolve(TokenStoreProtocol.self)!,
+                locationService: container.container.resolve(LocationServiceProtocol.self)!,
+                onboardingCompletionStore: container.container.resolve(OnboardingCompletionStore.self)!
+            )
+            .ignoresSafeArea(.keyboard, edges: .bottom)
+            .onOpenURL { url in
+                if AuthApi.isKakaoTalkLoginUrl(url) {
+                    _ = AuthController.handleOpenUrl(url: url)
                 }
+            }
         }
-    }
-
-    @ViewBuilder
-    private var rootView: some View {
-        // [KAN-91] PR 머지 시 삭제 예정 — -AnalyticsSample 런치 인자 분기 및 AnalyticsSampleView 진입
-        #if DEBUG
-        if CommandLine.arguments.contains("-AnalyticsSample") {
-            AnalyticsSampleView()
-        } else if CommandLine.arguments.contains("-debugMyProfileSignedIn") {
-            MyProfileSignedInDebugView()
-        } else if CommandLine.arguments.contains("-debugMyProfile") {
-            MyProfileDebugView()
-        } else {
-            defaultRootView
-        }
-        #else
-        defaultRootView
-        #endif
-    }
-
-    private var defaultRootView: some View {
-        AppRootView(
-            authService: container.container.resolve(AuthServiceProtocol.self)!,
-            socialLoginService: container.container.resolve(SocialLoginServiceProtocol.self)!,
-            locationService: container.container.resolve(LocationServiceProtocol.self)!,
-            onboardingCompletionStore: container.container.resolve(OnboardingCompletionStore.self)!
-        )
     }
 
     private func configureFirebase() {

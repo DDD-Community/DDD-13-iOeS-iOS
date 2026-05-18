@@ -66,6 +66,18 @@ final class DebugSpotService: SpotServiceProtocol, Sendable {
     func reportSpot(id: Int64, type: SpotReportType, content: String) async throws {}
 }
 
+final class DebugMySpotService: SpotServiceProtocol, Sendable {
+    func fetchSpotDetail(id: Int64, latitude: Double?, longitude: Double?) async throws -> SpotDetail {
+        SpotDetailDebugFixture.mySpot
+    }
+
+    func registerSpot(draft: SpotRegistrationDraft) async throws -> SpotId {
+        SpotId(rawValue: "debug-spot-id")
+    }
+
+    func reportSpot(id: Int64, type: SpotReportType, content: String) async throws {}
+}
+
 final class DebugBookmarkService: BookmarkServiceProtocol, Sendable {
     func addBookmark(spotId: Int64) async throws {
         // TODO: KAN-51 API 사용 가능해지면 실제 POST /bookmarks 호출로 복구
@@ -105,6 +117,19 @@ enum SpotDetailDebugFactory {
         SpotDetailViewModel(
             spotId: spotId,
             spotService: DebugSpotService(),
+            bookmarkService: DebugBookmarkService(),
+            shareIntentService: DebugShareIntentService(),
+            locationService: DebugLocationService(),
+            externalAppLauncher: getExternalAppLauncher(),
+            shareSheetPresenter: getShareSheetPresenter(),
+            deviceIdProvider: { "debug-device" }
+        )
+    }
+
+    static func makeMyViewModel(spotId: Int64) -> SpotDetailViewModel {
+        SpotDetailViewModel(
+            spotId: spotId,
+            spotService: DebugMySpotService(),
             bookmarkService: DebugBookmarkService(),
             shareIntentService: DebugShareIntentService(),
             locationService: DebugLocationService(),
