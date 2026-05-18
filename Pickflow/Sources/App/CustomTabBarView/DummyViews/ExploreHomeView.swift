@@ -4,6 +4,10 @@ struct ExploreHomeView: View {
     @State private var isMapClusteringPresented = false
     #if DEBUG
     @State private var isSpotDetailPresented = false
+    @State private var isSpotDetailSheetPresented = false
+    @State private var isMySpotDetailSheetPresented = false
+    @StateObject private var spotDetailSheetVM: SpotDetailViewModel = SpotDetailDebugFactory.makeViewModel(spotId: 1)
+    @StateObject private var mySpotDetailSheetVM: SpotDetailViewModel = SpotDetailDebugFactory.makeMyViewModel(spotId: 2)
     #endif
 
     var body: some View {
@@ -35,6 +39,32 @@ struct ExploreHomeView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .fullScreenCover(isPresented: $isSpotDetailPresented) {
                     SpotDetailView(viewModel: SpotDetailDebugFactory.makeViewModel(spotId: 1))
+                }
+
+                Button("🧪 스팟 상세 바텀시트 열기 (KAN-99)") {
+                    isSpotDetailSheetPresented = true
+                }
+                .pretendard(.body(.medium(.bold)))
+                .foregroundStyle(.gray0)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(.gray90)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .spotBottomSheet(isPresented: $isSpotDetailSheetPresented, viewModel: spotDetailSheetVM) {
+                    SpotShellRootView(viewModel: spotDetailSheetVM)
+                }
+
+                Button("🧪 MY 스팟 마이페이지 열기 (KAN-99)") {
+                    isMySpotDetailSheetPresented = true
+                }
+                .pretendard(.body(.medium(.bold)))
+                .foregroundStyle(.gray0)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(.gray90)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .spotBottomSheet(isPresented: $isMySpotDetailSheetPresented, viewModel: mySpotDetailSheetVM) {
+                    SpotShellRootView(viewModel: mySpotDetailSheetVM)
                 }
                 #endif
 
