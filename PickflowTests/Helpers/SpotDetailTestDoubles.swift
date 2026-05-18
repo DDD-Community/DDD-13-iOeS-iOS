@@ -16,6 +16,7 @@ final class MockSpotService: SpotServiceProtocol, @unchecked Sendable {
     private(set) var registerDrafts: [SpotRegistrationDraft] = []
     private(set) var reportedSpotIds: [Int64] = []
     private(set) var reportedTypes: [SpotReportType] = []
+    private(set) var reportedContents: [String] = []
 
     func fetchSpotDetail(id: Int64, latitude: Double?, longitude: Double?) async throws -> SpotDetail {
         requests.append((id, latitude, longitude))
@@ -27,9 +28,10 @@ final class MockSpotService: SpotServiceProtocol, @unchecked Sendable {
         return try registerSpotResult.get()
     }
 
-    func reportSpot(id: Int64, type: SpotReportType) async throws {
+    func reportSpot(id: Int64, type: SpotReportType, content: String) async throws {
         reportedSpotIds.append(id)
         reportedTypes.append(type)
+        reportedContents.append(content)
         if let reportError { throw reportError }
     }
 }
@@ -108,6 +110,14 @@ final class MockShareSheetPresenter: ShareSheetPresenterProtocol {
 
     func present(items: [String]) {
         presentedItems.append(items)
+    }
+}
+
+final class MockAnalyticsLogger: AnalyticsLoggerProtocol, @unchecked Sendable {
+    private(set) var loggedEvents: [AnalyticsEvent] = []
+
+    func log(_ event: AnalyticsEvent) {
+        loggedEvents.append(event)
     }
 }
 

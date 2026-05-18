@@ -6,5 +6,5 @@ import Foundation
 ///   현재 값은 백엔드 명세 예시값이므로 반드시 교체할 것.
 enum AppConfig {
     /// 백엔드 API Base URL.
-    static let baseURL: String = "https://api.example.com/v1"
+    static let baseURL: String = "https://pickflow-api.us/api"
 }

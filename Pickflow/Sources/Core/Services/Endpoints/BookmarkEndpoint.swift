@@ -9,28 +9,17 @@ enum BookmarkEndpoint: APIEndpoint {
 
     var path: String {
         switch self {
-        case .add:
-            "/bookmarks"
-        case let .delete(spotId):
-            "/bookmarks/\(spotId)"
+        case let .add(spotId), let .delete(spotId):
+            "/v1/spots/\(spotId)/bookmarks"
         }
     }
 
     var method: HTTPMethod {
         switch self {
-        case .add:
-            .post
-        case .delete:
-            .delete
+        case .add: .post
+        case .delete: .delete
         }
     }
 
-    var parameters: Parameters? {
-        switch self {
-        case let .add(spotId):
-            ["spot_id": spotId]
-        case .delete:
-            nil
-        }
-    }
+    var parameters: Parameters? { nil }
 }

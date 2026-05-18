@@ -23,6 +23,7 @@ final class SpotDetailViewModel: ObservableObject {
     private let locationService: LocationServiceProtocol
     private let externalAppLauncher: ExternalAppLauncherProtocol
     private let shareSheetPresenter: ShareSheetPresenterProtocol
+    private let analyticsLogger: AnalyticsLoggerProtocol
     private let tokenStore: TokenStoreProtocol
     private let deviceIdProvider: @MainActor @Sendable () -> String
     private let clock: @Sendable () -> Date
@@ -35,6 +36,7 @@ final class SpotDetailViewModel: ObservableObject {
         locationService: LocationServiceProtocol,
         externalAppLauncher: ExternalAppLauncherProtocol,
         shareSheetPresenter: ShareSheetPresenterProtocol,
+        analyticsLogger: AnalyticsLoggerProtocol = getAnalyticsLogger(),
         tokenStore: TokenStoreProtocol = getTokenStore(),
         deviceIdProvider: @escaping @MainActor @Sendable () -> String,
         clock: @escaping @Sendable () -> Date = Date.init
@@ -46,6 +48,7 @@ final class SpotDetailViewModel: ObservableObject {
         self.locationService = locationService
         self.externalAppLauncher = externalAppLauncher
         self.shareSheetPresenter = shareSheetPresenter
+        self.analyticsLogger = analyticsLogger
         self.tokenStore = tokenStore
         self.deviceIdProvider = deviceIdProvider
         self.clock = clock
@@ -102,6 +105,8 @@ final class SpotDetailViewModel: ObservableObject {
     func share() {
         guard case let .loaded(spot) = state else { return }
 
+        analyticsLogger.log(SpotDetailAnalyticsEvent.shareButtonTap)
+
         let text = "\(spot.name) - \(spot.comment)\nhttps://pickflow.app/spot/\(spot.id)"
         let deviceId = deviceIdProvider()
         Task {
@@ -114,7 +119,7 @@ final class SpotDetailViewModel: ObservableObject {
         guard case let .loaded(spot) = state else { return }
         Task {
             do {
-                try await spotService.reportSpot(id: spot.id, type: .etc)
+                try await spotService.reportSpot(id: spot.id, type: .etc, content: "")
                 showToast("제보가 접수되었습니다.")
             } catch {
                 showToast("제보 접수에 실패했어요.")

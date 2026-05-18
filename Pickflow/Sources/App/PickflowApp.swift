@@ -1,4 +1,5 @@
 import SwiftUI
+import FirebaseCore
 import KakaoSDKAuth
 import KakaoSDKCommon
 
@@ -7,18 +8,13 @@ struct PickflowApp: App {
     private let container = AppContainer.shared
 
     init() {
+        FirebaseApp.configure()
         DesignSystemFontRegister.registerAllCustomFonts()
         initializeKakaoSDK()
     }
 
     var body: some Scene {
         WindowGroup {
-            #if DEBUG
-            // TODO: KAN-99 데모용 임시 루트 — 머지 전 AppRootView로 복구
-            NavigationStack {
-                ExploreHomeView()
-            }
-            #else
             AppRootView(
                 authService: container.container.resolve(AuthServiceProtocol.self)!,
                 kakaoAuthProvider: container.container.resolve(KakaoAuthProviderProtocol.self)!,
@@ -33,7 +29,6 @@ struct PickflowApp: App {
                     _ = AuthController.handleOpenUrl(url: url)
                 }
             }
-            #endif
         }
     }
 

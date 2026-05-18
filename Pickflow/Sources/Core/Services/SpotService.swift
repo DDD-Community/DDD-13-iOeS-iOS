@@ -8,7 +8,7 @@ final class SpotService: SpotServiceProtocol, Sendable {
     }
 
     func fetchSpotDetail(id: Int64, latitude: Double?, longitude: Double?) async throws -> SpotDetail {
-        try await networkManager.request(endpoint: SpotEndpoint(id: id, latitude: latitude, longitude: longitude))
+        try await networkManager.request(endpoint: SpotEndpoint.detail(spotId: id))
     }
   
     func registerSpot(draft: SpotRegistrationDraft) async throws -> SpotId {
@@ -19,9 +19,9 @@ final class SpotService: SpotServiceProtocol, Sendable {
         return SpotId(rawValue: UUID().uuidString)
     }
 
-    func reportSpot(id: Int64, type: SpotReportType) async throws {
+    func reportSpot(id: Int64, type: SpotReportType, content: String) async throws {
         let _: EmptyResponse = try await networkManager.request(
-            endpoint: ReportEndpoint(spotId: id, reportType: type)
+            endpoint: ReportEndpoint(spotId: id, type: type, content: content)
         )
     }
 }

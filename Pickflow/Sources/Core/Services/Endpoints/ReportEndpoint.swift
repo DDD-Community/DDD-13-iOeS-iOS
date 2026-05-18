@@ -3,10 +3,11 @@ import Foundation
 
 struct ReportEndpoint: APIEndpoint {
     let spotId: Int64
-    let reportType: SpotReportType
+    let type: SpotReportType
+    let content: String
 
     var baseURL: String { APIBaseURL.current }
-    var path: String { "/spots/\(spotId)/reports" }
+    var path: String { "/v1/spots/\(spotId)/reports" }
     var method: HTTPMethod { .post }
-    var parameters: Parameters? { ["report_type": reportType.rawValue] }
+    var parameters: Parameters? { ["type": type.rawValue, "content": content] }
 }

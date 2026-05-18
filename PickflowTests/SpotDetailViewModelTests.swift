@@ -9,6 +9,7 @@ final class SpotDetailViewModelTests: XCTestCase {
     private var locationService: MockLocationService!
     private var externalAppLauncher: MockExternalAppLauncher!
     private var shareSheetPresenter: MockShareSheetPresenter!
+    private var analyticsLogger: MockAnalyticsLogger!
     private var tokenStore: MockTokenStore!
     private var viewModel: SpotDetailViewModel!
 
@@ -20,6 +21,7 @@ final class SpotDetailViewModelTests: XCTestCase {
         locationService = MockLocationService()
         externalAppLauncher = MockExternalAppLauncher()
         shareSheetPresenter = MockShareSheetPresenter()
+        analyticsLogger = MockAnalyticsLogger()
         tokenStore = MockTokenStore()
         tokenStore.storedToken = AuthToken(accessToken: "test-token", refreshToken: "test-refresh")
         viewModel = makeViewModel()
@@ -28,6 +30,7 @@ final class SpotDetailViewModelTests: XCTestCase {
     override func tearDown() async throws {
         viewModel = nil
         tokenStore = nil
+        analyticsLogger = nil
         shareSheetPresenter = nil
         externalAppLauncher = nil
         locationService = nil
@@ -199,6 +202,7 @@ final class SpotDetailViewModelTests: XCTestCase {
             locationService: locationService,
             externalAppLauncher: externalAppLauncher,
             shareSheetPresenter: shareSheetPresenter,
+            analyticsLogger: analyticsLogger,
             tokenStore: tokenStore,
             deviceIdProvider: { "device-1" },
             clock: { Date(timeIntervalSince1970: 0) }
