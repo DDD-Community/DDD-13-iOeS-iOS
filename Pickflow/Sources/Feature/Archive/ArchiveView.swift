@@ -81,19 +81,29 @@ struct ArchiveView: View {
 
     // 0 = not scrolled, negative = scrolled up by N pts
     @State private var scrollOffset: CGFloat = 0
+    // read once via GeometryReader; default covers most iPhones
+    @State private var safeTop: CGFloat = 59
 
     private var navTitleVisible: Bool { scrollOffset < -190 }
 
-    // Large header title: fades out as scroll approaches -130
     private var headerTitleOpacity: CGFloat {
         max(0, min(1, (scrollOffset + 130) / 80))
     }
 
-    // Header stops when its bottom edge aligns with the title row bottom (44pt from safe area top)
-    // ArchiveHeaderView height 240pt − visible target 44pt = stop offset 196pt
+    // Photo extends into status bar by safeTop; clamping math:
+    // photo bottom = max(-196, scrollOffset) - safeTop + (240 + safeTop) = max(-196, scrollOffset) + 240
+    // stops when photo bottom = 44pt (title row boundary) → clamp at scrollOffset = -196
     private var headerStickyOffset: CGFloat {
-        max(-196, scrollOffset)
+        max(-196, scrollOffset) - safeTop
     }
+
+    // Section header follows photo bottom (starts at y=240 in safe-area coords, sticks at y=0)
+    private var sectionHeaderStickyOffset: CGFloat {
+        max(0, 240 + scrollOffset)
+    }
+
+    // Fixed height: title row 44pt + ArchiveTabBar (~47pt body.medium + padding + indicator)
+    private let sectionHeaderHeight: CGFloat = 91
 
     var body: some View {
         ZStack {
@@ -121,6 +131,12 @@ struct ArchiveView: View {
                 .animation(.easeInOut(duration: 0.2), value: viewModel.toast)
             }
         }
+        .background(
+            GeometryReader { geo in
+                Color.clear.onAppear { safeTop = geo.safeAreaInsets.top }
+            }
+            .ignoresSafeArea()
+        )
     }
 
     @ViewBuilder
@@ -139,44 +155,43 @@ struct ArchiveView: View {
 
     private var scrollableContent: some View {
         ZStack(alignment: .top) {
-            // Photo header: scrolls with content then freezes when its bottom
-            // reaches the title row bottom (44pt from safe area top).
+            // z=0 (back): cards scroll behind the photo
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    Color.clear.frame(height: 240 + sectionHeaderHeight)
+                    tabContent.frame(minHeight: 300, alignment: .top)
+                }
+                .background(ScrollOffsetReader { offset in scrollOffset = offset })
+            }
+
+            // z=1 (middle): photo in front of cards; top edge sits at screen top (behind status bar)
             ArchiveHeaderView(
                 thumbnailURL: firstThumbnailURL,
-                titleOpacity: headerTitleOpacity
+                titleOpacity: headerTitleOpacity,
+                height: 240 + safeTop
             )
             .offset(y: headerStickyOffset)
             .allowsHitTesting(false)
 
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 0) {
-                    Color.clear.frame(height: 240)  // placeholder matching ArchiveHeaderView
-                    LazyVStack(spacing: 0, pinnedViews: .sectionHeaders) {
-                        Section {
-                            tabContent.frame(minHeight: 300, alignment: .top)
-                        } header: {
-                            VStack(spacing: 0) {
-                                HStack {
-                                    Text("나의 보관함")
-                                        .pretendard(.body(.large(.bold)))
-                                        .foregroundStyle(.white)
-                                        .opacity(navTitleVisible ? 1 : 0)
-                                        .animation(.easeInOut(duration: 0.25), value: navTitleVisible)
-                                    Spacer()
-                                }
-                                .padding(.horizontal, 20)
-                                .frame(height: 44)
-
-                                ArchiveTabBar(
-                                    selectedTab: viewModel.selectedTab,
-                                    onTabChange: { viewModel.tabChanged($0) }
-                                )
-                            }
-                        }
-                    }
+            // z=2 (front): manually-sticky section header (title row + tab bar)
+            VStack(spacing: 0) {
+                HStack {
+                    Text("나의 보관함")
+                        .pretendard(.body(.large(.bold)))
+                        .foregroundStyle(.white)
+                        .opacity(navTitleVisible ? 1 : 0)
+                        .animation(.easeInOut(duration: 0.25), value: navTitleVisible)
+                    Spacer()
                 }
-                .background(ScrollOffsetReader { offset in scrollOffset = offset })
+                .padding(.horizontal, 20)
+                .frame(height: 44)
+
+                ArchiveTabBar(
+                    selectedTab: viewModel.selectedTab,
+                    onTabChange: { viewModel.tabChanged($0) }
+                )
             }
+            .offset(y: sectionHeaderStickyOffset)
         }
     }
 

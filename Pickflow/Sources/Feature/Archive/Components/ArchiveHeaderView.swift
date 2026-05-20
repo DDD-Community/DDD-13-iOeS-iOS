@@ -3,6 +3,7 @@ import SwiftUI
 struct ArchiveHeaderView: View {
     let thumbnailURL: URL?
     var titleOpacity: CGFloat = 1
+    var height: CGFloat = 240
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
@@ -11,7 +12,7 @@ struct ArchiveHeaderView: View {
             titleRow.opacity(titleOpacity)
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 240)
+        .frame(height: height)
         .clipped()
     }
 
@@ -27,6 +28,10 @@ struct ArchiveHeaderView: View {
                         UIAsset.Colors.gray90.swiftUIColor
                     }
                 }
+            } else {
+                Image("onboarding_2_pic_0", bundle: PickflowResources.bundle)
+                    .resizable()
+                    .scaledToFill()
             }
         }
     }
