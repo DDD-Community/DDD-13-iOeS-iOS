@@ -4,6 +4,9 @@ struct ExploreHomeView: View {
     @State private var isMapClusteringPresented = false
     #if DEBUG
     @State private var isSpotDetailPresented = false
+    @State private var isArchiveSignedInPresented = false
+    @State private var isArchiveSignedOutPresented = false
+    @State private var isArchiveEmptyPresented = false
     #endif
 
     var body: some View {
@@ -36,6 +39,14 @@ struct ExploreHomeView: View {
                 .fullScreenCover(isPresented: $isSpotDetailPresented) {
                     SpotDetailView(viewModel: SpotDetailDebugFactory.makeViewModel(spotId: 1))
                 }
+
+                // KAN-53 보관함 디버그 진입점
+                debugArchiveButton("🧪 보관함 — 로그인 상태 (KAN-53)") { isArchiveSignedInPresented = true }
+                    .fullScreenCover(isPresented: $isArchiveSignedInPresented) { ArchiveSignedInDebugView() }
+                debugArchiveButton("🧪 보관함 — 비로그인 상태 (KAN-53)") { isArchiveSignedOutPresented = true }
+                    .fullScreenCover(isPresented: $isArchiveSignedOutPresented) { ArchiveSignedOutDebugView() }
+                debugArchiveButton("🧪 보관함 — 빈 상태 (KAN-53)") { isArchiveEmptyPresented = true }
+                    .fullScreenCover(isPresented: $isArchiveEmptyPresented) { ArchiveEmptyDebugView() }
                 #endif
 
                 NavigationLink("2 depth로 이동", value: DummyRoute.detail(from: "탐색"))
@@ -88,6 +99,18 @@ struct ExploreHomeView: View {
             print("ExploreHomeView, ScrollView, onAppear")
         }
     }
+
+    #if DEBUG
+    private func debugArchiveButton(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(title, action: action)
+            .pretendard(.body(.medium(.bold)))
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(Color.gray.opacity(0.6))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+    #endif
 
     private func quickCard(title: String, caption: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {

@@ -9,14 +9,18 @@ struct ContentView: View {
     @StateObject private var myProfileViewModel: MyProfileViewModel
     @StateObject private var archiveViewModel: ArchiveViewModel
 
-    init(initialTab: Tab = .explore, myProfileViewModel: MyProfileViewModel? = nil) {
+    init(
+        initialTab: Tab = .explore,
+        myProfileViewModel: MyProfileViewModel? = nil,
+        archiveViewModel: ArchiveViewModel? = nil
+    ) {
         _selectedTab = State(initialValue: initialTab)
         _myProfileViewModel = StateObject(wrappedValue: myProfileViewModel ?? MyProfileViewModel(
             userService: getUserService(),
             authService: getAuthService(),
             socialLoginService: getSocialLoginService()
         ))
-        _archiveViewModel = StateObject(wrappedValue: ArchiveViewModel(
+        _archiveViewModel = StateObject(wrappedValue: archiveViewModel ?? ArchiveViewModel(
             archiveService: getArchiveService(),
             bookmarkService: getBookmarkService(),
             authService: getAuthService(),
@@ -48,7 +52,6 @@ struct ContentView: View {
                         viewModel: archiveViewModel,
                         onExploreTap: { selectedTab = .explore }
                     )
-                    .navigationBarHidden(true)
                 }
             case .my:
                 NavigationStack {

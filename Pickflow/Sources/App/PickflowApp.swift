@@ -35,6 +35,12 @@ struct PickflowApp: App {
             MyProfileSignedInDebugView()
         } else if CommandLine.arguments.contains("-debugMyProfile") {
             MyProfileDebugView()
+        } else if CommandLine.arguments.contains("-debugArchiveSignedIn") {
+            ArchiveSignedInDebugView()
+        } else if CommandLine.arguments.contains("-debugArchiveSignedOut") {
+            ArchiveSignedOutDebugView()
+        } else if CommandLine.arguments.contains("-debugArchiveEmpty") {
+            ArchiveEmptyDebugView()
         } else {
             defaultRootView
         }

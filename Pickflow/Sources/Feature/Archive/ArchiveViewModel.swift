@@ -126,6 +126,22 @@ final class ArchiveViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Debug
+
+    #if DEBUG
+    func applyLoadedState(items: [SpotListItem]) {
+        state = .loaded(items: items, hasNext: false)
+    }
+
+    func applySignedOutState() {
+        state = .signedOut
+    }
+
+    func applyEmptyState() {
+        state = .empty
+    }
+    #endif
+
     // MARK: - Private
 
     private func fetchArchive() async {
