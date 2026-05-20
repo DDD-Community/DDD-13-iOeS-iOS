@@ -83,6 +83,7 @@ struct ArchiveView: View {
     @State private var scrollOffset: CGFloat = 0
     // read once via GeometryReader; default covers most iPhones
     @State private var safeTop: CGFloat = 59
+    @State private var showRegistration = false
 
     private var navTitleVisible: Bool { scrollOffset < -190 }
 
@@ -137,6 +138,9 @@ struct ArchiveView: View {
             }
             .ignoresSafeArea()
         )
+        .fullScreenCover(isPresented: $showRegistration) {
+            SpotRegistrationAssembly.make { _ in showRegistration = false }
+        }
     }
 
     @ViewBuilder
@@ -205,7 +209,7 @@ struct ArchiveView: View {
     private var tabContent: some View {
         switch viewModel.selectedTab {
         case .savedSpots: savedSpotsContent
-        case .mySpots: ArchiveMySpotPlaceholder()
+        case .mySpots: ArchiveMySpotPlaceholder(onRegisterTap: { showRegistration = true })
         }
     }
 
