@@ -28,6 +28,8 @@ final class ArchiveViewModel: ObservableObject {
     @Published private(set) var isLoginLoading: Bool = false
     @Published private(set) var loginError: String?
     @Published var toast: String?
+    @Published var archiveName: String = "나의 보관함"
+    @Published var coverImageData: Data?
 
     private let archiveService: ArchiveServiceProtocol
     private let bookmarkService: BookmarkServiceProtocol
@@ -86,6 +88,25 @@ final class ArchiveViewModel: ObservableObject {
 
     func tabChanged(_ tab: ArchiveTab) {
         selectedTab = tab
+    }
+
+    func renameArchive(_ name: String) {
+        let trimmed = String(name.prefix(15))
+        guard !trimmed.isEmpty else { return }
+        archiveName = trimmed
+    }
+
+    func updateCoverImage(_ data: Data) {
+        coverImageData = data
+        showToast("커버 이미지가 변경되었습니다.")
+    }
+
+    func showToast(_ message: String) {
+        toast = message
+        Task {
+            try? await Task.sleep(for: .seconds(2))
+            toast = nil
+        }
     }
 
     func loadNextPageIfNeeded(currentItem: SpotListItem) async {

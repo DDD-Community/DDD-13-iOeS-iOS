@@ -2,13 +2,17 @@ import SwiftUI
 
 struct ArchiveHeaderView: View {
     let thumbnailURL: URL?
+    var coverImageData: Data?
+    var archiveName: String = "나의 보관함"
     var titleOpacity: CGFloat = 1
     var height: CGFloat = 240
+    var onRenameArchiveTap: () -> Void = {}
+    var onChangeCoverTap: () -> Void = {}
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            backgroundImage
-            gradient
+            backgroundImage.allowsHitTesting(false)
+            gradient.allowsHitTesting(false)
             titleRow.opacity(titleOpacity)
         }
         .frame(maxWidth: .infinity)
@@ -19,7 +23,9 @@ struct ArchiveHeaderView: View {
     private var backgroundImage: some View {
         ZStack {
             UIAsset.Colors.gray90.swiftUIColor
-            if let url = thumbnailURL {
+            if let data = coverImageData, let uiImage = UIImage(data: data) {
+                Image(uiImage: uiImage).resizable().scaledToFill()
+            } else if let url = thumbnailURL {
                 AsyncImage(url: url) { phase in
                     switch phase {
                     case let .success(image):
@@ -38,20 +44,21 @@ struct ArchiveHeaderView: View {
 
     private var gradient: some View {
         LinearGradient(
-            colors: [Color.black.opacity(0.5), Color.clear],
+            colors: [Color.black.opacity(0.65), Color.clear],
             startPoint: .bottom,
-            endPoint: .center
+            endPoint: .init(x: 0.5, y: 0.35)
         )
     }
 
     private var titleRow: some View {
         HStack(alignment: .center) {
-            Text("나의 보관함")
+            Text(archiveName)
                 .pretendard(.heading(.large))
                 .foregroundStyle(.white)
             Spacer()
-            Button {
-                // FIXME(KAN-53 범위 밖): 더보기 메뉴 미구현
+            Menu {
+                Button("보관함 이름 변경", action: onRenameArchiveTap)
+                Button("커버 이미지 변경", action: onChangeCoverTap)
             } label: {
                 Image(systemName: "ellipsis")
                     .font(.system(size: 20, weight: .medium))

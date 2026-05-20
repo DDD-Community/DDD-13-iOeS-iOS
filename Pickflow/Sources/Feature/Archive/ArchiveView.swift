@@ -84,6 +84,8 @@ struct ArchiveView: View {
     // read once via GeometryReader; default covers most iPhones
     @State private var safeTop: CGFloat = 59
     @State private var showRegistration = false
+    @State private var showRenameDialog = false
+    @State private var showCoverPicker = false
 
     private var navTitleVisible: Bool { scrollOffset < -190 }
 
@@ -91,20 +93,19 @@ struct ArchiveView: View {
         max(0, min(1, (scrollOffset + 130) / 80))
     }
 
-    // Photo extends into status bar by safeTop; clamping math:
-    // photo bottom = max(-196, scrollOffset) - safeTop + (240 + safeTop) = max(-196, scrollOffset) + 240
-    // stops when photo bottom = 44pt (title row boundary) → clamp at scrollOffset = -196
+    // Photo extends into status bar by safeTop; photo bottom always = max(-196, scrollOffset) + 240
     private var headerStickyOffset: CGFloat {
         max(-196, scrollOffset) - safeTop
     }
 
-    // Section header follows photo bottom (starts at y=240 in safe-area coords, sticks at y=0)
-    private var sectionHeaderStickyOffset: CGFloat {
-        max(0, 240 + scrollOffset)
+    // ArchiveTabBar sticks directly below photo bottom (y=44 when photo is fully stuck)
+    // No 44pt title-row gap — tabbar is adjacent to photo at all scroll positions
+    private var tabBarStickyOffset: CGFloat {
+        max(44, 240 + scrollOffset)
     }
 
-    // Fixed height: title row 44pt + ArchiveTabBar (~47pt body.medium + padding + indicator)
-    private let sectionHeaderHeight: CGFloat = 91
+    // ArchiveTabBar height: body.medium text + vertical padding 12*2 + indicator 2 ≈ 47pt
+    private let tabBarHeight: CGFloat = 47
 
     var body: some View {
         ZStack {
@@ -141,6 +142,23 @@ struct ArchiveView: View {
         .fullScreenCover(isPresented: $showRegistration) {
             SpotRegistrationAssembly.make { _ in showRegistration = false }
         }
+        .fullScreenCover(isPresented: $showCoverPicker) {
+            ArchiveCoverImagePickerView(
+                currentImageData: viewModel.coverImageData,
+                onSelect: { data in viewModel.updateCoverImage(data) }
+            )
+        }
+        .overlay {
+            if showRenameDialog {
+                ArchiveRenameDialog(
+                    isPresented: $showRenameDialog,
+                    initialName: viewModel.archiveName,
+                    onSave: { viewModel.renameArchive($0) }
+                )
+                .transition(.opacity)
+                .animation(.easeInOut(duration: 0.2), value: showRenameDialog)
+            }
+        }
     }
 
     @ViewBuilder
@@ -159,43 +177,46 @@ struct ArchiveView: View {
 
     private var scrollableContent: some View {
         ZStack(alignment: .top) {
-            // z=0 (back): cards scroll behind the photo
+            // z=0 (back): cards scroll behind photo and tab bar
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
-                    Color.clear.frame(height: 240 + sectionHeaderHeight)
+                    // spacer = photo visible height below safe area + tab bar height
+                    Color.clear.frame(height: 240 + tabBarHeight)
                     tabContent.frame(minHeight: 300, alignment: .top)
                 }
                 .background(ScrollOffsetReader { offset in scrollOffset = offset })
             }
 
-            // z=1 (middle): photo in front of cards; top edge sits at screen top (behind status bar)
+            // z=1 (middle): photo in front of cards; top reaches screen top (behind status bar)
             ArchiveHeaderView(
                 thumbnailURL: firstThumbnailURL,
+                coverImageData: viewModel.coverImageData,
+                archiveName: viewModel.archiveName,
                 titleOpacity: headerTitleOpacity,
-                height: 240 + safeTop
+                height: 240 + safeTop,
+                onRenameArchiveTap: { showRenameDialog = true },
+                onChangeCoverTap: { showCoverPicker = true }
             )
             .offset(y: headerStickyOffset)
-            .allowsHitTesting(false)
 
-            // z=2 (front): manually-sticky section header (title row + tab bar)
-            VStack(spacing: 0) {
-                HStack {
-                    Text("나의 보관함")
-                        .pretendard(.body(.large(.bold)))
-                        .foregroundStyle(.white)
-                        .opacity(navTitleVisible ? 1 : 0)
-                        .animation(.easeInOut(duration: 0.25), value: navTitleVisible)
-                    Spacer()
-                }
-                .padding(.horizontal, 20)
-                .frame(height: 44)
+            // z=2: ArchiveTabBar sticks directly below photo — no 44pt gap
+            ArchiveTabBar(
+                selectedTab: viewModel.selectedTab,
+                onTabChange: { viewModel.tabChanged($0) }
+            )
+            .offset(y: tabBarStickyOffset)
 
-                ArchiveTabBar(
-                    selectedTab: viewModel.selectedTab,
-                    onTabChange: { viewModel.tabChanged($0) }
-                )
+            // z=3: small nav title — fixed at top, opacity-only animation
+            HStack {
+                Text(viewModel.archiveName)
+                    .pretendard(.body(.large(.bold)))
+                    .foregroundStyle(.white)
+                    .opacity(navTitleVisible ? 1 : 0)
+                    .animation(.easeInOut(duration: 0.25), value: navTitleVisible)
+                Spacer()
             }
-            .offset(y: sectionHeaderStickyOffset)
+            .padding(.horizontal, 20)
+            .frame(height: 44)
         }
     }
 
