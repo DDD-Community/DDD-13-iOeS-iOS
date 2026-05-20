@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // MARK: - UIKit scroll offset reader (SwiftUI PreferenceKey doesn't update on scroll frames)
 
@@ -61,6 +62,17 @@ private struct ScrollOffsetReader: UIViewRepresentable {
     }
 }
 
+// MARK: - UIKit nav bar hider (removes nav bar AND its safe area contribution)
+
+private struct NavBarHider: UIViewControllerRepresentable {
+    func makeUIViewController(context: Context) -> UIViewController { UIViewController() }
+    func updateUIViewController(_ vc: UIViewController, context: Context) {
+        DispatchQueue.main.async {
+            vc.navigationController?.setNavigationBarHidden(true, animated: false)
+        }
+    }
+}
+
 // MARK: - ArchiveView
 
 struct ArchiveView: View {
@@ -70,20 +82,25 @@ struct ArchiveView: View {
     // 0 = not scrolled, negative = scrolled up by N pts
     @State private var scrollOffset: CGFloat = 0
 
-    private var navBackgroundVisible: Bool { scrollOffset < -10 }
     private var navTitleVisible: Bool { scrollOffset < -190 }
+
+    // Large header title: fades out as scroll approaches -130
+    private var headerTitleOpacity: CGFloat {
+        max(0, min(1, (scrollOffset + 130) / 80))
+    }
+
+    // Header stops when its bottom edge aligns with the title row bottom (44pt from safe area top)
+    // ArchiveHeaderView height 240pt − visible target 44pt = stop offset 196pt
+    private var headerStickyOffset: CGFloat {
+        max(-196, scrollOffset)
+    }
 
     var body: some View {
         ZStack {
             UIAsset.Colors.gray95.swiftUIColor.ignoresSafeArea()
             mainBody
         }
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(UIAsset.Colors.gray95.swiftUIColor, for: .navigationBar)
-        .toolbarBackground(navBackgroundVisible ? .visible : .hidden, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
-        // toolbar intentionally empty: title lives in the pinned section header to avoid
-        // iOS 26 circular-button rendering applied to ToolbarItem text
+        .background(NavBarHider())
         .task { await viewModel.onAppear() }
         .overlay {
             if let toast = viewModel.toast {
@@ -121,35 +138,45 @@ struct ArchiveView: View {
     }
 
     private var scrollableContent: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 0) {
-                ArchiveHeaderView(thumbnailURL: firstThumbnailURL)
-                LazyVStack(spacing: 0, pinnedViews: .sectionHeaders) {
-                    Section {
-                        tabContent.frame(minHeight: 300, alignment: .top)
-                    } header: {
-                        VStack(spacing: 0) {
-                            HStack {
-                                Text("나의 보관함")
-                                    .pretendard(.label(.medium))
-                                    .foregroundStyle(.white)
-                                Spacer()
-                            }
-                            .padding(.horizontal, 20)
-                            .frame(height: navTitleVisible ? 44 : 0)
-                            .clipped()
-                            .background(UIAsset.Colors.gray95.swiftUIColor)
+        ZStack(alignment: .top) {
+            // Photo header: scrolls with content then freezes when its bottom
+            // reaches the title row bottom (44pt from safe area top).
+            ArchiveHeaderView(
+                thumbnailURL: firstThumbnailURL,
+                titleOpacity: headerTitleOpacity
+            )
+            .offset(y: headerStickyOffset)
+            .allowsHitTesting(false)
 
-                            ArchiveTabBar(
-                                selectedTab: viewModel.selectedTab,
-                                onTabChange: { viewModel.tabChanged($0) }
-                            )
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    Color.clear.frame(height: 240)  // placeholder matching ArchiveHeaderView
+                    LazyVStack(spacing: 0, pinnedViews: .sectionHeaders) {
+                        Section {
+                            tabContent.frame(minHeight: 300, alignment: .top)
+                        } header: {
+                            VStack(spacing: 0) {
+                                HStack {
+                                    Text("나의 보관함")
+                                        .pretendard(.body(.large(.bold)))
+                                        .foregroundStyle(.white)
+                                        .opacity(navTitleVisible ? 1 : 0)
+                                        .animation(.easeInOut(duration: 0.25), value: navTitleVisible)
+                                    Spacer()
+                                }
+                                .padding(.horizontal, 20)
+                                .frame(height: 44)
+
+                                ArchiveTabBar(
+                                    selectedTab: viewModel.selectedTab,
+                                    onTabChange: { viewModel.tabChanged($0) }
+                                )
+                            }
                         }
-                        .animation(.easeInOut(duration: 0.25), value: navTitleVisible)
                     }
                 }
+                .background(ScrollOffsetReader { offset in scrollOffset = offset })
             }
-            .background(ScrollOffsetReader { offset in scrollOffset = offset })
         }
     }
 

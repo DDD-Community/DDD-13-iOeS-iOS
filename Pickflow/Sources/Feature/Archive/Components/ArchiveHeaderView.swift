@@ -2,12 +2,13 @@ import SwiftUI
 
 struct ArchiveHeaderView: View {
     let thumbnailURL: URL?
+    var titleOpacity: CGFloat = 1
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
             backgroundImage
             gradient
-            titleRow
+            titleRow.opacity(titleOpacity)
         }
         .frame(maxWidth: .infinity)
         .frame(height: 240)
