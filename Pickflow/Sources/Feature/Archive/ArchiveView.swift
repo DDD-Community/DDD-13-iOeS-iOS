@@ -86,6 +86,7 @@ struct ArchiveView: View {
     @State private var showRegistration = false
     @State private var showRenameDialog = false
     @State private var showCoverPicker = false
+    @State private var showLoginView = false
     @State private var selectedSpotId: Int64?
 
     private var navTitleVisible: Bool { scrollOffset < -190 }
@@ -175,6 +176,16 @@ struct ArchiveView: View {
                 onSelect: { data in viewModel.updateCoverImage(data) }
             )
         }
+        .fullScreenCover(isPresented: $showLoginView) {
+            LoginView(
+                viewModel: LoginViewModel(socialLoginService: getSocialLoginService()),
+                onSignInSucceeded: {
+                    showLoginView = false
+                    Task { await viewModel.onAppear() }
+                },
+                isClosable: true
+            )
+        }
         .overlay {
             if showRenameDialog {
                 ArchiveRenameDialog(
@@ -193,9 +204,8 @@ struct ArchiveView: View {
         switch viewModel.state {
         case .signedOut:
             ArchiveSignedOutContent(
-                isLoading: viewModel.isLoginLoading,
-                onKakaoTap: { Task { await viewModel.signInWithKakao() } },
-                onAppleTap: { Task { await viewModel.signInWithApple() } }
+                onKakaoTap: { showLoginView = true },
+                onAppleTap: { showLoginView = true }
             )
         default:
             scrollableContent
@@ -328,7 +338,7 @@ struct ArchiveScreenContent: View {
             UIAsset.Colors.gray95.swiftUIColor.ignoresSafeArea()
             switch state {
             case .signedOut:
-                ArchiveSignedOutContent(isLoading: false)
+                ArchiveSignedOutContent()
             default:
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {

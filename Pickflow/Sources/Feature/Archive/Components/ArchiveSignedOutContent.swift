@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct ArchiveSignedOutContent: View {
-    let isLoading: Bool
     var onKakaoTap: () -> Void = {}
     var onAppleTap: () -> Void = {}
 
@@ -37,17 +36,16 @@ struct ArchiveSignedOutContent: View {
 
     private var bottomCTA: some View {
         VStack(spacing: 12) {
-            KakaoLoginButton(isLoading: isLoading, action: onKakaoTap)
-            AppleLoginButton(isLoading: isLoading, action: onAppleTap)
+            KakaoLoginButton(action: onKakaoTap)
+            AppleLoginButton(action: onAppleTap)
         }
         .frame(maxWidth: 358)
-        .disabled(isLoading)
     }
 }
 
 #Preview {
     ZStack {
         UIAsset.Colors.gray95.color.ignoresSafeArea()
-        ArchiveSignedOutContent(isLoading: false)
+        ArchiveSignedOutContent()
     }
 }
