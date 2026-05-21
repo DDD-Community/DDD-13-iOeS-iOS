@@ -118,7 +118,6 @@ struct ArchiveView: View {
             UIAsset.Colors.gray95.swiftUIColor.ignoresSafeArea()
             mainBody
         }
-        .background(NavBarHider())
         .task { await viewModel.onAppear() }
         .alert("로그인 실패", isPresented: Binding(
             get: { viewModel.loginError != nil },
@@ -204,6 +203,7 @@ struct ArchiveView: View {
 
     private var scrollableContent: some View {
         ZStack(alignment: .top) {
+            NavBarHider()
             // z=0 (back): cards scroll behind photo and tab bar
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
