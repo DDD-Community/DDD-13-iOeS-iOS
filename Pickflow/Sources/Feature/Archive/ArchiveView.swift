@@ -107,6 +107,11 @@ struct ArchiveView: View {
     // ArchiveTabBar height: body.medium text + vertical padding 12*2 + indicator 2 ≈ 47pt
     private let tabBarHeight: CGFloat = 47
 
+    // Large title tracks the photo bottom so it always sits at the lower-left of the photo
+    private var largeTitleOffset: CGFloat {
+        max(-196, scrollOffset) - safeTop
+    }
+
     var body: some View {
         ZStack {
             UIAsset.Colors.gray95.swiftUIColor.ignoresSafeArea()
@@ -191,8 +196,6 @@ struct ArchiveView: View {
             ArchiveHeaderView(
                 thumbnailURL: firstThumbnailURL,
                 coverImageData: viewModel.coverImageData,
-                archiveName: viewModel.archiveName,
-                titleOpacity: headerTitleOpacity,
                 height: 240 + safeTop,
                 onRenameArchiveTap: { showRenameDialog = true },
                 onChangeCoverTap: { showCoverPicker = true }
@@ -217,6 +220,22 @@ struct ArchiveView: View {
             }
             .padding(.horizontal, 20)
             .frame(height: 44)
+
+            // z=4: large title — same frame/offset as photo so it always sits at photo bottom-left
+            VStack(spacing: 0) {
+                Spacer()
+                Text(viewModel.archiveName)
+                    .pretendard(.heading(.large))
+                    .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.4), radius: 4, x: 0, y: 1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 16)
+            }
+            .frame(height: 240 + safeTop)
+            .offset(y: largeTitleOffset)
+            .opacity(headerTitleOpacity)
+            .allowsHitTesting(false)
         }
     }
 
