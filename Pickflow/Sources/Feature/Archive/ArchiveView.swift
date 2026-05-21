@@ -118,6 +118,7 @@ struct ArchiveView: View {
             UIAsset.Colors.gray95.swiftUIColor.ignoresSafeArea()
             mainBody
         }
+        .navigationBarTitleDisplayMode(.inline)
         .task { await viewModel.onAppear() }
         .alert("로그인 실패", isPresented: Binding(
             get: { viewModel.loginError != nil },

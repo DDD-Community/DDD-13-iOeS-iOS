@@ -11,13 +11,7 @@ struct ArchiveSignedOutContent: View {
 
             VStack(spacing: 32) {
                 centerContent
-                if isLoading {
-                    ProgressView()
-                        .tint(UIAsset.Colors.gray0.color)
-                        .frame(height: 96)
-                } else {
-                    bottomCTA
-                }
+                bottomCTA
             }
 
             Spacer()
@@ -43,10 +37,11 @@ struct ArchiveSignedOutContent: View {
 
     private var bottomCTA: some View {
         VStack(spacing: 12) {
-            KakaoLoginButton(action: onKakaoTap)
-            AppleLoginButton(action: onAppleTap)
+            KakaoLoginButton(isLoading: isLoading, action: onKakaoTap)
+            AppleLoginButton(isLoading: isLoading, action: onAppleTap)
         }
         .frame(maxWidth: 358)
+        .disabled(isLoading)
     }
 }
 
