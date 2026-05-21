@@ -6,11 +6,12 @@ import SwiftUI
 @MainActor
 struct ArchiveSignedInDebugView: View {
     private let viewModel: ArchiveViewModel = {
+        let state = ArchiveDebugSharedState(isSignedIn: true)
         let vm = ArchiveViewModel(
             archiveService: ArchiveDebugService(),
             bookmarkService: ArchiveDebugBookmarkService(),
-            authService: ArchiveDebugAuthService(isSignedIn: true),
-            socialLoginService: ArchiveDebugSocialService()
+            authService: ArchiveDebugAuthService(state: state),
+            socialLoginService: ArchiveDebugSocialService(state: state)
         )
         vm.applyLoadedState(items: ArchiveDebugService.sampleItems)
         return vm
@@ -26,11 +27,12 @@ struct ArchiveSignedInDebugView: View {
 @MainActor
 struct ArchiveSignedOutDebugView: View {
     private let viewModel: ArchiveViewModel = {
+        let state = ArchiveDebugSharedState(isSignedIn: false)
         let vm = ArchiveViewModel(
             archiveService: ArchiveDebugService(),
             bookmarkService: ArchiveDebugBookmarkService(),
-            authService: ArchiveDebugAuthService(isSignedIn: false),
-            socialLoginService: ArchiveDebugSocialService()
+            authService: ArchiveDebugAuthService(state: state),
+            socialLoginService: ArchiveDebugSocialService(state: state)
         )
         vm.applySignedOutState()
         return vm
@@ -46,11 +48,12 @@ struct ArchiveSignedOutDebugView: View {
 @MainActor
 struct ArchiveEmptyDebugView: View {
     private let viewModel: ArchiveViewModel = {
+        let state = ArchiveDebugSharedState(isSignedIn: true)
         let vm = ArchiveViewModel(
             archiveService: ArchiveDebugService(),
             bookmarkService: ArchiveDebugBookmarkService(),
-            authService: ArchiveDebugAuthService(isSignedIn: true),
-            socialLoginService: ArchiveDebugSocialService()
+            authService: ArchiveDebugAuthService(state: state),
+            socialLoginService: ArchiveDebugSocialService(state: state)
         )
         vm.applyEmptyState()
         return vm
@@ -86,14 +89,14 @@ final class ArchiveDebugBookmarkService: BookmarkServiceProtocol, Sendable {
 }
 
 final class ArchiveDebugAuthService: AuthServiceProtocol, Sendable {
-    private let isSignedIn: Bool
+    private let state: ArchiveDebugSharedState
 
-    init(isSignedIn: Bool) {
-        self.isSignedIn = isSignedIn
+    init(state: ArchiveDebugSharedState) {
+        self.state = state
     }
 
     func currentAuthState() async -> AuthState {
-        isSignedIn
+        state.isSignedIn
             ? .signedIn(AuthToken(accessToken: "debug", refreshToken: "debug"))
             : .signedOut
     }
@@ -112,8 +115,16 @@ final class ArchiveDebugAuthService: AuthServiceProtocol, Sendable {
     func signOut() async throws {}
 }
 
+// 로그인 성공 여부를 두 서비스가 공유
+final class ArchiveDebugSharedState: @unchecked Sendable {
+    var isSignedIn: Bool
+    init(isSignedIn: Bool) { self.isSignedIn = isSignedIn }
+}
+
 final class ArchiveDebugSocialService: SocialLoginServiceProtocol, Sendable {
-    func signInWithKakao() async throws {}
-    func signInWithApple() async throws {}
+    private let state: ArchiveDebugSharedState
+    init(state: ArchiveDebugSharedState) { self.state = state }
+    func signInWithKakao() async throws { state.isSignedIn = true }
+    func signInWithApple() async throws { state.isSignedIn = true }
 }
 #endif

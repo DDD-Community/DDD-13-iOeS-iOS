@@ -90,6 +90,10 @@ final class ArchiveViewModel: ObservableObject {
         selectedTab = tab
     }
 
+    func clearLoginError() {
+        loginError = nil
+    }
+
     func renameArchive(_ name: String) {
         let trimmed = String(name.prefix(15))
         guard !trimmed.isEmpty else { return }

@@ -120,6 +120,14 @@ struct ArchiveView: View {
         }
         .background(NavBarHider())
         .task { await viewModel.onAppear() }
+        .alert("로그인 실패", isPresented: Binding(
+            get: { viewModel.loginError != nil },
+            set: { if !$0 { viewModel.clearLoginError() } }
+        ), presenting: viewModel.loginError) { _ in
+            Button("확인", role: .cancel) {}
+        } message: { message in
+            Text(message)
+        }
         .overlay {
             if let toast = viewModel.toast {
                 HStack(spacing: 8) {
