@@ -162,6 +162,7 @@ struct ArchiveView: View {
         }
         .fullScreenCover(isPresented: $showCoverPicker) {
             ArchiveCoverImagePickerView(
+                archiveName: viewModel.archiveName,
                 currentImageData: viewModel.coverImageData,
                 onSelect: { data in viewModel.updateCoverImage(data) }
             )

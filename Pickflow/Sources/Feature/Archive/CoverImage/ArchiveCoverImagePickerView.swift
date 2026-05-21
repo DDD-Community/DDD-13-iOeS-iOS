@@ -2,6 +2,14 @@ import Photos
 import SwiftUI
 import UIKit
 
+// MARK: - Album type
+
+enum CoverAlbum: String, CaseIterable {
+    case recent = "최근 항목"
+    case favorites = "즐겨찾기"
+    case all = "모든 앨범"
+}
+
 // MARK: - ViewModel
 
 @MainActor
@@ -10,12 +18,18 @@ final class ArchiveCoverImagePickerViewModel: ObservableObject {
     @Published var selectedAsset: PHAsset?
     @Published var selectedImageData: Data?
     @Published var authorizationStatus: PHAuthorizationStatus = .notDetermined
+    @Published var selectedAlbum: CoverAlbum = .recent
 
     func requestAndLoad() async {
         let status = await PHPhotoLibrary.requestAuthorization(for: .readWrite)
         authorizationStatus = status
         guard status == .authorized || status == .limited else { return }
-        await loadRecentAssets()
+        await loadAssets(for: selectedAlbum)
+    }
+
+    func selectAlbum(_ album: CoverAlbum) {
+        selectedAlbum = album
+        Task { await loadAssets(for: album) }
     }
 
     func select(_ asset: PHAsset) {
@@ -23,14 +37,32 @@ final class ArchiveCoverImagePickerViewModel: ObservableObject {
         Task { selectedImageData = await loadFullData(for: asset) }
     }
 
-    private func loadRecentAssets() async {
+    private func loadAssets(for album: CoverAlbum) async {
         let options = PHFetchOptions()
         options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
-        options.fetchLimit = 200
-        let result = PHAsset.fetchAssets(with: .image, options: options)
-        var fetched: [PHAsset] = []
-        result.enumerateObjects { asset, _, _ in fetched.append(asset) }
-        assets = fetched
+        options.fetchLimit = 300
+
+        switch album {
+        case .recent:
+            options.fetchLimit = 200
+            let result = PHAsset.fetchAssets(with: .image, options: options)
+            assets = collect(result)
+
+        case .favorites:
+            options.predicate = NSPredicate(format: "isFavorite == YES")
+            let result = PHAsset.fetchAssets(with: .image, options: options)
+            assets = collect(result)
+
+        case .all:
+            let result = PHAsset.fetchAssets(with: .image, options: options)
+            assets = collect(result)
+        }
+    }
+
+    private func collect(_ result: PHFetchResult<PHAsset>) -> [PHAsset] {
+        var items: [PHAsset] = []
+        result.enumerateObjects { asset, _, _ in items.append(asset) }
+        return items
     }
 
     private func loadFullData(for asset: PHAsset) async -> Data? {
@@ -56,6 +88,7 @@ final class ArchiveCoverImagePickerViewModel: ObservableObject {
 
 struct ArchiveCoverImagePickerView: View {
     @Environment(\.dismiss) private var dismiss
+    let archiveName: String
     let currentImageData: Data?
     let onSelect: (Data) -> Void
 
@@ -116,26 +149,37 @@ struct ArchiveCoverImagePickerView: View {
     // MARK: Preview
 
     private var previewSection: some View {
-        Group {
-            if let img = previewImage {
-                Image(uiImage: img)
-                    .resizable()
-                    .scaledToFill()
-            } else {
-                Image("onboarding_2_pic_0", bundle: PickflowResources.bundle)
-                    .resizable()
-                    .scaledToFill()
+        ZStack(alignment: .bottomLeading) {
+            Group {
+                if let img = previewImage {
+                    Image(uiImage: img)
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    Image("onboarding_2_pic_0", bundle: PickflowResources.bundle)
+                        .resizable()
+                        .scaledToFill()
+                }
             }
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: 280)
-        .clipped()
-        .overlay(alignment: .bottomLeading) {
+            .frame(maxWidth: .infinity)
+            .frame(height: 280)
+            .clipped()
+
             LinearGradient(
-                colors: [Color.black.opacity(0.5), Color.clear],
-                startPoint: .bottom, endPoint: .center
+                colors: [Color.black.opacity(0.65), Color.clear],
+                startPoint: .bottom,
+                endPoint: .init(x: 0.5, y: 0.35)
             )
+            .frame(height: 280)
             .allowsHitTesting(false)
+
+            Text(archiveName)
+                .pretendard(.heading(.large))
+                .foregroundStyle(.white)
+                .shadow(color: .black.opacity(0.4), radius: 4, x: 0, y: 1)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 16)
+                .allowsHitTesting(false)
         }
     }
 
@@ -144,17 +188,7 @@ struct ArchiveCoverImagePickerView: View {
     private var photoGrid: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                HStack(spacing: 4) {
-                    Text("최근 항목")
-                        .pretendard(.body(.medium(.bold)))
-                        .foregroundStyle(.gray0)
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(UIAsset.Colors.gray0.swiftUIColor)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-
+                albumSelector
                 LazyVGrid(
                     columns: Array(repeating: GridItem(.flexible(), spacing: 2), count: 4),
                     spacing: 2
@@ -170,6 +204,35 @@ struct ArchiveCoverImagePickerView: View {
                 }
             }
         }
+    }
+
+    private var albumSelector: some View {
+        Menu {
+            ForEach(CoverAlbum.allCases, id: \.self) { album in
+                Button {
+                    vm.selectAlbum(album)
+                } label: {
+                    HStack {
+                        Text(album.rawValue)
+                        if vm.selectedAlbum == album {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 4) {
+                Text(vm.selectedAlbum.rawValue)
+                    .pretendard(.body(.medium(.bold)))
+                    .foregroundStyle(.gray0)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(UIAsset.Colors.gray0.swiftUIColor)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+        }
+        .buttonStyle(.plain)
     }
 
     private var cameraCell: some View {
