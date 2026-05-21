@@ -14,6 +14,7 @@ final class SpotDetailViewModel: ObservableObject {
     @Published var dismissRequested = false
     @Published var toast: String?
     @Published var isLoginRequired = false
+    @Published private(set) var presentationPhase: SpotPresentationPhase = .sheetMedium
 
     private let spotId: Int64
     private let spotService: SpotServiceProtocol
@@ -140,5 +141,20 @@ final class SpotDetailViewModel: ObservableObject {
 
     func close() {
         dismissRequested = true
+    }
+
+    func promoteToFullCover() {
+        presentationPhase = .fullCover
+    }
+
+    func demoteToSheet() {
+        presentationPhase = .sheetLarge
+    }
+
+    func updateDetent(_ detent: SheetDetent) {
+        switch detent {
+        case .medium: presentationPhase = .sheetMedium
+        case .large:  presentationPhase = .sheetLarge
+        }
     }
 }
