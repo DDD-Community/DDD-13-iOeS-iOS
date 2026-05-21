@@ -149,7 +149,12 @@ struct ArchiveView: View {
             SpotDetailView(viewModel: SpotDetailViewModel(
                 spotId: spotId,
                 spotService: getSpotService(),
-                bookmarkService: getBookmarkService()
+                bookmarkService: getBookmarkService(),
+                shareIntentService: getShareIntentService(),
+                locationService: getLocationService(),
+                externalAppLauncher: getExternalAppLauncher(),
+                shareSheetPresenter: getShareSheetPresenter(),
+                deviceIdProvider: { UIDevice.current.identifierForVendor?.uuidString ?? "" }
             ))
         }
         .fullScreenCover(isPresented: $showRegistration) {
