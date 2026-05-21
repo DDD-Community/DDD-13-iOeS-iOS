@@ -86,6 +86,7 @@ struct ArchiveView: View {
     @State private var showRegistration = false
     @State private var showRenameDialog = false
     @State private var showCoverPicker = false
+    @State private var selectedSpotId: Int64?
 
     private var navTitleVisible: Bool { scrollOffset < -190 }
 
@@ -144,6 +145,13 @@ struct ArchiveView: View {
             }
             .ignoresSafeArea()
         )
+        .navigationDestination(item: $selectedSpotId) { spotId in
+            SpotDetailView(viewModel: SpotDetailViewModel(
+                spotId: spotId,
+                spotService: getSpotService(),
+                bookmarkService: getBookmarkService()
+            ))
+        }
         .fullScreenCover(isPresented: $showRegistration) {
             SpotRegistrationAssembly.make { _ in showRegistration = false }
         }
@@ -196,9 +204,7 @@ struct ArchiveView: View {
             ArchiveHeaderView(
                 thumbnailURL: firstThumbnailURL,
                 coverImageData: viewModel.coverImageData,
-                height: 240 + safeTop,
-                onRenameArchiveTap: { showRenameDialog = true },
-                onChangeCoverTap: { showCoverPicker = true }
+                height: 240 + safeTop
             )
             .offset(y: headerStickyOffset)
 
@@ -209,7 +215,7 @@ struct ArchiveView: View {
             )
             .offset(y: tabBarStickyOffset)
 
-            // z=3: small nav title — fixed at top, opacity-only animation
+            // z=3: nav bar row — title fades in on scroll, "..." button always visible
             HStack {
                 Text(viewModel.archiveName)
                     .pretendard(.body(.large(.bold)))
@@ -217,8 +223,18 @@ struct ArchiveView: View {
                     .opacity(navTitleVisible ? 1 : 0)
                     .animation(.easeInOut(duration: 0.25), value: navTitleVisible)
                 Spacer()
+                Menu {
+                    Button("보관함 이름 변경") { showRenameDialog = true }
+                    Button("커버 이미지 변경") { showCoverPicker = true }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundStyle(.white)
+                        .padding(12)
+                }
+                .buttonStyle(.plain)
             }
-            .padding(.horizontal, 20)
+            .padding(.leading, 20)
             .frame(height: 44)
 
             // z=4: large title — same frame/offset as photo so it always sits at photo bottom-left
@@ -269,6 +285,8 @@ struct ArchiveView: View {
                     bookmarkCount: nil,
                     onBookmarkTap: { Task { await viewModel.bookmarkTapped(item.spotId) } }
                 )
+                .contentShape(Rectangle())
+                .onTapGesture { selectedSpotId = item.spotId }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 16)

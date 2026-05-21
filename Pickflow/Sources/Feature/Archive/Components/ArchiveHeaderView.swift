@@ -4,18 +4,16 @@ struct ArchiveHeaderView: View {
     let thumbnailURL: URL?
     var coverImageData: Data?
     var height: CGFloat = 240
-    var onRenameArchiveTap: () -> Void = {}
-    var onChangeCoverTap: () -> Void = {}
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
-            backgroundImage.allowsHitTesting(false)
-            gradient.allowsHitTesting(false)
-            menuButton
+        ZStack {
+            backgroundImage
+            gradient
         }
         .frame(maxWidth: .infinity)
         .frame(height: height)
         .clipped()
+        .allowsHitTesting(false)
     }
 
     private var backgroundImage: some View {
@@ -46,21 +44,6 @@ struct ArchiveHeaderView: View {
             startPoint: .bottom,
             endPoint: .init(x: 0.5, y: 0.35)
         )
-    }
-
-    private var menuButton: some View {
-        Menu {
-            Button("보관함 이름 변경", action: onRenameArchiveTap)
-            Button("커버 이미지 변경", action: onChangeCoverTap)
-        } label: {
-            Image(systemName: "ellipsis")
-                .font(.system(size: 20, weight: .medium))
-                .foregroundStyle(.white)
-                .padding(12)
-        }
-        .buttonStyle(.plain)
-        .padding(.trailing, 4)
-        .padding(.bottom, 12)
     }
 }
 
