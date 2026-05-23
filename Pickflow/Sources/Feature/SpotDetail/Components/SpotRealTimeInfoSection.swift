@@ -1,9 +1,10 @@
 import SwiftUI
 
 struct SpotRealTimeInfoSection: View {
-    let weather: SpotWeather
-    let isMine: Bool
+    let spot: SpotDetail
     @State private var isCongestionInfoPresented = false
+
+    private var isMine: Bool { spot.isMySpot }
 
     private var realtimeDescriptionText: AttributedString {
         var str = AttributedString("공공 API를 활용한 실시간 정보를 확인해 보세요")
@@ -22,7 +23,7 @@ struct SpotRealTimeInfoSection: View {
                 .multilineTextAlignment(.center)
 
             VStack(alignment: .leading, spacing: 0) {
-                Text("\(DateFormatter.pickflowDisplayTime(from: weather.sunsetTime)) 기준 정보입니다.")
+                Text("\(spot.sunsetTime.map { DateFormatter.pickflowDisplayTime(from: $0) } ?? "-") 기준 정보입니다.")
                     .pretendard(.body(.small()))
                     .foregroundStyle(.gray50)
                     .frame(maxWidth: .infinity, alignment: .trailing)
@@ -31,19 +32,19 @@ struct SpotRealTimeInfoSection: View {
                 infoRow(
                     iconName: "icSunny",
                     label: "현재 날씨",
-                    value: weather.condition.rawValue,
-                    sub: "강수확률 \(weather.precipitationProbability)%"
+                    value: spot.weatherDisplayName ?? "-",
+                    sub: spot.precipitationProbability.map { "강수확률 \($0)%" } ?? "강수확률 -"
                 )
                 infoRow(
                     iconName: "icTwilight",
                     label: "일몰 시간",
-                    value: DateFormatter.pickflowDisplayTime(from: weather.sunsetTime),
+                    value: spot.sunsetTime.map { DateFormatter.pickflowDisplayTime(from: $0) } ?? "-",
                     sub: "오차 시간"
                 )
                 infoRow(
                     iconName: "icLocalParking",
                     label: "주차 관련",
-                    value: isMine ? "-" : (weather.parking ?? "-"),
+                    value: isMine ? "-" : (spot.parkingInfo ?? "-"),
                     sub: nil
                 )
                 congestionRow
@@ -97,7 +98,7 @@ struct SpotRealTimeInfoSection: View {
                     .pretendard(.body(.small()))
                     .foregroundStyle(.gray50)
                 HStack(spacing: 6) {
-                    Text(isMine ? "-" : weather.congestion.rawValue)
+                    Text(isMine ? "-" : (spot.congestionLevel?.displayName ?? "-"))
                         .pretendard(.heading(.large))
                         .foregroundStyle(.gray0)
                     Button {

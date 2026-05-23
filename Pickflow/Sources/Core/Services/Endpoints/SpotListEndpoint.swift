@@ -4,6 +4,7 @@ import Foundation
 struct SpotListEndpoint: APIEndpoint {
     let page: Int
     let theme: SpotTheme?
+    let sort: SpotListSort?
     let latitude: Double?
     let longitude: Double?
 
@@ -14,6 +15,9 @@ struct SpotListEndpoint: APIEndpoint {
         var parameters: Parameters = ["page": page]
         if let theme {
             parameters["theme"] = theme.apiCode
+        }
+        if let sort {
+            parameters["sort"] = sort.apiCode
         }
         if let latitude {
             parameters["latitude"] = latitude

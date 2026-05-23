@@ -14,7 +14,7 @@ final class SpotListViewModel: ObservableObject {
 
     @Published private(set) var state: LoadState = .idle
     @Published private(set) var selectedTheme: SpotTheme?
-    @Published private(set) var sort: SpotListSort = .nearest
+    @Published private(set) var sort: SpotListSort = .distance
     @Published var showLoginPrompt: Bool = false
     @Published var toast: String?
     @Published private(set) var bookmarkStates: [Int64: Bool] = [:]
@@ -66,7 +66,6 @@ final class SpotListViewModel: ObservableObject {
     func sortChanged(_ sort: SpotListSort) async {
         guard self.sort != sort else { return }
         self.sort = sort
-        // FIXME(BE-API): 정렬 쿼리 파라미터가 BE 에 추가되면 fetchSpots 시그니처에 반영.
         await reload()
     }
 
@@ -85,6 +84,7 @@ final class SpotListViewModel: ObservableObject {
             let response = try await spotListService.fetchSpots(
                 page: nextPage,
                 theme: selectedTheme,
+                sort: sort,
                 latitude: currentCoordinate?.latitude,
                 longitude: currentCoordinate?.longitude
             )
@@ -151,6 +151,7 @@ final class SpotListViewModel: ObservableObject {
             let response = try await spotListService.fetchSpots(
                 page: 0,
                 theme: selectedTheme,
+                sort: sort,
                 latitude: coordinate?.latitude,
                 longitude: coordinate?.longitude
             )

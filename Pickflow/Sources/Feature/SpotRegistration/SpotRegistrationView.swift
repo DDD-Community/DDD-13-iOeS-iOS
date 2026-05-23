@@ -239,6 +239,10 @@ private struct SpotRegistrationPreviewService: SpotServiceProtocol {
         throw URLError(.notConnectedToInternet)
     }
 
+    func fetchSpotPreview(id: Int64, latitude: Double?, longitude: Double?) async throws -> SpotPreviewResponse {
+        throw URLError(.notConnectedToInternet)
+    }
+
     func registerSpot(draft: SpotRegistrationDraft) async throws -> SpotId {
         SpotId(rawValue: "preview-spot-id")
     }

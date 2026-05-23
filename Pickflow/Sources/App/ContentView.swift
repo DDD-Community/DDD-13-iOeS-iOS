@@ -4,7 +4,7 @@ import UIKit
 /// 앱 런치 시 첫 뷰. 실질 라우팅은 `AppRootView`에서 수행한다.
 struct ContentView: View {
     @State private var selectedTab: Tab
-    @State private var explorePath = NavigationPath()
+    @State private var isExploreAddPlacePresented = false
     @State private var savedPath = NavigationPath()
     @StateObject private var myProfileViewModel: MyProfileViewModel
 
@@ -19,7 +19,7 @@ struct ContentView: View {
 
     private var isTabBarVisible: Bool {
         switch selectedTab {
-        case .explore: explorePath.isEmpty
+        case .explore: !isExploreAddPlacePresented
         case .saved: savedPath.isEmpty
         case .my: !myProfileViewModel.isNavigatingToAccountManagement
         }
@@ -29,12 +29,7 @@ struct ContentView: View {
         Group {
             switch selectedTab {
             case .explore:
-                NavigationStack(path: $explorePath) {
-                    ExploreHomeView()
-                        .navigationDestination(for: DummyRoute.self) { route in
-                            DetailDummyView(route: route)
-                        }
-                }
+                HomeMapView(isAddPlacePresented: $isExploreAddPlacePresented)
             case .saved:
                 NavigationStack(path: $savedPath) {
                     SavedHomeView()

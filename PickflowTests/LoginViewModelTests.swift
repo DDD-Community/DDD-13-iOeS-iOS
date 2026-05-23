@@ -96,11 +96,6 @@ final class LoginViewModelTests: XCTestCase {
     }
 
     private func makeViewModel() -> LoginViewModel {
-        LoginViewModel(
-            authService: authService,
-            kakaoAuthProvider: kakaoAuthProvider,
-            appleAuthProvider: appleAuthProvider,
-            tokenStore: tokenStore
-        )
+        LoginViewModel(socialLoginService: MockSocialLoginService())
     }
 }

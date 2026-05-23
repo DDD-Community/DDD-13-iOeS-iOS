@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SpotDetailSheetContentView: View {
-    let spot: SpotDetail
+    let preview: SpotPreviewResponse
     let isBookmarked: Bool
     let onClose: () -> Void
     let onRoute: () -> Void
@@ -9,14 +9,14 @@ struct SpotDetailSheetContentView: View {
     @State private var isAddressExpanded: Bool
 
     init(
-        spot: SpotDetail,
+        preview: SpotPreviewResponse,
         isBookmarked: Bool,
         initialAddressExpanded: Bool = false,
         onClose: @escaping () -> Void = {},
         onRoute: @escaping () -> Void = {},
         onBookmark: @escaping () -> Void = {}
     ) {
-        self.spot = spot
+        self.preview = preview
         self.isBookmarked = isBookmarked
         self.onClose = onClose
         self.onRoute = onRoute
@@ -25,49 +25,44 @@ struct SpotDetailSheetContentView: View {
     }
 
     var body: some View {
-        content(spot: spot)
-    }
-
-    @ViewBuilder
-    private func content(spot: SpotDetail) -> some View {
         VStack(alignment: .leading, spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
-              HStack(spacing: 8) {
-                Text(spot.name)
-                    .pretendard(.heading(.large))
-                    .foregroundStyle(.gray5)
-                if spot.isMine {
-                    mySpotBadge
-                }
-                Spacer(minLength: 0)
+                HStack(spacing: 8) {
+                    Text(preview.name)
+                        .pretendard(.heading(.large))
+                        .foregroundStyle(.gray5)
+                    if preview.isMySpot {
+                        mySpotBadge
+                    }
+                    Spacer(minLength: 0)
 
-                Button(action: onClose) {
-                  Circle()
-                    .fill(.white.opacity(0.15))
-                    .frame(width: 32, height: 32)
-                    .overlay(
-                      Image(systemName: "xmark")
-                        .imageScale(.small)
-                        .foregroundStyle(.gray0)
-                    )
+                    Button(action: onClose) {
+                        Circle()
+                            .fill(.white.opacity(0.15))
+                            .frame(width: 32, height: 32)
+                            .overlay(
+                                Image(systemName: "xmark")
+                                    .imageScale(.small)
+                                    .foregroundStyle(.gray0)
+                            )
+                    }
                 }
-              }
-                
-                themeAndBookmarkRow(spot: spot)
-                distanceAndAddressRow(spot: spot)
+
+                themeAndBookmarkRow
+                distanceAndAddressRow
             }
-            
-            photoArea(imageURL: spot.primaryImage?.imageURL)
-            .overlay(alignment: .top, content: {
-              if isAddressExpanded {
-                  addressBox(spot: spot)
-                  .transition(.opacity)
-                      .offset(y: -16)
-              }
-            })
-            
+
+            photoArea(imageURL: preview.imageUrl)
+                .overlay(alignment: .top) {
+                    if isAddressExpanded {
+                        addressBox
+                            .transition(.opacity)
+                            .offset(y: -16)
+                    }
+                }
+
             SpotBottomSheetActionButtons(
-                isMine: spot.isMine,
+                isMine: preview.isMySpot,
                 isBookmarked: isBookmarked,
                 onRoute: onRoute,
                 onBookmark: onBookmark
@@ -77,23 +72,21 @@ struct SpotDetailSheetContentView: View {
         .padding(.bottom, 24)
     }
 
-    @ViewBuilder
-    private func themeAndBookmarkRow(spot: SpotDetail) -> some View {
+    private var themeAndBookmarkRow: some View {
         HStack(spacing: 6) {
-            Text(spot.theme.rawValue)
+            Text(preview.theme.rawValue)
                 .pretendard(.body(.medium(.regular)))
                 .foregroundStyle(.gray10)
             dotSeparator
-            Text("북마크 \(spot.bookmarkCount)")
+            Text("북마크 \(preview.bookmarkCount)")
                 .pretendard(.body(.medium(.regular)))
                 .foregroundStyle(.gray10)
         }
     }
 
-    @ViewBuilder
-    private func distanceAndAddressRow(spot: SpotDetail) -> some View {
+    private var distanceAndAddressRow: some View {
         HStack(spacing: 6) {
-            Text(distanceText(spot.distance))
+            Text(distanceText(preview.distanceKm))
                 .pretendard(.body(.medium(.bold)))
                 .foregroundStyle(.gray10)
             dotSeparator
@@ -101,7 +94,7 @@ struct SpotDetailSheetContentView: View {
                 withAnimation(.easeInOut(duration: 0.2)) { isAddressExpanded.toggle() }
             } label: {
                 HStack(spacing: 0) {
-                    Text(spot.address)
+                    Text(preview.addressSimple)
                         .pretendard(.body(.medium(.regular)))
                         .foregroundStyle(.gray0)
                     Image(systemName: isAddressExpanded ? "chevron.up" : "chevron.down")
@@ -128,11 +121,10 @@ struct SpotDetailSheetContentView: View {
         return String(format: "%.1fkm", distance)
     }
 
-    @ViewBuilder
-    private func addressBox(spot: SpotDetail) -> some View {
+    private var addressBox: some View {
         VStack(alignment: .leading, spacing: 6) {
-            addressLine(label: "도로명", value: spot.address)
-            addressLine(label: "지번", value: spot.address)
+            addressLine(label: "도로명", value: preview.addressRoad ?? "-")
+            addressLine(label: "지번", value: preview.addressJibun ?? "-")
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -144,7 +136,6 @@ struct SpotDetailSheetContentView: View {
         )
     }
 
-    @ViewBuilder
     private func addressLine(label: String, value: String) -> some View {
         HStack(spacing: 4) {
             Text(label)
@@ -174,7 +165,6 @@ struct SpotDetailSheetContentView: View {
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
-
     private var mySpotBadge: some View {
         Text("MY 스팟")
             .pretendard(.body(.small(.bold)))
@@ -187,7 +177,6 @@ struct SpotDetailSheetContentView: View {
             )
     }
 }
-
 
 #if DEBUG
 #Preview("Medium Sheet") {
@@ -202,13 +191,11 @@ struct SpotDetailSheetContentView: View {
 }
 
 #Preview("Medium Sheet — 주소 펼침/저장됨") {
-    @Previewable @StateObject var viewModel = SpotDetailDebugFactory.makeViewModel(spotId: 1)
-
     ZStack(alignment: .bottom) {
         Color.black.opacity(0.4).ignoresSafeArea()
         SheetChromeView {
             SpotDetailSheetContentView(
-                spot: SpotDetailDebugFixture.spot,
+                preview: SpotDetailDebugFixture.preview,
                 isBookmarked: true,
                 initialAddressExpanded: true
             )

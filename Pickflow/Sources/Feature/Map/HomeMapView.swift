@@ -26,7 +26,7 @@ enum MoodFilter: String, CaseIterable, Sendable {
 struct HomeMapView: View {
     @State private var selectedMood: MoodFilter? = nil
     @State private var mapListMode: MapListMode = .map
-    @State private var isAddPlacePresented = false
+    @Binding var isAddPlacePresented: Bool
     @StateObject private var clustering = MapClusteringViewModel(clusteringService: getClusteringService())
     @State private var isSpotDetailSheetPresented = false
     @State private var selectedSpotVM: SpotDetailViewModel?
@@ -52,13 +52,19 @@ struct HomeMapView: View {
                     },
                     onSpotTap: { spotId in
                         clustering.spotMarkerTapped(spotId)
-                        #if DEBUG
-                        let isMine = clustering.mySpots.contains { $0.id == spotId }
-                        selectedSpotVM = isMine
-                            ? SpotDetailDebugFactory.makeMyViewModel(spotId: spotId)
-                            : SpotDetailDebugFactory.makeViewModel(spotId: spotId)
+                        selectedSpotVM = SpotDetailViewModel(
+                            spotId: spotId,
+                            spotService: getSpotService(),
+                            bookmarkService: getBookmarkService(),
+                            shareIntentService: getShareIntentService(),
+                            locationService: getLocationService(),
+                            externalAppLauncher: getExternalAppLauncher(),
+                            shareSheetPresenter: getShareSheetPresenter(),
+                            deviceIdProvider: {
+                                UIDevice.current.identifierForVendor?.uuidString ?? ""
+                            }
+                        )
                         isSpotDetailSheetPresented = true
-                        #endif
                     },
                     onMapBackgroundTap: {
                         clustering.mapBackgroundTapped()
@@ -66,7 +72,7 @@ struct HomeMapView: View {
                 )
                 .ignoresSafeArea()
                 .onChange(of: selectedMood) { _, mood in
-                    Task { await clustering.themeChanged(mood?.rawValue) }
+                    Task { await clustering.themeChanged(mood?.spotTheme.apiCode) }
                     // 무드 필터 지도-리스트 공유 (§13(a)): mood 변화 시 SpotListViewModel 도 갱신
                     Task { await spotList.themeSynced(mood?.spotTheme) }
                 }
@@ -141,9 +147,10 @@ struct HomeMapView: View {
                 }
             }
             .navigationDestination(isPresented: $isAddPlacePresented) {
-                AddPlaceDummyView()
+                SpotRegistrationAssembly.make { _ in
+                    isAddPlacePresented = false
+                }
             }
-            #if DEBUG
             .spotBottomSheet(isPresented: $isSpotDetailSheetPresented, viewModel: selectedSpotVM) {
                 if let vm = selectedSpotVM {
                     SpotShellRootView(viewModel: vm) {
@@ -156,7 +163,6 @@ struct HomeMapView: View {
                     clustering.mapBackgroundTapped()
                 }
             }
-            #endif
         }
     }
 
@@ -280,5 +286,5 @@ extension View {
     }
 }
 #Preview {
-    HomeMapView()
+    HomeMapView(isAddPlacePresented: .constant(false))
 }

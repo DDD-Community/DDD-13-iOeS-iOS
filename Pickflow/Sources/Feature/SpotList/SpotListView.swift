@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 /// 리스트 화면. 헤더(PICKFLOW + 무드 capsule + 정렬 드롭다운)는 부모(HomeMapView)가 담당.
 /// 본 뷰는 컨텐츠(상태에 따라 그리드/빈/실패/로딩/권한안내)만 렌더한다.

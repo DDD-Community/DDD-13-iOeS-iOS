@@ -11,7 +11,11 @@ final class MyProfileViewModelTests: XCTestCase {
         try await super.setUp()
         userService = MockUserService()
         authService = MockAuthServiceForProfile()
-        viewModel = MyProfileViewModel(userService: userService, authService: authService)
+        viewModel = MyProfileViewModel(
+            userService: userService,
+            authService: authService,
+            socialLoginService: MockSocialLoginService()
+        )
     }
 
     override func tearDown() async throws {

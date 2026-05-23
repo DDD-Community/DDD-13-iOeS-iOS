@@ -43,7 +43,7 @@ final class SpotDetailViewModelTests: XCTestCase {
     func test_onAppear_상세조회성공_상태가loaded로전환된다() async throws {
         await viewModel.onAppear()
 
-        XCTAssertEqual(viewModel.state, .loaded(.fixture()))
+        XCTAssertEqual(viewModel.detailState, .loaded(.fixture()))
         XCTAssertFalse(viewModel.isBookmarked)
     }
 
@@ -52,7 +52,7 @@ final class SpotDetailViewModelTests: XCTestCase {
 
         await viewModel.onAppear()
 
-        guard case let .failed(message) = viewModel.state else {
+        guard case let .failed(message) = viewModel.detailState else {
             return XCTFail("Expected failed state")
         }
         XCTAssertTrue(message.contains("test failure"))
@@ -216,10 +216,12 @@ final class SpotDetailViewModelTests: XCTestCase {
     }
 
     private func waitForReport() async {
-        for _ in 0..<20 where spotService.reportedSpotIds.isEmpty && spotService.reportError == nil {
+        for _ in 0..<50 where spotService.reportedSpotIds.isEmpty {
             await Task.yield()
         }
-        for _ in 0..<10 { await Task.yield() }
+        for _ in 0..<50 where viewModel.toast == nil {
+            await Task.yield()
+        }
     }
 
     // MARK: - presentationPhase (KAN-99)
