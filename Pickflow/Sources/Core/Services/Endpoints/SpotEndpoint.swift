@@ -2,51 +2,44 @@ import Alamofire
 import Foundation
 
 enum SpotEndpoint: APIEndpoint {
-    case list(page: Int?, theme: String?, latitude: Double?, longitude: Double?)
     case detail(spotId: Int64)
 
     var baseURL: String { APIBaseURL.current }
 
     var path: String {
         switch self {
-        case .list: "/v1/spots"
         case let .detail(spotId): "/v1/spots/\(spotId)"
         }
     }
 
     var method: HTTPMethod { .get }
 
-    var parameters: Parameters? {
-        switch self { 
-        case let .list(page, theme, latitude, longitude):
-            var p: Parameters = [:]
-            if let page { p["page"] = page }
-            if let theme { p["theme"] = theme }
-            if let latitude { p["latitude"] = latitude }
-            if let longitude { p["longitude"] = longitude }
-            return p.isEmpty ? nil : p
-        case .detail:
-            return nil
-        }
-    }
+    var parameters: Parameters? { nil }
 }
 
 struct SpotViewportEndpoint: APIEndpoint {
     let viewport: Viewport
+    let theme: SpotTheme?
 
     var baseURL: String { APIBaseURL.current }
     var path: String { "/v1/spots/viewport" }
     var method: HTTPMethod { .get }
     var parameters: Parameters? {
-        [
-            "topLeftLat": viewport.topLeft.latitude,
-            "topLeftLng": viewport.topLeft.longitude,
-            "topRightLat": viewport.topRight.latitude,
-            "topRightLng": viewport.topRight.longitude,
-            "bottomLeftLat": viewport.bottomLeft.latitude,
-            "bottomLeftLng": viewport.bottomLeft.longitude,
-            "bottomRightLat": viewport.bottomRight.latitude,
-            "bottomRightLng": viewport.bottomRight.longitude,
+        // 서버 제약: 위/경도 소수점 6자리까지 허용. (KAN-107)
+        let r: (Double) -> Double = { (($0 * 1_000_000).rounded()) / 1_000_000 }
+        var p: Parameters = [
+            "topLeftLat": r(viewport.topLeft.latitude),
+            "topLeftLng": r(viewport.topLeft.longitude),
+            "topRightLat": r(viewport.topRight.latitude),
+            "topRightLng": r(viewport.topRight.longitude),
+            "bottomLeftLat": r(viewport.bottomLeft.latitude),
+            "bottomLeftLng": r(viewport.bottomLeft.longitude),
+            "bottomRightLat": r(viewport.bottomRight.latitude),
+            "bottomRightLng": r(viewport.bottomRight.longitude),
         ]
+        if let theme {
+            p["theme"] = theme.apiCode
+        }
+        return p
     }
 }
