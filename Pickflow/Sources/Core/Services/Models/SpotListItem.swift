@@ -64,18 +64,17 @@ struct SpotListPage: Codable, Sendable, Equatable {
 }
 
 extension SpotTheme {
-    /// API 코드 매핑. 응답/요청 모두 사용. (`SS` = 노을, `YS` = 윤슬)
     var apiCode: String {
         switch self {
-        case .sunset: "SS"
-        case .reflection: "YS"
+        case .sunset: "SUNSET"
+        case .reflection: "YUNSEUL"
         }
     }
 
     init?(apiCode: String) {
         switch apiCode {
-        case "SS": self = .sunset
-        case "YS": self = .reflection
+        case "노을": self = .sunset
+        case "윤슬": self = .reflection
         default: return nil
         }
     }

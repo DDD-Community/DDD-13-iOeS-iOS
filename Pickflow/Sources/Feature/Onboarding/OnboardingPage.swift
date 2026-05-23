@@ -75,7 +75,7 @@ extension OnboardingPage {
             carouselImageNames: ["onboarding_2_pic_0", "onboarding_2_pic_1", "onboarding_2_pic_2"],
             moodHeader: OnboardingMoodHeader(
                 primary: .sunset,
-                secondary: .ripple,
+                secondary: .reflection,
                 description: "해가 뜨거나 지려고 할 때에\n하늘이 햇빛을 받아 붉게 보이는 현상"
             ),
             layout: .moodCarousel
@@ -90,7 +90,7 @@ extension OnboardingPage {
             gradient: .nightCool,
             carouselImageNames: ["onboarding_3_pic_0", "onboarding_3_pic_1", "onboarding_3_pic_2"],
             moodHeader: OnboardingMoodHeader(
-                primary: .ripple,
+                primary: .reflection,
                 secondary: .sunset,
                 description: "달빛이나 햇빛에 비치어 반짝이는 잔물결\n"
             ),

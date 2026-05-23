@@ -70,7 +70,7 @@ extension MoodFilter {
     fileprivate var borderColor: Color {
         switch self {
         case .sunset: Color(red: 250 / 255, green: 97 / 255, blue: 51 / 255)
-        case .ripple: Color(red: 30 / 255, green: 138 / 255, blue: 246 / 255)
+        case .reflection: Color(red: 30 / 255, green: 138 / 255, blue: 246 / 255)
         }
     }
 }
@@ -79,7 +79,7 @@ extension MoodFilter {
     OnboardingMoodHeaderView(
         header: OnboardingMoodHeader(
             primary: .sunset,
-            secondary: .ripple,
+            secondary: .reflection,
             description: "해가 뜨거나 지려고 할 때에\n하늘이 햇빛을 받아 붉게 보이는 현상"
         )
     )
@@ -87,10 +87,10 @@ extension MoodFilter {
     .background(Color.black)
 }
 
-#Preview("Step 3 (ripple)") {
+#Preview("Step 3 (reflection)") {
     OnboardingMoodHeaderView(
         header: OnboardingMoodHeader(
-            primary: .ripple,
+            primary: .reflection,
             secondary: .sunset,
             description: "달빛이나 햇빛에 비치어 반짝이는 잔물결"
         )
