@@ -6,15 +6,23 @@ struct ContentView: View {
     @State private var selectedTab: Tab
     @State private var explorePath = NavigationPath()
     @State private var savedPath = NavigationPath()
+    @StateObject private var clusteringViewModel: MapClusteringViewModel
     @StateObject private var myProfileViewModel: MyProfileViewModel
 
-    init(initialTab: Tab = .explore, myProfileViewModel: MyProfileViewModel? = nil) {
+    init(
+        initialTab: Tab = .explore,
+        clusteringViewModel: MapClusteringViewModel? = nil,
+        myProfileViewModel: MyProfileViewModel? = nil,
+    ) {
         _selectedTab = State(initialValue: initialTab)
         _myProfileViewModel = StateObject(wrappedValue: myProfileViewModel ?? MyProfileViewModel(
             userService: getUserService(),
             authService: getAuthService(),
             socialLoginService: getSocialLoginService()
         ))
+        _clusteringViewModel = StateObject(wrappedValue: clusteringViewModel ?? MapClusteringViewModel(
+            clusteringService: getClusteringService())
+        )
     }
 
     private var isTabBarVisible: Bool {
@@ -30,7 +38,7 @@ struct ContentView: View {
             switch selectedTab {
             case .explore:
                 NavigationStack(path: $explorePath) {
-                    ExploreHomeView()
+                    ExploreHomeView(clusteringViewModel: clusteringViewModel)
                         .navigationDestination(for: DummyRoute.self) { route in
                             DetailDummyView(route: route)
                         }

@@ -3,14 +3,14 @@ import SwiftUI
 // 무드 필터 (노을/윤슬).
 enum MoodFilter: String, CaseIterable, Sendable {
     case sunset = "노을"
-    case ripple = "윤슬"
+    case reflection = "윤슬"
 
     var imageName: String {
         switch self {
         case .sunset:
-            "sunset"
-        case .ripple:
-            "sparklingRipple"
+            "icon_photo_category_sunset"
+        case .reflection:
+            "icon_photo_category_reflection"
         }
 
     }
@@ -18,7 +18,14 @@ enum MoodFilter: String, CaseIterable, Sendable {
     var spotTheme: SpotTheme {
         switch self {
         case .sunset: .sunset
-        case .ripple: .reflection
+        case .reflection: .reflection
+        }
+    }
+    
+    var apiCode: String {
+        switch self {
+        case .sunset: "SUNSET"
+        case .reflection: "YUNSEUL"
         }
     }
 }
@@ -27,7 +34,7 @@ struct HomeMapView: View {
     @State private var selectedMood: MoodFilter? = nil
     @State private var mapListMode: MapListMode = .map
     @State private var isAddPlacePresented = false
-    @StateObject private var clustering = MapClusteringViewModel(clusteringService: getClusteringService())
+    @StateObject var clusteringViewModel: MapClusteringViewModel
     @State private var isSpotDetailSheetPresented = false
     @State private var selectedSpotVM: SpotDetailViewModel?
     // FIXME(§13a): selectedMood ↔ SpotListViewModel.selectedTheme 양방향 동기화 별도 PR
@@ -44,16 +51,16 @@ struct HomeMapView: View {
         NavigationStack {
             ZStack(alignment: .top) {
                 NaverMapView(
-                    spots: clustering.state.spots,
-                    mySpots: clustering.mySpots,
-                    selectedSpotId: clustering.selectedSpotId,
+                    spots: clusteringViewModel.state.spots,
+                    mySpots: clusteringViewModel.mySpots,
+                    selectedSpotId: clusteringViewModel.selectedSpotId,
                     onViewportChange: { viewport in
-                        Task { await clustering.viewportChanged(viewport) }
+                        Task { await clusteringViewModel.viewportChanged(viewport) }
                     },
                     onSpotTap: { spotId in
-                        clustering.spotMarkerTapped(spotId)
+                        clusteringViewModel.spotMarkerTapped(spotId)
                         #if DEBUG
-                        let isMine = clustering.mySpots.contains { $0.id == spotId }
+                        let isMine = clusteringViewModel.mySpots.contains { $0.id == spotId }
                         selectedSpotVM = isMine
                             ? SpotDetailDebugFactory.makeMyViewModel(spotId: spotId)
                             : SpotDetailDebugFactory.makeViewModel(spotId: spotId)
@@ -61,12 +68,12 @@ struct HomeMapView: View {
                         #endif
                     },
                     onMapBackgroundTap: {
-                        clustering.mapBackgroundTapped()
+                        clusteringViewModel.mapBackgroundTapped()
                     }
                 )
                 .ignoresSafeArea()
                 .onChange(of: selectedMood) { _, mood in
-                    Task { await clustering.themeChanged(mood?.rawValue) }
+                    Task { await clusteringViewModel.themeChanged(mood?.rawValue) }
                     // 무드 필터 지도-리스트 공유 (§13(a)): mood 변화 시 SpotListViewModel 도 갱신
                     Task { await spotList.themeSynced(mood?.spotTheme) }
                 }
@@ -153,7 +160,7 @@ struct HomeMapView: View {
             }
             .onChange(of: isSpotDetailSheetPresented) { _, isPresented in
                 if !isPresented {
-                    clustering.mapBackgroundTapped()
+                    clusteringViewModel.mapBackgroundTapped()
                 }
             }
             #endif
@@ -194,6 +201,7 @@ struct HomeMapView: View {
             HStack(spacing: 4) {
 
                 Image(mood.imageName)
+                    .renderingMode(.original)
 
                 Text(mood.rawValue)
                     .font(.subheadline)
@@ -280,5 +288,5 @@ extension View {
     }
 }
 #Preview {
-    HomeMapView()
+    HomeMapView(clusteringViewModel: MapClusteringViewModel(clusteringService: getClusteringService()))
 }
