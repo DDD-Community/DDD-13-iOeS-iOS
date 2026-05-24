@@ -45,28 +45,6 @@ struct HomeMapView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
-                NaverMapView(
-                    spots: clustering.state.spots,
-                    mySpots: clustering.mySpots,
-                    selectedSpotId: clustering.selectedSpotId,
-                    onViewportChange: { viewport in
-                        Task { await clustering.viewportChanged(viewport) }
-                    },
-                    onSpotTap: { spotId in
-                        clustering.spotMarkerTapped(spotId)
-                        presentSpotDetail(spotId: spotId)
-                    },
-                    onMapBackgroundTap: {
-                        clustering.mapBackgroundTapped()
-                    }
-                )
-                .ignoresSafeArea()
-                .onChange(of: selectedMood) { _, mood in
-                    Task { await clustering.themeChanged(mood?.spotTheme.apiCode) }
-                    // 무드 필터 지도-리스트 공유 (§13(a)): mood 변화 시 SpotListViewModel 도 갱신
-                    Task { await spotList.themeSynced(mood?.spotTheme) }
-                }
-
                 // MARK: - List overlay (지도 전체를 덮음, 헤더는 그 위에 오버레이)
                 if mapListMode == .list {
                     // 헤더 bottom 으로부터 8pt 간격 — Padding.containerTop + topBarHeight + 8
@@ -78,7 +56,6 @@ struct HomeMapView: View {
                             isSpotDetailPresented = true
                         }
                     )
-                    .ignoresSafeArea(edges: .bottom)
                     .transition(.opacity)
                 }
 
@@ -128,7 +105,7 @@ struct HomeMapView: View {
                             Spacer()
                             trailingControls
                                 .padding(.trailing, Padding.containerHorizontal)
-                                .padding(.bottom, Padding.containerBottom)
+                                .padding(.bottom, Padding.containerBottom + CustomTabBar.height)
                         }
                     }
                 }
@@ -137,15 +114,40 @@ struct HomeMapView: View {
                 VStack {
                     Spacer()
                     MapListToggle(selectedMode: $mapListMode)
-                        .padding(.bottom, Padding.containerBottom)
+                        .padding(.bottom, Padding.containerBottom + CustomTabBar.height)
                 }
+            }
+            .background {
+                // NaverMapView 만 풀블리드로 그리고, 위 ZStack 본체는 safe area 안 layout 유지.
+                // .background 의 자식은 부모 layout 에 영향 주지 않으므로 GeometryReader 불필요.
+                NaverMapView(
+                    spots: clustering.state.spots,
+                    mySpots: clustering.mySpots,
+                    selectedSpotId: clustering.selectedSpotId,
+                    onViewportChange: { viewport in
+                        Task { await clustering.viewportChanged(viewport) }
+                    },
+                    onSpotTap: { spotId in
+                        clustering.spotMarkerTapped(spotId)
+                        presentSpotDetail(spotId: spotId)
+                    },
+                    onMapBackgroundTap: {
+                        clustering.mapBackgroundTapped()
+                    }
+                )
+                .ignoresSafeArea()
+            }
+            .onChange(of: selectedMood) { _, mood in
+                Task { await clustering.themeChanged(mood?.spotTheme.apiCode) }
+                // 무드 필터 지도-리스트 공유 (§13(a)): mood 변화 시 SpotListViewModel 도 갱신
+                Task { await spotList.themeSynced(mood?.spotTheme) }
             }
             .navigationDestination(isPresented: $isAddPlacePresented) {
                 SpotRegistrationAssembly.make { _ in
                     isAddPlacePresented = false
                 }
             }
-            .navigationDestination(
+            .fullScreenCover(
                 isPresented: Binding(
                     get: { listDetailVM != nil },
                     set: { if !$0 { listDetailVM = nil; isSpotDetailPresented = false } }
@@ -153,7 +155,6 @@ struct HomeMapView: View {
             ) {
                 if let vm = listDetailVM {
                     SpotDetailView(viewModel: vm)
-                        .navigationBarBackButtonHidden()
                 }
             }
             .spotBottomSheet(isPresented: $isSpotDetailSheetPresented, viewModel: selectedSpotVM) {
