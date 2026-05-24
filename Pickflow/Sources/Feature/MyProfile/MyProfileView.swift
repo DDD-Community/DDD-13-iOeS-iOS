@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MyProfileView: View {
     @StateObject var viewModel: MyProfileViewModel
+    var onSignedOut: () -> Void = {}
 
     var body: some View {
         ZStack {
@@ -61,7 +62,10 @@ struct MyProfileView: View {
                     userService: viewModel.userService,
                     authService: viewModel.authService
                 ),
-                onLoggedOut: { viewModel.handleSignedOut() },
+                onLoggedOut: {
+                    viewModel.handleSignedOut()
+                    onSignedOut()
+                },
                 onSaved: { Task { await viewModel.refresh() } }
             )
         }
