@@ -1,6 +1,5 @@
 import SnapshotTesting
 import SwiftUI
-import UIKit
 import XCTest
 
 @testable import Pickflow

@@ -21,11 +21,22 @@ final class NetworkManager: NetworkManagerProtocol, Sendable {
     private let decoder: JSONDecoder
 
     init(
-        session: Session = Session(interceptor: AuthInterceptor()),
+        session: Session = NetworkManager.defaultSession(),
         decoder: JSONDecoder = .pickflow
     ) {
         self.session = session
         self.decoder = decoder
+    }
+
+    private static func defaultSession() -> Session {
+        #if DEBUG
+        return Session(
+            interceptor: AuthInterceptor(),
+            eventMonitors: [ConsoleNetworkLogger()]
+        )
+        #else
+        return Session(interceptor: AuthInterceptor())
+        #endif
     }
 
     func request<T: Decodable & Sendable>(endpoint: any APIEndpoint) async throws -> T {
@@ -93,3 +104,33 @@ final class NetworkManager: NetworkManagerProtocol, Sendable {
         return decoder
     }()
 }
+
+#if DEBUG
+private final class ConsoleNetworkLogger: EventMonitor {
+    let queue = DispatchQueue(label: "com.pickflow.ConsoleNetworkLogger")
+
+    func request(_ request: Request, didCreateURLRequest urlRequest: URLRequest) {
+        let method = urlRequest.httpMethod ?? "?"
+        let url = urlRequest.url?.absoluteString ?? "(no url)"
+        print("🌐 [REQ] \(method) \(url)")
+    }
+
+    func request(_ request: Request, didCompleteTask task: URLSessionTask, with error: AFError?) {
+        let method = task.originalRequest?.httpMethod ?? "?"
+        let urlObj = task.originalRequest?.url
+        let path = urlObj.map { "\($0.path)\($0.query.map { "?\($0)" } ?? "")" } ?? "(no url)"
+        let status = (task.response as? HTTPURLResponse)?.statusCode ?? -1
+        let icon = (200..<300).contains(status) ? "✅" : "⚠️"
+        var bodyPreview = ""
+        if let dr = request as? DataRequest, let data = dr.data, !data.isEmpty {
+            let slice = data.prefix(1024)
+            bodyPreview = " body=" + (String(data: slice, encoding: .utf8) ?? "<\(slice.count)B binary>")
+        }
+        if let error {
+            print("❌ [ERR] \(method) \(path) status=\(status) error=\(error.localizedDescription)")
+        } else {
+            print("\(icon) [RES] \(status) \(method) \(path)\(bodyPreview)")
+        }
+    }
+}
+#endif

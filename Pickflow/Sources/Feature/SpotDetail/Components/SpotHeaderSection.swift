@@ -9,7 +9,7 @@ struct SpotHeaderSection: View {
                 Text(spot.name)
                     .pretendard(.heading(.large))
                     .foregroundStyle(.gray0)
-                if spot.isMine {
+                if spot.isMySpot {
                     Text("MY 스팟")
                         .pretendard(.label(.medium))
                         .foregroundStyle(.white)
@@ -20,7 +20,7 @@ struct SpotHeaderSection: View {
                 }
             }
 
-            Text(spot.isMine ? spot.theme.rawValue : "\(spot.theme.rawValue) · 북마크 \(spot.bookmarkCount)")
+            Text(spot.isMySpot ? spot.theme.rawValue : "\(spot.theme.rawValue) · 북마크 \(spot.bookmarkCount)")
                 .pretendard(.body(.small()))
                 .foregroundStyle(.gray30)
 

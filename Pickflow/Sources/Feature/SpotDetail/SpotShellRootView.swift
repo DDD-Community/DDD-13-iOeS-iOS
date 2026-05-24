@@ -19,13 +19,12 @@ struct SpotShellRootView: View {
         }
         .animation(.easeInOut(duration: 0.2), value: viewModel.presentationPhase)
         .task {
-            if viewModel.state == .idle {
+            if viewModel.previewState == .idle {
                 await viewModel.onAppear()
             }
         }
         .onAppear {
-            // task가 발화 안 하는 hosting 환경 대비 안전망
-            if viewModel.state == .idle {
+            if viewModel.previewState == .idle {
                 Task { await viewModel.onAppear() }
             }
         }
@@ -33,14 +32,14 @@ struct SpotShellRootView: View {
 
     @ViewBuilder
     private var sheetMediumContent: some View {
-        switch viewModel.state {
+        switch viewModel.previewState {
         case .idle, .loading:
             loadingPlaceholder
         case let .failed(message):
             errorPlaceholder(message: message)
-        case let .loaded(spot):
+        case let .loaded(preview):
             SpotDetailSheetContentView(
-                spot: spot,
+                preview: preview,
                 isBookmarked: viewModel.isBookmarked,
                 onClose: onDismiss,
                 onRoute: viewModel.openNaverMapsRoute,
@@ -100,13 +99,11 @@ struct SpotShellRootView: View {
 }
 
 #Preview("Medium Sheet — 주소 펼침/저장됨") {
-    @Previewable @StateObject var viewModel = SpotDetailDebugFactory.makeViewModel(spotId: 1)
-
     ZStack(alignment: .bottom) {
         Color.black.opacity(0.4).ignoresSafeArea()
         SheetChromeView {
             SpotDetailSheetContentView(
-                spot: SpotDetailDebugFixture.spot,
+                preview: SpotDetailDebugFixture.preview,
                 isBookmarked: true,
                 initialAddressExpanded: true
             )

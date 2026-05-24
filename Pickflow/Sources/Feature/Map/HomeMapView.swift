@@ -33,10 +33,12 @@ enum MoodFilter: String, CaseIterable, Sendable {
 struct HomeMapView: View {
     @State private var selectedMood: MoodFilter? = nil
     @State private var mapListMode: MapListMode = .map
-    @State private var isAddPlacePresented = false
+    @Binding var isAddPlacePresented: Bool
+    @Binding var isSpotDetailPresented: Bool
     @StateObject var clusteringViewModel: MapClusteringViewModel
     @State private var isSpotDetailSheetPresented = false
     @State private var selectedSpotVM: SpotDetailViewModel?
+    @State private var listDetailVM: SpotDetailViewModel?
     // FIXME(§13a): selectedMood ↔ SpotListViewModel.selectedTheme 양방향 동기화 별도 PR
     @StateObject private var spotList = SpotListViewModel(
         spotListService: getSpotListService(),
@@ -50,42 +52,17 @@ struct HomeMapView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
-                NaverMapView(
-                    spots: clusteringViewModel.state.spots,
-                    mySpots: clusteringViewModel.mySpots,
-                    selectedSpotId: clusteringViewModel.selectedSpotId,
-                    onViewportChange: { viewport in
-                        Task { await clusteringViewModel.viewportChanged(viewport) }
-                    },
-                    onSpotTap: { spotId in
-                        clusteringViewModel.spotMarkerTapped(spotId)
-                        #if DEBUG
-                        let isMine = clusteringViewModel.mySpots.contains { $0.id == spotId }
-                        selectedSpotVM = isMine
-                            ? SpotDetailDebugFactory.makeMyViewModel(spotId: spotId)
-                            : SpotDetailDebugFactory.makeViewModel(spotId: spotId)
-                        isSpotDetailSheetPresented = true
-                        #endif
-                    },
-                    onMapBackgroundTap: {
-                        clusteringViewModel.mapBackgroundTapped()
-                    }
-                )
-                .ignoresSafeArea()
-                .onChange(of: selectedMood) { _, mood in
-                    Task { await clusteringViewModel.themeChanged(mood?.rawValue) }
-                    // 무드 필터 지도-리스트 공유 (§13(a)): mood 변화 시 SpotListViewModel 도 갱신
-                    Task { await spotList.themeSynced(mood?.spotTheme) }
-                }
-
                 // MARK: - List overlay (지도 전체를 덮음, 헤더는 그 위에 오버레이)
                 if mapListMode == .list {
                     // 헤더 bottom 으로부터 8pt 간격 — Padding.containerTop + topBarHeight + 8
                     SpotListView(
                         viewModel: spotList,
-                        contentTopInset: Padding.containerTop + topBarHeight + 8
+                        contentTopInset: Padding.containerTop + topBarHeight + 8,
+                        onCellTap: { spotId in
+                            listDetailVM = makeSpotDetailViewModel(spotId: spotId)
+                            isSpotDetailPresented = true
+                        }
                     )
-                    .ignoresSafeArea(edges: .bottom)
                     .transition(.opacity)
                 }
 
@@ -135,7 +112,7 @@ struct HomeMapView: View {
                             Spacer()
                             trailingControls
                                 .padding(.trailing, Padding.containerHorizontal)
-                                .padding(.bottom, Padding.containerBottom)
+                                .padding(.bottom, Padding.containerBottom + CustomTabBar.height)
                         }
                     }
                 }
@@ -144,13 +121,49 @@ struct HomeMapView: View {
                 VStack {
                     Spacer()
                     MapListToggle(selectedMode: $mapListMode)
-                        .padding(.bottom, Padding.containerBottom)
+                        .padding(.bottom, Padding.containerBottom + CustomTabBar.height)
                 }
             }
-            .navigationDestination(isPresented: $isAddPlacePresented) {
-                AddPlaceDummyView()
+            .background {
+                // NaverMapView 만 풀블리드로 그리고, 위 ZStack 본체는 safe area 안 layout 유지.
+                // .background 의 자식은 부모 layout 에 영향 주지 않으므로 GeometryReader 불필요.
+                NaverMapView(
+                    spots: clusteringViewModel.state.spots,
+                    mySpots: clusteringViewModel.mySpots,
+                    selectedSpotId: clusteringViewModel.selectedSpotId,
+                    onViewportChange: { viewport in
+                        Task { await clusteringViewModel.viewportChanged(viewport) }
+                    },
+                    onSpotTap: { spotId in
+                        clusteringViewModel.spotMarkerTapped(spotId)
+                        presentSpotDetail(spotId: spotId)
+                    },
+                    onMapBackgroundTap: {
+                        clusteringViewModel.mapBackgroundTapped()
+                    }
+                )
+                .ignoresSafeArea()
             }
-            #if DEBUG
+            .onChange(of: selectedMood) { _, mood in
+                Task { await clusteringViewModel.themeChanged(mood?.spotTheme.apiCode) }
+                // 무드 필터 지도-리스트 공유 (§13(a)): mood 변화 시 SpotListViewModel 도 갱신
+                Task { await spotList.themeSynced(mood?.spotTheme) }
+            }
+            .navigationDestination(isPresented: $isAddPlacePresented) {
+                SpotRegistrationAssembly.make { _ in
+                    isAddPlacePresented = false
+                }
+            }
+            .fullScreenCover(
+                isPresented: Binding(
+                    get: { listDetailVM != nil },
+                    set: { if !$0 { listDetailVM = nil; isSpotDetailPresented = false } }
+                )
+            ) {
+                if let vm = listDetailVM {
+                    SpotDetailView(viewModel: vm)
+                }
+            }
             .spotBottomSheet(isPresented: $isSpotDetailSheetPresented, viewModel: selectedSpotVM) {
                 if let vm = selectedSpotVM {
                     SpotShellRootView(viewModel: vm) {
@@ -163,8 +176,29 @@ struct HomeMapView: View {
                     clusteringViewModel.mapBackgroundTapped()
                 }
             }
-            #endif
         }
+    }
+
+    // MARK: - Detail Presentation
+
+    private func presentSpotDetail(spotId: Int64) {
+        selectedSpotVM = makeSpotDetailViewModel(spotId: spotId)
+        isSpotDetailSheetPresented = true
+    }
+
+    private func makeSpotDetailViewModel(spotId: Int64) -> SpotDetailViewModel {
+        SpotDetailViewModel(
+            spotId: spotId,
+            spotService: getSpotService(),
+            bookmarkService: getBookmarkService(),
+            shareIntentService: getShareIntentService(),
+            locationService: getLocationService(),
+            externalAppLauncher: getExternalAppLauncher(),
+            shareSheetPresenter: getShareSheetPresenter(),
+            deviceIdProvider: {
+                UIDevice.current.identifierForVendor?.uuidString ?? ""
+            }
+        )
     }
 
     // MARK: - Top Bar
@@ -288,5 +322,9 @@ extension View {
     }
 }
 #Preview {
-    HomeMapView(clusteringViewModel: MapClusteringViewModel(clusteringService: getClusteringService()))
+    HomeMapView(
+        isAddPlacePresented: .constant(false),
+        isSpotDetailPresented: .constant(false),
+        clusteringViewModel: MapClusteringViewModel(clusteringService: getClusteringService())
+    )
 }

@@ -3,7 +3,7 @@ import SwiftUI
 struct CongestionInfoPopup: View {
     let onDismiss: () -> Void
 
-    private let levels: [(level: Congestion, range: String, description: String)] = [
+    private let levels: [(level: CongestionLevel, range: String, description: String)] = [
         (.relaxed,         "50% 이하",  "인구가 평소와 비교하여 적음"),
         (.normal,          "50~75%",   "인구가 평소와 비교하여 비슷함"),
         (.slightlyCrowded, "75~100%",  "인구가 평소와 비교하여 많음"),
@@ -32,7 +32,7 @@ struct CongestionInfoPopup: View {
                 ForEach(levels, id: \.level) { item in
                     VStack(alignment: .leading, spacing: 6) {
                         HStack(spacing: 8) {
-                            Text(item.level.rawValue)
+                            Text(item.level.displayName)
                                 .pretendard(.heading(.large))
                                 .foregroundStyle(.gray0)
                             Text(item.range)
