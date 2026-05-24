@@ -243,7 +243,7 @@ final class ArchiveSnapshotTests: XCTestCase {
     private func signedOutContentScreen(isLoading: Bool) -> some View {
         ZStack {
             UIAsset.Colors.gray95.color.ignoresSafeArea()
-            ArchiveSignedOutContent(isLoading: isLoading)
+            ArchiveSignedOutContent()
         }
         .snapshotEnvironment(colorScheme: .dark)
     }

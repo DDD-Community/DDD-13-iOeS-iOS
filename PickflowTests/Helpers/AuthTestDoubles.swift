@@ -48,22 +48,6 @@ final class MockAppleAuthProvider: AppleAuthProviderProtocol, @unchecked Sendabl
     }
 }
 
-final class MockSocialLoginService: SocialLoginServiceProtocol, @unchecked Sendable {
-    var kakaoError: (any Error)?
-    var appleError: (any Error)?
-    private(set) var kakaoCallCount = 0
-    private(set) var appleCallCount = 0
-
-    func signInWithKakao() async throws {
-        kakaoCallCount += 1
-        if let kakaoError { throw kakaoError }
-    }
-
-    func signInWithApple() async throws {
-        appleCallCount += 1
-        if let appleError { throw appleError }
-    }
-}
 
 final class MockTokenStore: TokenStoreProtocol, @unchecked Sendable {
     var saveError: (any Error)?
