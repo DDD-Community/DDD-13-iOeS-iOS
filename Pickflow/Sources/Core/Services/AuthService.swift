@@ -54,7 +54,7 @@ final class AuthService: AuthServiceProtocol, Sendable {
         }
 
         do {
-            let _: EmptyResponse = try await networkManager.requestJSON(
+            let _: ApiResponse<String> = try await networkManager.requestJSON(
                 endpoint: AuthEndpoint.logout(refreshToken: refreshToken)
             )
             try? tokenStore.clear()
