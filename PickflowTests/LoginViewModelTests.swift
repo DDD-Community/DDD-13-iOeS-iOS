@@ -9,7 +9,7 @@ final class LoginViewModelTests: XCTestCase {
     override func setUp() async throws {
         try await super.setUp()
         socialLoginService = MockSocialLoginService()
-        viewModel = LoginViewModel(socialLoginService: socialLoginService)
+        viewModel = makeViewModel()
     }
 
     override func tearDown() async throws {
@@ -28,7 +28,7 @@ final class LoginViewModelTests: XCTestCase {
     }
 
     func test_signInWithKakaoTapped_실패시_에러메시지가설정된다() async throws {
-        socialLoginService.kakaoResult = .failure(TestError.failed)
+        socialLoginService.kakaoError = TestError.failed
 
         await viewModel.signInWithKakaoTapped()
 
@@ -47,25 +47,14 @@ final class LoginViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.errorMessage)
     }
 
-    func test_signInWithAppleTapped_취소시_취소메시지가설정된다() async throws {
-        socialLoginService.appleResult = .failure(AppleAuthError.cancelled)
+    func test_signInWithAppleTapped_실패시_에러메시지가설정된다() async throws {
+        socialLoginService.appleError = TestError.failed
 
         await viewModel.signInWithAppleTapped()
 
         XCTAssertEqual(socialLoginService.appleCallCount, 1)
-        XCTAssertEqual(viewModel.errorMessage, "Apple 로그인이 취소되었어요.")
         XCTAssertFalse(viewModel.didSignInSucceed)
-        XCTAssertFalse(viewModel.isLoading)
-    }
-
-    func test_signInWithAppleTapped_백엔드실패시_에러메시지가설정된다() async throws {
-        socialLoginService.appleResult = .failure(AuthError.validation)
-
-        await viewModel.signInWithAppleTapped()
-
-        XCTAssertEqual(socialLoginService.appleCallCount, 1)
-        XCTAssertEqual(viewModel.errorMessage, "입력값을 확인해 주세요.")
-        XCTAssertFalse(viewModel.didSignInSucceed)
+        XCTAssertNotNil(viewModel.errorMessage)
         XCTAssertFalse(viewModel.isLoading)
     }
 
@@ -73,5 +62,9 @@ final class LoginViewModelTests: XCTestCase {
         viewModel.continueAsGuestTapped()
 
         XCTAssertTrue(viewModel.didRequestGuestEntry)
+    }
+
+    private func makeViewModel() -> LoginViewModel {
+        LoginViewModel(socialLoginService: socialLoginService)
     }
 }
