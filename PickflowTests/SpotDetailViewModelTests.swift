@@ -42,6 +42,7 @@ final class SpotDetailViewModelTests: XCTestCase {
 
     func test_onAppear_상세조회성공_상태가loaded로전환된다() async throws {
         await viewModel.onAppear()
+        await loadDetail()
 
         XCTAssertEqual(viewModel.detailState, .loaded(.fixture()))
         XCTAssertFalse(viewModel.isBookmarked)
@@ -51,6 +52,7 @@ final class SpotDetailViewModelTests: XCTestCase {
         spotService.result = .failure(TestError.failed)
 
         await viewModel.onAppear()
+        await loadDetail()
 
         guard case let .failed(message) = viewModel.detailState else {
             return XCTFail("Expected failed state")
@@ -62,10 +64,42 @@ final class SpotDetailViewModelTests: XCTestCase {
         locationService.result = .failure(TestError.failed)
 
         await viewModel.onAppear()
+        await loadDetail()
 
         XCTAssertEqual(spotService.requests.first?.id, 1)
         XCTAssertNil(spotService.requests.first?.latitude)
         XCTAssertNil(spotService.requests.first?.longitude)
+    }
+
+    func test_onAppear_detail은즉시fetch되지않고preview만로드된다() async throws {
+        await viewModel.onAppear()
+
+        XCTAssertEqual(viewModel.detailState, .idle)
+        XCTAssertTrue(spotService.requests.isEmpty, "detail requests should be empty before sheet large")
+    }
+
+    func test_updateDetent_large_detail이fetch된다() async throws {
+        await viewModel.onAppear()
+
+        viewModel.updateDetent(.large)
+        await loadDetail()
+
+        XCTAssertEqual(viewModel.detailState, .loaded(.fixture()))
+        XCTAssertEqual(spotService.requests.count, 1)
+    }
+
+    func test_updateDetent_large_이미loaded면_detail재호출하지않는다() async throws {
+        await viewModel.onAppear()
+        viewModel.updateDetent(.large)
+        await loadDetail()
+        XCTAssertEqual(spotService.requests.count, 1)
+
+        viewModel.updateDetent(.medium)
+        viewModel.updateDetent(.large)
+        await Task.yield()
+        await Task.yield()
+
+        XCTAssertEqual(spotService.requests.count, 1, "detail must be cached")
     }
 
     func test_toggleBookmark_비로그인시_isLoginRequired가true로설정된다() async throws {
@@ -80,6 +114,7 @@ final class SpotDetailViewModelTests: XCTestCase {
 
     func test_toggleBookmark_미북마크상태에서_낙관적으로true가되고_POST가호출된다() async throws {
         await viewModel.onAppear()
+        await loadDetail()
 
         await viewModel.toggleBookmark()
 
@@ -90,6 +125,7 @@ final class SpotDetailViewModelTests: XCTestCase {
     func test_toggleBookmark_API실패시_상태가롤백되고toast가설정된다() async throws {
         bookmarkService.addError = TestError.failed
         await viewModel.onAppear()
+        await loadDetail()
 
         await viewModel.toggleBookmark()
 
@@ -100,6 +136,7 @@ final class SpotDetailViewModelTests: XCTestCase {
     func test_toggleBookmark_409Conflict는성공으로처리된다() async throws {
         bookmarkService.addError = BookmarkError.alreadyBookmarked
         await viewModel.onAppear()
+        await loadDetail()
 
         await viewModel.toggleBookmark()
 
@@ -110,6 +147,7 @@ final class SpotDetailViewModelTests: XCTestCase {
     func test_toggleBookmark_북마크상태에서_낙관적으로false가되고_DELETE가호출된다() async throws {
         spotService.result = .success(.fixture(isBookmarked: true))
         await viewModel.onAppear()
+        await loadDetail()
 
         await viewModel.toggleBookmark()
 
@@ -119,6 +157,7 @@ final class SpotDetailViewModelTests: XCTestCase {
 
     func test_openNaverMapsRoute_네이버지도설치되어있으면_nmap스킴URL을연다() async throws {
         await viewModel.onAppear()
+        await loadDetail()
 
         viewModel.openNaverMapsRoute()
 
@@ -128,6 +167,7 @@ final class SpotDetailViewModelTests: XCTestCase {
     func test_openNaverMapsRoute_네이버지도미설치면_AppStoreURL을연다() async throws {
         externalAppLauncher.isNaverMapInstalled = false
         await viewModel.onAppear()
+        await loadDetail()
 
         viewModel.openNaverMapsRoute()
 
@@ -136,6 +176,7 @@ final class SpotDetailViewModelTests: XCTestCase {
 
     func test_share_share_intents가호출되고_shareSheet가표시된다() async throws {
         await viewModel.onAppear()
+        await loadDetail()
 
         viewModel.share()
         await waitForShareIntent()
@@ -148,6 +189,7 @@ final class SpotDetailViewModelTests: XCTestCase {
     func test_share_share_intents_API실패시에도_shareSheet는표시된다() async throws {
         shareIntentService.error = TestError.failed
         await viewModel.onAppear()
+        await loadDetail()
 
         viewModel.share()
         await waitForShareIntent()
@@ -163,6 +205,7 @@ final class SpotDetailViewModelTests: XCTestCase {
 
     func test_reportInvalidInfo_신고API가호출되고성공토스트가설정된다() async {
         await viewModel.onAppear()
+        await loadDetail()
 
         viewModel.reportInvalidInfo()
         await waitForReport()
@@ -174,6 +217,7 @@ final class SpotDetailViewModelTests: XCTestCase {
     func test_reportInvalidInfo_API실패시_실패토스트가설정된다() async {
         spotService.reportError = TestError.failed
         await viewModel.onAppear()
+        await loadDetail()
 
         viewModel.reportInvalidInfo()
         await waitForReport()
@@ -207,6 +251,14 @@ final class SpotDetailViewModelTests: XCTestCase {
             deviceIdProvider: { "device-1" },
             clock: { Date(timeIntervalSince1970: 0) }
         )
+    }
+
+    /// 새 lazy detail 로딩 정책에 맞춰, large detent 트리거 후 detail load 완료를 대기.
+    private func loadDetail() async {
+        viewModel.updateDetent(.large)
+        for _ in 0..<100 where viewModel.detailState == .idle || viewModel.detailState == .loading {
+            await Task.yield()
+        }
     }
 
     private func waitForShareIntent() async {

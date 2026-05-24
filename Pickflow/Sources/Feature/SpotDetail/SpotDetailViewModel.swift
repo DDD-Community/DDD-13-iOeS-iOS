@@ -66,35 +66,20 @@ final class SpotDetailViewModel: ObservableObject {
 
     func onAppear() async {
         previewState = .loading
-        detailState = .loading
 
         let coordinate = try? await locationService.currentLocation()
 
-        async let previewTask = spotService.fetchSpotPreview(
-            id: spotId,
-            latitude: coordinate?.latitude,
-            longitude: coordinate?.longitude
-        )
-        async let detailTask = spotService.fetchSpotDetail(
-            id: spotId,
-            latitude: coordinate?.latitude,
-            longitude: coordinate?.longitude
-        )
-
         do {
-            let preview = try await previewTask
+            let preview = try await spotService.fetchSpotPreview(
+                id: spotId,
+                latitude: coordinate?.latitude,
+                longitude: coordinate?.longitude
+            )
             previewState = .loaded(preview)
         } catch {
             previewState = .failed(error.localizedDescription)
         }
-
-        do {
-            let spot = try await detailTask
-            isBookmarked = spot.isBookmarked
-            detailState = .loaded(spot)
-        } catch {
-            detailState = .failed(error.localizedDescription)
-        }
+        // detailState 는 .idle 유지 — sheet large 진입 시 loadDetailIfNeeded() 가 트리거.
     }
 
     func loadDetailIfNeeded() {
