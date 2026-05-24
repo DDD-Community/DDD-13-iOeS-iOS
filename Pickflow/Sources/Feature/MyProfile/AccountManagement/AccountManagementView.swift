@@ -6,6 +6,7 @@ struct AccountManagementView: View {
     @Environment(\.dismiss) private var dismiss
 
     var onLoggedOut: () -> Void = {}
+    var onSaved: () -> Void = {}
 
     @State private var isShowingWithdrawal = false
     @State private var photosPickerItem: PhotosPickerItem?
@@ -56,6 +57,12 @@ struct AccountManagementView: View {
         .onChange(of: viewModel.logoutState) { _, newState in
             if case .done = newState {
                 onLoggedOut()
+                dismiss()
+            }
+        }
+        .onChange(of: viewModel.saveState) { _, newState in
+            if case .saved = newState {
+                onSaved()
                 dismiss()
             }
         }

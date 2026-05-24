@@ -61,7 +61,8 @@ struct MyProfileView: View {
                     userService: viewModel.userService,
                     authService: viewModel.authService
                 ),
-                onLoggedOut: { viewModel.handleSignedOut() }
+                onLoggedOut: { viewModel.handleSignedOut() },
+                onSaved: { Task { await viewModel.refresh() } }
             )
         }
     }
