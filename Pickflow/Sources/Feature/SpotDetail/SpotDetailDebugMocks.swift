@@ -1,6 +1,7 @@
 #if DEBUG
 import CoreLocation
 import Foundation
+import UIKit
 
 enum SpotDetailDebugFixture {
     static let spot = SpotDetail(
@@ -107,6 +108,20 @@ final class DebugLocationService: LocationServiceProtocol, Sendable {
 
 @MainActor
 enum SpotDetailDebugFactory {
+    /// 실제 네트워크 서비스를 사용하는 ViewModel (API integration 테스트용)
+    static func makeLiveViewModel(spotId: Int64) -> SpotDetailViewModel {
+        SpotDetailViewModel(
+            spotId: spotId,
+            spotService: getSpotService(),
+            bookmarkService: getBookmarkService(),
+            shareIntentService: getShareIntentService(),
+            locationService: getLocationService(),
+            externalAppLauncher: getExternalAppLauncher(),
+            shareSheetPresenter: getShareSheetPresenter(),
+            deviceIdProvider: { UIDevice.current.identifierForVendor?.uuidString ?? "unknown" }
+        )
+    }
+
     static func makeViewModel(spotId: Int64) -> SpotDetailViewModel {
         SpotDetailViewModel(
             spotId: spotId,

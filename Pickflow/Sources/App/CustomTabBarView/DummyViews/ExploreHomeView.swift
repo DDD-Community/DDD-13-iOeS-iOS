@@ -9,6 +9,7 @@ struct ExploreHomeView: View {
     @State private var isArchiveEmptyPresented = false
     @State private var isSpotDetailSheetPresented = false
     @State private var isMySpotDetailSheetPresented = false
+    @State private var isKAN86SheetPresented = false
     @StateObject private var spotDetailSheetVM: SpotDetailViewModel = SpotDetailDebugFactory.makeViewModel(spotId: 1)
     @StateObject private var mySpotDetailSheetVM: SpotDetailViewModel = SpotDetailDebugFactory.makeMyViewModel(spotId: 2)
     #endif
@@ -80,6 +81,19 @@ struct ExploreHomeView: View {
                     SpotShellRootView(viewModel: mySpotDetailSheetVM) {
                         isMySpotDetailSheetPresented = false
                     }
+                }
+
+                Button("🧪 스팟 상세 API 연동 (KAN-86) — spotId: 2") {
+                    isKAN86SheetPresented = true
+                }
+                .pretendard(.body(.medium(.bold)))
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(.sunsetOrange)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .fullScreenCover(isPresented: $isKAN86SheetPresented) {
+                    SpotDetailView(viewModel: SpotDetailDebugFactory.makeLiveViewModel(spotId: 29))
                 }
                 #endif
 
