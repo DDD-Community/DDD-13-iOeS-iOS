@@ -40,6 +40,14 @@ struct AccountManagementView: View {
                     isLoading: true
                 )
             }
+
+            if case .saving = viewModel.saveState {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                ProgressView()
+                    .tint(.white)
+                    .scaleEffect(1.4)
+            }
         }
         .navigationBarHidden(true)
         .task {
@@ -99,13 +107,13 @@ struct AccountManagementView: View {
                 Text("저장")
                     .pretendard(.body(.medium(.bold)))
                     .foregroundStyle(
-                        viewModel.isSaveEnabled
+                        viewModel.isSaveEnabled && viewModel.saveState != .saving
                             ? UIAsset.Colors.sunsetOrange.color
                             : UIAsset.Colors.gray50.color
                     )
             }
             .buttonStyle(.plain)
-            .disabled(!viewModel.isSaveEnabled)
+            .disabled(!viewModel.isSaveEnabled || viewModel.saveState == .saving)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 14)
