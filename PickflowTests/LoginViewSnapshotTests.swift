@@ -141,11 +141,6 @@ final class LoginViewSnapshotTests: XCTestCase {
     }
 
     private func makeViewModel() -> LoginViewModel {
-        LoginViewModel(
-            authService: MockAuthService(),
-            kakaoAuthProvider: MockKakaoAuthProvider(),
-            appleAuthProvider: MockAppleAuthProvider(),
-            tokenStore: MockTokenStore()
-        )
+        LoginViewModel(socialLoginService: MockSocialLoginService())
     }
 }

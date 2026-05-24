@@ -8,11 +8,13 @@ struct ContentView: View {
     @State private var savedPath = NavigationPath()
     @StateObject private var clusteringViewModel: MapClusteringViewModel
     @StateObject private var myProfileViewModel: MyProfileViewModel
+    @StateObject private var archiveViewModel: ArchiveViewModel
 
     init(
         initialTab: Tab = .explore,
         clusteringViewModel: MapClusteringViewModel? = nil,
         myProfileViewModel: MyProfileViewModel? = nil,
+        archiveViewModel: ArchiveViewModel? = nil
     ) {
         _selectedTab = State(initialValue: initialTab)
         _myProfileViewModel = StateObject(wrappedValue: myProfileViewModel ?? MyProfileViewModel(
@@ -20,9 +22,17 @@ struct ContentView: View {
             authService: getAuthService(),
             socialLoginService: getSocialLoginService()
         ))
+      
         _clusteringViewModel = StateObject(wrappedValue: clusteringViewModel ?? MapClusteringViewModel(
             clusteringService: getClusteringService())
         )
+      
+        _archiveViewModel = StateObject(wrappedValue: archiveViewModel ?? ArchiveViewModel(
+            archiveService: getArchiveService(),
+            bookmarkService: getBookmarkService(),
+            authService: getAuthService(),
+            socialLoginService: getSocialLoginService()
+        ))
     }
 
     private var isTabBarVisible: Bool {
@@ -45,10 +55,10 @@ struct ContentView: View {
                 }
             case .saved:
                 NavigationStack(path: $savedPath) {
-                    SavedHomeView()
-                        .navigationDestination(for: DummyRoute.self) { route in
-                            DetailDummyView(route: route)
-                        }
+                    ArchiveView(
+                        viewModel: archiveViewModel,
+                        onExploreTap: { selectedTab = .explore }
+                    )
                 }
             case .my:
                 NavigationStack {
