@@ -12,7 +12,7 @@ final class SpotDetailSnapshotTests: XCTestCase {
 
     private let defaultSpot = SpotDetail.fixture()
     private let bookmarkedSpot = SpotDetail.fixture(isBookmarked: true)
-    private let mineSpot = SpotDetail.fixture(isMine: true)
+    private let mineSpot = SpotDetail.fixture(isMySpot: true)
     private let reflectionSpot = SpotDetail.fixture(theme: .reflection)
     private let noImageSpot = SpotDetail.fixture(imageURL: nil)
     private let longCommentSpot = SpotDetail.fixture(comment: "걷다 보면 멀리 노을이 번져요.\n하늘 비율을 크게 잡아보세요.\n이 구간은 특히 빛이 아름답습니다.")
@@ -224,11 +224,11 @@ final class SpotDetailSnapshotTests: XCTestCase {
                             address: spot.address
                         )
                         SpotActionButtons(
-                            isMine: spot.isMine,
+                            isMine: spot.isMySpot,
                             isBookmarked: isBookmarked,
                             onRoute: {}, onBookmark: {}, onOpenSpot: {}
                         )
-                        SpotRealTimeInfoSection(weather: spot.weather, isMine: spot.isMine)
+                        SpotRealTimeInfoSection(weather: spot.weather, isMine: spot.isMySpot)
                         ReportButton(action: {})
                     }
                     .padding(.horizontal, 16)
@@ -270,7 +270,7 @@ final class SpotDetailSnapshotTests: XCTestCase {
     }
 
     private func realtimeView(spot: SpotDetail) -> some View {
-        SpotRealTimeInfoSection(weather: spot.weather, isMine: spot.isMine)
+        SpotRealTimeInfoSection(weather: spot.weather, isMine: spot.isMySpot)
             .padding(16)
             .background(UIAsset.Colors.gray95.color)
     }

@@ -36,7 +36,7 @@ struct SpotDetailSheetContentView: View {
                 Text(spot.name)
                     .pretendard(.heading(.large))
                     .foregroundStyle(.gray5)
-                if spot.isMine {
+                if spot.isMySpot {
                     mySpotBadge
                 }
                 Spacer(minLength: 0)
@@ -67,7 +67,7 @@ struct SpotDetailSheetContentView: View {
             })
             
             SpotBottomSheetActionButtons(
-                isMine: spot.isMine,
+                isMine: spot.isMySpot,
                 isBookmarked: isBookmarked,
                 onRoute: onRoute,
                 onBookmark: onBookmark
@@ -93,10 +93,6 @@ struct SpotDetailSheetContentView: View {
     @ViewBuilder
     private func distanceAndAddressRow(spot: SpotDetail) -> some View {
         HStack(spacing: 6) {
-            Text(distanceText(spot.distance))
-                .pretendard(.body(.medium(.bold)))
-                .foregroundStyle(.gray10)
-            dotSeparator
             Button {
                 withAnimation(.easeInOut(duration: 0.2)) { isAddressExpanded.toggle() }
             } label: {
@@ -121,11 +117,6 @@ struct SpotDetailSheetContentView: View {
         Circle()
             .fill(UIAsset.Colors.gray50.swiftUIColor)
             .frame(width: 3, height: 3)
-    }
-
-    private func distanceText(_ distance: Double?) -> String {
-        guard let distance else { return "-" }
-        return String(format: "%.1fkm", distance)
     }
 
     @ViewBuilder

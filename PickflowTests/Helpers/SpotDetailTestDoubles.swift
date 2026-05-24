@@ -125,34 +125,30 @@ extension SpotDetail {
     static func fixture(
         isBookmarked: Bool = false,
         bookmarkCount: Int = 34,
-        isMine: Bool = false,
+        isMySpot: Bool = false,
         theme: SpotTheme = .sunset,
         imageURL: String? = "https://example.com/spot.jpg",
         comment: String = "걷다 보면 멀리 노을이 번져요."
     ) -> SpotDetail {
-        let images: [SpotImage] = imageURL.map {
-            [SpotImage(imageURL: $0, displayOrder: 0, recordedTime: "19:30")]
-        } ?? []
-        return SpotDetail(
+        SpotDetail(
             id: 1,
             name: "동작구 산책로",
             comment: comment,
             theme: theme,
             latitude: 37.501,
             longitude: 126.951,
-            distance: 2.5,
             address: "서울 동작구",
-            images: images,
+            imageUrl: imageURL,
+            recordedTime: imageURL != nil ? "19:30" : nil,
             isBookmarked: isBookmarked,
             bookmarkCount: bookmarkCount,
-            isMine: isMine,
+            isMySpot: isMySpot,
             weather: SpotWeather(
-                temperature: 22,
                 precipitationProbability: 15,
                 condition: .clear,
                 sunsetTime: "18:40",
                 congestion: .relaxed,
-                parking: isMine ? nil : "무료 주차장"
+                parking: isMySpot ? nil : "무료 주차장"
             )
         )
     }

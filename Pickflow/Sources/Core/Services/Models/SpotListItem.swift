@@ -79,6 +79,15 @@ extension SpotTheme {
         default: return nil
         }
     }
+
+    /// 스팟 상세 API 테마 코드 매핑 (`SUNSET`, `REFLECTION`)
+    init?(detailApiCode: String) {
+        switch detailApiCode {
+        case "SUNSET", "SS": self = .sunset
+        case "REFLECTION", "YS": self = .reflection
+        default: return nil
+        }
+    }
 }
 
 enum SpotListSort: String, Sendable, CaseIterable, Equatable {

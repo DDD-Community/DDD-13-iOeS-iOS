@@ -119,7 +119,7 @@ struct SpotDetailView: View {
                         address: spot.address
                     )
                     SpotActionButtons(
-                        isMine: spot.isMine,
+                        isMine: spot.isMySpot,
                         isBookmarked: viewModel.isBookmarked,
                         onRoute: viewModel.openNaverMapsRoute,
                         onBookmark: { Task { await viewModel.toggleBookmark() } },
@@ -127,7 +127,7 @@ struct SpotDetailView: View {
                     )
                     SpotRealTimeInfoSection(
                         weather: spot.weather,
-                        isMine: spot.isMine
+                        isMine: spot.isMySpot
                     )
                     ReportButton(action: { isReportSheetPresented = true })
                 }

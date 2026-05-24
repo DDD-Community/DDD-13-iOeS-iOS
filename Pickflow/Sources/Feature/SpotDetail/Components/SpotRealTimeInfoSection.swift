@@ -22,7 +22,7 @@ struct SpotRealTimeInfoSection: View {
                 .multilineTextAlignment(.center)
 
             VStack(alignment: .leading, spacing: 0) {
-                Text("\(DateFormatter.pickflowDisplayTime(from: weather.sunsetTime)) 기준 정보입니다.")
+                Text("\(updatedAtText) 기준 정보입니다.")
                     .pretendard(.body(.small()))
                     .foregroundStyle(.gray50)
                     .frame(maxWidth: .infinity, alignment: .trailing)
@@ -31,13 +31,13 @@ struct SpotRealTimeInfoSection: View {
                 infoRow(
                     iconName: "icSunny",
                     label: "현재 날씨",
-                    value: weather.condition.rawValue,
-                    sub: "강수확률 \(weather.precipitationProbability)%"
+                    value: weather.condition?.rawValue ?? "-",
+                    sub: weather.precipitationProbability.map { "강수확률 \($0)%" }
                 )
                 infoRow(
                     iconName: "icTwilight",
                     label: "일몰 시간",
-                    value: DateFormatter.pickflowDisplayTime(from: weather.sunsetTime),
+                    value: weather.sunsetTime.map { DateFormatter.pickflowDisplayTime(from: $0) } ?? "-",
                     sub: "오차 시간"
                 )
                 infoRow(
@@ -62,6 +62,10 @@ struct SpotRealTimeInfoSection: View {
             }
             .presentationBackground(.clear)
         }
+    }
+
+    private var updatedAtText: String {
+        weather.sunsetTime.map { DateFormatter.pickflowDisplayTime(from: $0) } ?? "-"
     }
 
     private static let whiteIconNames: Set<String> = ["icSunny", "icTwilight"]
@@ -97,7 +101,7 @@ struct SpotRealTimeInfoSection: View {
                     .pretendard(.body(.small()))
                     .foregroundStyle(.gray50)
                 HStack(spacing: 6) {
-                    Text(isMine ? "-" : weather.congestion.rawValue)
+                    Text(isMine ? "-" : (weather.congestion?.rawValue ?? "-"))
                         .pretendard(.heading(.large))
                         .foregroundStyle(.gray0)
                     Button {

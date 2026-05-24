@@ -8,7 +8,10 @@ final class SpotService: SpotServiceProtocol, Sendable {
     }
 
     func fetchSpotDetail(id: Int64, latitude: Double?, longitude: Double?) async throws -> SpotDetail {
-        try await networkManager.request(endpoint: SpotEndpoint.detail(spotId: id))
+        let envelope: APIEnvelope<SpotDetailDTO> = try await networkManager.request(
+            endpoint: SpotEndpoint.detail(spotId: id)
+        )
+        return SpotDetail(dto: envelope.data)
     }
   
     func registerSpot(draft: SpotRegistrationDraft) async throws -> SpotId {

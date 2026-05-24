@@ -7,16 +7,17 @@ struct SpotDetail: Codable, Sendable, Identifiable, Equatable {
     let theme: SpotTheme
     let latitude: Double
     let longitude: Double
-    let distance: Double?
     let address: String
-    let images: [SpotImage]
+    let imageUrl: String?
+    let recordedTime: String?
     let isBookmarked: Bool
     let bookmarkCount: Int
-    let isMine: Bool
+    let isMySpot: Bool
     let weather: SpotWeather
 
     var primaryImage: SpotImage? {
-        images.sorted { $0.displayOrder < $1.displayOrder }.first
+        guard let imageUrl else { return nil }
+        return SpotImage(imageURL: imageUrl, displayOrder: 0, recordedTime: recordedTime ?? "")
     }
 }
 
@@ -27,11 +28,10 @@ struct SpotImage: Codable, Sendable, Equatable {
 }
 
 struct SpotWeather: Codable, Sendable, Equatable {
-    let temperature: Int
-    let precipitationProbability: Int
-    let condition: WeatherCondition
-    let sunsetTime: String
-    let congestion: Congestion
+    let precipitationProbability: Int?
+    let condition: WeatherCondition?
+    let sunsetTime: String?
+    let congestion: Congestion?
     let parking: String?
 }
 

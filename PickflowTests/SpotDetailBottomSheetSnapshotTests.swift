@@ -57,7 +57,7 @@ final class SpotDetailBottomSheetSnapshotTests: XCTestCase {
     }
 
     func test_sheetContent_mySpot_dark() {
-        let mySpot = SpotDetail.fixture(isMine: true)
+        let mySpot = SpotDetail.fixture(isMySpot: true)
         let view = sheetContent(spot: mySpot, isBookmarked: false, expanded: false)
         assertSnapshot(of: view, as: .image(traits: Self.dark))
     }
@@ -95,14 +95,13 @@ private extension SpotDetail {
             theme: .reflection,
             latitude: 37.501,
             longitude: 126.951,
-            distance: 2.5,
             address: "서울 동작구",
-            images: [SpotImage(imageURL: "https://example.com/spot.jpg", displayOrder: 0, recordedTime: "19:30")],
+            imageUrl: "https://example.com/spot.jpg",
+            recordedTime: "19:30",
             isBookmarked: false,
             bookmarkCount: 34,
-            isMine: false,
+            isMySpot: false,
             weather: SpotWeather(
-                temperature: 22,
                 precipitationProbability: 15,
                 condition: .clear,
                 sunsetTime: "18:40",
