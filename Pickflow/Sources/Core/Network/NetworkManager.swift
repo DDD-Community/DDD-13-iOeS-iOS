@@ -21,10 +21,10 @@ final class NetworkManager: NetworkManagerProtocol, Sendable {
     private let decoder: JSONDecoder
 
     init(
-        session: Session = Session(interceptor: AuthInterceptor()),
+        interceptor: AuthInterceptor = AuthInterceptor(tokenStore: KeychainTokenStore()),
         decoder: JSONDecoder = .pickflow
     ) {
-        self.session = session
+        self.session = Session(interceptor: interceptor)
         self.decoder = decoder
     }
 

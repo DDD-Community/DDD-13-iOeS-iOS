@@ -13,11 +13,14 @@ final class AppContainer {
     }
 
     private func registerDependencies() {
-        container.register(NetworkManagerProtocol.self, scope: .container) { NetworkManager() }
         container.register(TokenStoreProtocol.self, scope: .container) { KeychainTokenStore() }
 
-        let networkManager: NetworkManagerProtocol = container.resolve(NetworkManagerProtocol.self)!
         let tokenStore: TokenStoreProtocol = container.resolve(TokenStoreProtocol.self)!
+        container.register(NetworkManagerProtocol.self, scope: .container) {
+            NetworkManager(interceptor: AuthInterceptor(tokenStore: tokenStore))
+        }
+
+        let networkManager: NetworkManagerProtocol = container.resolve(NetworkManagerProtocol.self)!
 
         container.register(UserServiceProtocol.self) { UserService(networkManager: networkManager) }
         container.register(AuthServiceProtocol.self) { AuthService(networkManager: networkManager, tokenStore: tokenStore) }
