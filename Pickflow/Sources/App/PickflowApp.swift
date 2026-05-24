@@ -17,9 +17,7 @@ struct PickflowApp: App {
         WindowGroup {
             AppRootView(
                 authService: container.container.resolve(AuthServiceProtocol.self)!,
-                kakaoAuthProvider: container.container.resolve(KakaoAuthProviderProtocol.self)!,
-                appleAuthProvider: container.container.resolve(AppleAuthProviderProtocol.self)!,
-                tokenStore: container.container.resolve(TokenStoreProtocol.self)!,
+                socialLoginService: container.container.resolve(SocialLoginServiceProtocol.self)!,
                 locationService: container.container.resolve(LocationServiceProtocol.self)!,
                 onboardingCompletionStore: container.container.resolve(OnboardingCompletionStore.self)!
             )

@@ -12,21 +12,23 @@ final class AuthService: AuthServiceProtocol, Sendable {
 
     // MARK: - AuthServiceProtocol
 
-    func signInWithKakao(kakaoAccessToken: String) async throws -> KakaoSignInResponse {
+    func signInWithKakao(accessToken: String) async throws -> TokenResponse {
         do {
-            return try await networkManager.requestJSON(
-                endpoint: AuthEndpoint.kakaoSignIn(token: kakaoAccessToken)
+            let response: ApiResponse<TokenResponse> = try await networkManager.requestJSON(
+                endpoint: AuthEndpoint.kakaoSignIn(accessToken: accessToken)
             )
+            return response.data
         } catch {
             throw Self.map(error)
         }
     }
 
-    func signInWithApple(identityToken: String, nonce: String) async throws -> AppleSignInResponse {
+    func signInWithApple(identityToken: String, user: AppleUserInfo?) async throws -> TokenResponse {
         do {
-            return try await networkManager.requestJSON(
-                endpoint: AuthEndpoint.appleSignIn(identityToken: identityToken, nonce: nonce)
+            let response: ApiResponse<TokenResponse> = try await networkManager.requestJSON(
+                endpoint: AuthEndpoint.appleSignIn(identityToken: identityToken, user: user)
             )
+            return response.data
         } catch {
             throw Self.map(error)
         }
@@ -34,9 +36,10 @@ final class AuthService: AuthServiceProtocol, Sendable {
 
     func refreshToken(_ refreshToken: String) async throws -> AuthToken {
         do {
-            return try await networkManager.requestJSON(
+            let response: ApiResponse<TokenResponse> = try await networkManager.requestJSON(
                 endpoint: AuthEndpoint.refresh(refreshToken: refreshToken)
             )
+            return AuthToken(accessToken: response.data.accessToken, refreshToken: response.data.refreshToken)
         } catch {
             throw Self.map(error)
         }
@@ -74,7 +77,6 @@ final class AuthService: AuthServiceProtocol, Sendable {
 
     // MARK: - Error Mapping
 
-    /// Alamofire/네트워크 에러를 앱 도메인 `AuthError`로 변환.
     private static func map(_ error: Error) -> AuthError {
         if let authError = error as? AuthError {
             return authError
