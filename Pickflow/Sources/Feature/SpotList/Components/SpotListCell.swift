@@ -5,52 +5,69 @@ struct SpotListCell: View {
     let isBookmarked: Bool
     let bookmarkCount: Int?
     let onBookmarkTap: () -> Void
+    var onCellTap: () -> Void = {}
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             thumbnailBox
             metaRow
         }
+        .contentShape(Rectangle())
+        .onTapGesture { onCellTap() }
     }
 
     // MARK: - Thumbnail
 
     private var thumbnailBox: some View {
+        // height:width 비율(aspect>1 이면 세로로 더 김). Masonry 효과를 위해 짝/홀 분기.
+        // 핵심: GeometryReader 로 부모가 주는 width 를 잠그고 height = width * aspect 로 강제.
+        // AsyncImage 의 intrinsic size 가 layout cascade 를 흔드는 것을 막는다.
         let aspect: CGFloat = item.spotId.isMultiple(of: 2) ? 1.2 : 0.9
-        return ZStack(alignment: .top) {
-            thumbnail
-                .aspectRatio(1.0 / aspect, contentMode: .fit)
-                .frame(maxWidth: .infinity)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-
-            HStack(alignment: .center) {
-                Spacer()
-                HStack(spacing: 4) {
-                    moodBadge
-                    if let distanceKm = item.distanceKm {
-                        distanceBadge(distanceKm)
+        return GeometryReader { proxy in
+            let w = proxy.size.width
+            let h = w * aspect
+            ZStack(alignment: .top) {
+                thumbnail(width: w, height: h)
+                HStack(alignment: .center) {
+                    Spacer()
+                    HStack(spacing: 4) {
+                        moodBadge
+                        if let distanceKm = item.distanceKm {
+                            distanceBadge(distanceKm)
+                        }
                     }
                 }
+                .padding(8)
             }
-            .padding(8)
+            .frame(width: w, height: h)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
         }
+        .aspectRatio(1.0 / aspect, contentMode: .fit)
     }
 
     @ViewBuilder
-    private var thumbnail: some View {
+    private func thumbnail(width: CGFloat, height: CGFloat) -> some View {
         ZStack {
             UIAsset.Colors.gray90.swiftUIColor
             if let urlString = item.thumbnailUrl, let url = URL(string: urlString) {
                 AsyncImage(url: url) { phase in
                     switch phase {
                     case let .success(image):
-                        image.resizable().scaledToFill()
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: width, height: height)
+                            .clipped()
                     default:
                         UIAsset.Colors.gray90.swiftUIColor
                     }
                 }
+                .frame(width: width, height: height)
+                .clipped()
             }
         }
+        .frame(width: width, height: height)
+        .clipped()
     }
 
     private var moodBadge: some View {

@@ -5,6 +5,7 @@ import UIKit
 struct ContentView: View {
     @State private var selectedTab: Tab
     @State private var isExploreAddPlacePresented = false
+    @State private var isExploreSpotDetailPresented = false
     @State private var savedPath = NavigationPath()
     @StateObject private var myProfileViewModel: MyProfileViewModel
 
@@ -19,7 +20,7 @@ struct ContentView: View {
 
     private var isTabBarVisible: Bool {
         switch selectedTab {
-        case .explore: !isExploreAddPlacePresented
+        case .explore: !isExploreAddPlacePresented && !isExploreSpotDetailPresented
         case .saved: savedPath.isEmpty
         case .my: !myProfileViewModel.isNavigatingToAccountManagement
         }
@@ -29,7 +30,10 @@ struct ContentView: View {
         Group {
             switch selectedTab {
             case .explore:
-                HomeMapView(isAddPlacePresented: $isExploreAddPlacePresented)
+                HomeMapView(
+                    isAddPlacePresented: $isExploreAddPlacePresented,
+                    isSpotDetailPresented: $isExploreSpotDetailPresented
+                )
             case .saved:
                 NavigationStack(path: $savedPath) {
                     SavedHomeView()

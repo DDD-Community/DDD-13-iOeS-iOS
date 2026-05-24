@@ -52,5 +52,5 @@ struct MapListToggle: View {
 }
 
 #Preview {
-    HomeMapView(isAddPlacePresented: .constant(false))
+    HomeMapView(isAddPlacePresented: .constant(false), isSpotDetailPresented: .constant(false))
 }

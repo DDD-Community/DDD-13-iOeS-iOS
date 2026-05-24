@@ -27,9 +27,11 @@ struct HomeMapView: View {
     @State private var selectedMood: MoodFilter? = nil
     @State private var mapListMode: MapListMode = .map
     @Binding var isAddPlacePresented: Bool
+    @Binding var isSpotDetailPresented: Bool
     @StateObject private var clustering = MapClusteringViewModel(clusteringService: getClusteringService())
     @State private var isSpotDetailSheetPresented = false
     @State private var selectedSpotVM: SpotDetailViewModel?
+    @State private var listDetailVM: SpotDetailViewModel?
     // FIXME(§13a): selectedMood ↔ SpotListViewModel.selectedTheme 양방향 동기화 별도 PR
     @StateObject private var spotList = SpotListViewModel(
         spotListService: getSpotListService(),
@@ -52,19 +54,7 @@ struct HomeMapView: View {
                     },
                     onSpotTap: { spotId in
                         clustering.spotMarkerTapped(spotId)
-                        selectedSpotVM = SpotDetailViewModel(
-                            spotId: spotId,
-                            spotService: getSpotService(),
-                            bookmarkService: getBookmarkService(),
-                            shareIntentService: getShareIntentService(),
-                            locationService: getLocationService(),
-                            externalAppLauncher: getExternalAppLauncher(),
-                            shareSheetPresenter: getShareSheetPresenter(),
-                            deviceIdProvider: {
-                                UIDevice.current.identifierForVendor?.uuidString ?? ""
-                            }
-                        )
-                        isSpotDetailSheetPresented = true
+                        presentSpotDetail(spotId: spotId)
                     },
                     onMapBackgroundTap: {
                         clustering.mapBackgroundTapped()
@@ -82,7 +72,11 @@ struct HomeMapView: View {
                     // 헤더 bottom 으로부터 8pt 간격 — Padding.containerTop + topBarHeight + 8
                     SpotListView(
                         viewModel: spotList,
-                        contentTopInset: Padding.containerTop + topBarHeight + 8
+                        contentTopInset: Padding.containerTop + topBarHeight + 8,
+                        onCellTap: { spotId in
+                            listDetailVM = makeSpotDetailViewModel(spotId: spotId)
+                            isSpotDetailPresented = true
+                        }
                     )
                     .ignoresSafeArea(edges: .bottom)
                     .transition(.opacity)
@@ -151,6 +145,17 @@ struct HomeMapView: View {
                     isAddPlacePresented = false
                 }
             }
+            .navigationDestination(
+                isPresented: Binding(
+                    get: { listDetailVM != nil },
+                    set: { if !$0 { listDetailVM = nil; isSpotDetailPresented = false } }
+                )
+            ) {
+                if let vm = listDetailVM {
+                    SpotDetailView(viewModel: vm)
+                        .navigationBarBackButtonHidden()
+                }
+            }
             .spotBottomSheet(isPresented: $isSpotDetailSheetPresented, viewModel: selectedSpotVM) {
                 if let vm = selectedSpotVM {
                     SpotShellRootView(viewModel: vm) {
@@ -164,6 +169,28 @@ struct HomeMapView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Detail Presentation
+
+    private func presentSpotDetail(spotId: Int64) {
+        selectedSpotVM = makeSpotDetailViewModel(spotId: spotId)
+        isSpotDetailSheetPresented = true
+    }
+
+    private func makeSpotDetailViewModel(spotId: Int64) -> SpotDetailViewModel {
+        SpotDetailViewModel(
+            spotId: spotId,
+            spotService: getSpotService(),
+            bookmarkService: getBookmarkService(),
+            shareIntentService: getShareIntentService(),
+            locationService: getLocationService(),
+            externalAppLauncher: getExternalAppLauncher(),
+            shareSheetPresenter: getShareSheetPresenter(),
+            deviceIdProvider: {
+                UIDevice.current.identifierForVendor?.uuidString ?? ""
+            }
+        )
     }
 
     // MARK: - Top Bar
@@ -286,5 +313,5 @@ extension View {
     }
 }
 #Preview {
-    HomeMapView(isAddPlacePresented: .constant(false))
+    HomeMapView(isAddPlacePresented: .constant(false), isSpotDetailPresented: .constant(false))
 }
