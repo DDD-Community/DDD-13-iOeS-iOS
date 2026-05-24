@@ -8,7 +8,8 @@ final class UserService: UserServiceProtocol, Sendable {
     }
 
     func fetchCurrentUser() async throws -> User {
-        return try await networkManager.requestJSON(endpoint: UserEndpoint.me)
+        let response: ApiResponse<User> = try await networkManager.requestJSON(endpoint: UserEndpoint.me)
+        return response.data
     }
 
     func updateProfile(nickname: String?, profileImageData: Data?) async throws -> User {

@@ -2,8 +2,6 @@ import SwiftUI
 
 struct MyProfileSignedInContent: View {
     let user: User
-    var savedSpotCount: Int = 0
-    var recordedSpotCount: Int = 0
     var onAccountManagementTap: () -> Void = {}
 
     var body: some View {
@@ -42,16 +40,6 @@ struct MyProfileSignedInContent: View {
                 Text(user.nickname)
                     .pretendard(.heading(.small))
                     .foregroundStyle(.gray0)
-
-                HStack(spacing: 4) {
-                    Circle()
-                        .fill(.sunsetOrange)
-                        .frame(width: 6, height: 6)
-
-                    Text(socialProviderLabel)
-                        .pretendard(.body(.small()))
-                        .foregroundStyle(.sunsetOrange)
-                }
             }
 
             Spacer()
@@ -68,19 +56,12 @@ struct MyProfileSignedInContent: View {
             .buttonStyle(.plain)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(user.nickname), \(socialProviderLabel)")
-    }
-
-    private var socialProviderLabel: String {
-        switch user.linkedSocialProvider {
-        case .kakao: return "카카오 계정 연결됨"
-        case .apple: return "Apple 계정 연결됨"
-        }
+        .accessibilityLabel(user.nickname)
     }
 
     @ViewBuilder
     private var profileImage: some View {
-        if let imageURL = user.profileImageURL {
+        if let urlString = user.profileImageUrl, let imageURL = URL(string: urlString) {
             AsyncImage(url: imageURL) { phase in
                 switch phase {
                 case let .success(image):
@@ -110,8 +91,8 @@ struct MyProfileSignedInContent: View {
 
     private var statsCards: some View {
         HStack(spacing: 12) {
-            statCard(title: "저장한 스팟", count: savedSpotCount)
-            statCard(title: "기록한 스팟", count: recordedSpotCount)
+            statCard(title: "저장한 스팟", count: user.savedSpotCount)
+            statCard(title: "기록한 스팟", count: user.recordedSpotCount)
         }
     }
 
@@ -211,6 +192,6 @@ struct MyProfileSignedInContent: View {
 #Preview {
     ZStack {
         UIAsset.Colors.gray95.color.ignoresSafeArea()
-        MyProfileSignedInContent(user: .fixture(), savedSpotCount: 2, recordedSpotCount: 0)
+        MyProfileSignedInContent(user: .fixture(savedSpotCount: 2, recordedSpotCount: 0))
     }
 }

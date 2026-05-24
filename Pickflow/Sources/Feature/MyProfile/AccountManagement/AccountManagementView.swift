@@ -165,7 +165,7 @@ struct AccountManagementView: View {
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .clipShape(Circle())
-        } else if let imageURL = viewModel.user?.profileImageURL {
+        } else if let urlString = viewModel.user?.profileImageUrl, let imageURL = URL(string: urlString) {
             AsyncImage(url: imageURL) { phase in
                 switch phase {
                 case let .success(image):
@@ -234,13 +234,7 @@ struct AccountManagementView: View {
         }
     }
 
-    private var socialProviderLabel: String {
-        switch viewModel.user?.linkedSocialProvider {
-        case .kakao: return "카카오로 로그인됨"
-        case .apple: return "Apple로 로그인됨"
-        case .none: return "—"
-        }
-    }
+    private var socialProviderLabel: String { "—" }
 
     // MARK: - Account Actions
 
