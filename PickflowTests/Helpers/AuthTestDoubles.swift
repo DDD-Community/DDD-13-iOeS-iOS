@@ -1,23 +1,6 @@
 import Foundation
 @testable import Pickflow
 
-final class MockSocialLoginService: SocialLoginServiceProtocol, @unchecked Sendable {
-    var kakaoError: (any Error)?
-    var appleError: (any Error)?
-    private(set) var kakaoCallCount = 0
-    private(set) var appleCallCount = 0
-
-    func signInWithKakao() async throws {
-        kakaoCallCount += 1
-        if let kakaoError { throw kakaoError }
-    }
-
-    func signInWithApple() async throws {
-        appleCallCount += 1
-        if let appleError { throw appleError }
-    }
-}
-
 final class MockAuthService: AuthServiceProtocol, @unchecked Sendable {
     var kakaoResult: Result<KakaoSignInResponse, any Error> = .success(.fixture(provider: .kakao))
     var appleResult: Result<AppleSignInResponse, any Error> = .success(.fixture(provider: .apple))

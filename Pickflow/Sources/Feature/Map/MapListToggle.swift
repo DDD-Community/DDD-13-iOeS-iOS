@@ -54,7 +54,3 @@ struct MapListToggle: View {
         }
     }
 }
-
-#Preview {
-    HomeMapView(isAddPlacePresented: .constant(false), isSpotDetailPresented: .constant(false))
-}

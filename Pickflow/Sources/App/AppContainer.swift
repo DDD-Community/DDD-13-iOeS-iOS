@@ -27,6 +27,8 @@ final class AppContainer {
         container.register(AddressServiceProtocol.self) { AddressService(networkManager: networkManager) }
         container.register(SpotServiceProtocol.self) { SpotService(networkManager: networkManager) }
         container.register(SpotListServiceProtocol.self) { SpotListService(networkManager: networkManager) }
+        // FIXME(KAN-53 임시): BE 미오픈 — Mock 사용. BE 오픈 시 ArchiveService(networkManager:)로 교체.
+        container.register(ArchiveServiceProtocol.self) { ArchiveMockService() }
         container.register(ClusteringServiceProtocol.self) { ClusteringService(networkManager: networkManager) }
         container.register(BookmarkServiceProtocol.self) { BookmarkService(networkManager: networkManager) }
         container.register(ShareIntentServiceProtocol.self) { ShareIntentService(networkManager: networkManager) }

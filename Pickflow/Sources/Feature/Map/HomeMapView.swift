@@ -3,14 +3,14 @@ import SwiftUI
 // 무드 필터 (노을/윤슬).
 enum MoodFilter: String, CaseIterable, Sendable {
     case sunset = "노을"
-    case ripple = "윤슬"
+    case reflection = "윤슬"
 
     var imageName: String {
         switch self {
         case .sunset:
-            "sunset"
-        case .ripple:
-            "sparklingRipple"
+            "icon_photo_category_sunset"
+        case .reflection:
+            "icon_photo_category_reflection"
         }
 
     }
@@ -18,7 +18,14 @@ enum MoodFilter: String, CaseIterable, Sendable {
     var spotTheme: SpotTheme {
         switch self {
         case .sunset: .sunset
-        case .ripple: .reflection
+        case .reflection: .reflection
+        }
+    }
+    
+    var apiCode: String {
+        switch self {
+        case .sunset: "SUNSET"
+        case .reflection: "YUNSEUL"
         }
     }
 }
@@ -28,7 +35,7 @@ struct HomeMapView: View {
     @State private var mapListMode: MapListMode = .map
     @Binding var isAddPlacePresented: Bool
     @Binding var isSpotDetailPresented: Bool
-    @StateObject private var clustering = MapClusteringViewModel(clusteringService: getClusteringService())
+    @StateObject var clusteringViewModel: MapClusteringViewModel
     @State private var isSpotDetailSheetPresented = false
     @State private var selectedSpotVM: SpotDetailViewModel?
     @State private var listDetailVM: SpotDetailViewModel?
@@ -121,24 +128,24 @@ struct HomeMapView: View {
                 // NaverMapView 만 풀블리드로 그리고, 위 ZStack 본체는 safe area 안 layout 유지.
                 // .background 의 자식은 부모 layout 에 영향 주지 않으므로 GeometryReader 불필요.
                 NaverMapView(
-                    spots: clustering.state.spots,
-                    mySpots: clustering.mySpots,
-                    selectedSpotId: clustering.selectedSpotId,
+                    spots: clusteringViewModel.state.spots,
+                    mySpots: clusteringViewModel.mySpots,
+                    selectedSpotId: clusteringViewModel.selectedSpotId,
                     onViewportChange: { viewport in
-                        Task { await clustering.viewportChanged(viewport) }
+                        Task { await clusteringViewModel.viewportChanged(viewport) }
                     },
                     onSpotTap: { spotId in
-                        clustering.spotMarkerTapped(spotId)
+                        clusteringViewModel.spotMarkerTapped(spotId)
                         presentSpotDetail(spotId: spotId)
                     },
                     onMapBackgroundTap: {
-                        clustering.mapBackgroundTapped()
+                        clusteringViewModel.mapBackgroundTapped()
                     }
                 )
                 .ignoresSafeArea()
             }
             .onChange(of: selectedMood) { _, mood in
-                Task { await clustering.themeChanged(mood?.spotTheme.apiCode) }
+                Task { await clusteringViewModel.themeChanged(mood?.spotTheme.apiCode) }
                 // 무드 필터 지도-리스트 공유 (§13(a)): mood 변화 시 SpotListViewModel 도 갱신
                 Task { await spotList.themeSynced(mood?.spotTheme) }
             }
@@ -166,7 +173,7 @@ struct HomeMapView: View {
             }
             .onChange(of: isSpotDetailSheetPresented) { _, isPresented in
                 if !isPresented {
-                    clustering.mapBackgroundTapped()
+                    clusteringViewModel.mapBackgroundTapped()
                 }
             }
         }
@@ -228,6 +235,7 @@ struct HomeMapView: View {
             HStack(spacing: 4) {
 
                 Image(mood.imageName)
+                    .renderingMode(.original)
 
                 Text(mood.rawValue)
                     .font(.subheadline)
@@ -314,5 +322,9 @@ extension View {
     }
 }
 #Preview {
-    HomeMapView(isAddPlacePresented: .constant(false), isSpotDetailPresented: .constant(false))
+    HomeMapView(
+        isAddPlacePresented: .constant(false),
+        isSpotDetailPresented: .constant(false),
+        clusteringViewModel: MapClusteringViewModel(clusteringService: getClusteringService())
+    )
 }

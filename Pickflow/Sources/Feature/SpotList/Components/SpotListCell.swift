@@ -147,8 +147,8 @@ extension SpotTheme {
 
     var overlayAssetName: String {
         switch self {
-        case .sunset: "sunset"
-        case .reflection: "sparklingRipple"
+        case .sunset: "icon_photo_category_sunset"
+        case .reflection: "icon_photo_category_reflection"
         }
     }
 }
