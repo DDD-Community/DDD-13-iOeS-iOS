@@ -50,7 +50,3 @@ struct MapListToggle: View {
         }
     }
 }
-
-#Preview {
-    HomeMapView()
-}

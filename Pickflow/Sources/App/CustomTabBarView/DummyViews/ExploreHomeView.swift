@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ExploreHomeView: View {
+    @StateObject var clusteringViewModel: MapClusteringViewModel
     @State private var isMapClusteringPresented = false
     #if DEBUG
     @State private var isSpotDetailPresented = false
@@ -27,7 +28,7 @@ struct ExploreHomeView: View {
                 .background(.sunsetOrange)
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .fullScreenCover(isPresented: $isMapClusteringPresented) {
-                    HomeMapView()
+                    HomeMapView(clusteringViewModel: clusteringViewModel)
                 }
                 #if DEBUG
                 // TODO: KAN-84 테스트용 — 머지 전 삭제
