@@ -7,13 +7,21 @@ final class SpotService: SpotServiceProtocol, Sendable {
         self.networkManager = networkManager
     }
 
-    func fetchSpotDetail(id: Int64, latitude: Double?, longitude: Double?) async throws -> SpotDetail {
-        let envelope: APIEnvelope<SpotDetailDTO> = try await networkManager.request(
+    func fetchSpotDetail(id: Int64, latitude _: Double?, longitude _: Double?) async throws -> SpotDetail {
+        let envelope: APIEnvelope<SpotDetail> = try await networkManager.request(
             endpoint: SpotEndpoint.detail(spotId: id)
         )
-        return SpotDetail(dto: envelope.data)
+        return envelope.data
     }
-  
+
+    func fetchSpotPreview(id: Int64, latitude: Double?, longitude: Double?) async throws -> SpotPreviewResponse {
+        let envelope: APIEnvelope<SpotPreviewResponse> = try await networkManager.request(
+            endpoint: SpotPreviewEndpoint(spotId: id, latitude: latitude, longitude: longitude)
+        )
+        return envelope.data
+    }
+
+
     func registerSpot(draft: SpotRegistrationDraft) async throws -> SpotId {
         _ = networkManager
         // TODO(BE-API): 실제 네트워크 호출로 교체

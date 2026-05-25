@@ -1,8 +1,9 @@
 import Foundation
 
-struct AppleCredential: Sendable, Equatable {
+struct AppleCredential: Sendable {
     let identityToken: String
-    let nonce: String
+    let fullName: PersonNameComponents?
+    let email: String?
 }
 
 protocol AppleAuthProviderProtocol: Sendable {

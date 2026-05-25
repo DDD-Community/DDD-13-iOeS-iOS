@@ -11,9 +11,6 @@ struct ProfileView: View {
                 VStack(spacing: 16) {
                     Text(user.nickname)
                         .font(.title)
-                    Text(user.email)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
                 }
             } else if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)

@@ -10,6 +10,7 @@ final class SpotListService: SpotListServiceProtocol, Sendable {
     func fetchSpots(
         page: Int,
         theme: SpotTheme?,
+        sort: SpotListSort,
         latitude: Double?,
         longitude: Double?
     ) async throws -> SpotListPage {
@@ -17,6 +18,7 @@ final class SpotListService: SpotListServiceProtocol, Sendable {
             endpoint: SpotListEndpoint(
                 page: page,
                 theme: theme,
+                sort: sort,
                 latitude: latitude,
                 longitude: longitude
             )

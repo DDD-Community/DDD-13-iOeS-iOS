@@ -1,11 +1,11 @@
 import SwiftUI
-import UIKit
 
 /// 리스트 화면. 헤더(PICKFLOW + 무드 capsule + 정렬 드롭다운)는 부모(HomeMapView)가 담당.
 /// 본 뷰는 컨텐츠(상태에 따라 그리드/빈/실패/로딩/권한안내)만 렌더한다.
 struct SpotListView: View {
     @StateObject var viewModel: SpotListViewModel
     var contentTopInset: CGFloat = 0
+    var onCellTap: (Int64) -> Void = { _ in }
     @State private var isLoginViewPresented: Bool = false
 
     var body: some View {
@@ -14,6 +14,7 @@ struct SpotListView: View {
             isBookmarked: { viewModel.isBookmarked($0) },
             bookmarkCount: { _ in nil },  // FIXME(BE-API): 응답 추가 시 item.bookmarkCount 전달.
             onBookmarkTap: { id in Task { await viewModel.bookmarkTapped(id) } },
+            onCellTap: onCellTap,
             onRetry: { Task { await viewModel.onAppear() } },
             onOpenSettings: {
                 if let url = URL(string: UIApplication.openSettingsURLString) {
@@ -69,6 +70,7 @@ struct SpotListScreenContent: View {
     let isBookmarked: (Int64) -> Bool
     let bookmarkCount: (Int64) -> Int?
     let onBookmarkTap: (Int64) -> Void
+    var onCellTap: (Int64) -> Void = { _ in }
     let onRetry: () -> Void
     let onOpenSettings: () -> Void
     let onAppearItem: (SpotListItem) -> Void
@@ -104,7 +106,8 @@ struct SpotListScreenContent: View {
                     item: item,
                     isBookmarked: isBookmarked(item.spotId),
                     bookmarkCount: bookmarkCount(item.spotId),
-                    onBookmarkTap: { onBookmarkTap(item.spotId) }
+                    onBookmarkTap: { onBookmarkTap(item.spotId) },
+                    onCellTap: { onCellTap(item.spotId) }
                 )
             }
             .padding(.horizontal, 16)

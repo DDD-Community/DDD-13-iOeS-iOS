@@ -13,11 +13,14 @@ final class AppContainer {
     }
 
     private func registerDependencies() {
-        container.register(NetworkManagerProtocol.self, scope: .container) { NetworkManager() }
         container.register(TokenStoreProtocol.self, scope: .container) { KeychainTokenStore() }
 
-        let networkManager: NetworkManagerProtocol = container.resolve(NetworkManagerProtocol.self)!
         let tokenStore: TokenStoreProtocol = container.resolve(TokenStoreProtocol.self)!
+        container.register(NetworkManagerProtocol.self, scope: .container) {
+            NetworkManager(interceptor: AuthInterceptor(tokenStore: tokenStore))
+        }
+
+        let networkManager: NetworkManagerProtocol = container.resolve(NetworkManagerProtocol.self)!
 
         container.register(UserServiceProtocol.self) { UserService(networkManager: networkManager) }
         container.register(AuthServiceProtocol.self) { AuthService(networkManager: networkManager, tokenStore: tokenStore) }
@@ -26,9 +29,7 @@ final class AppContainer {
         container.register(MapServiceProtocol.self) { MapService(networkManager: networkManager) }
         container.register(AddressServiceProtocol.self) { AddressService(networkManager: networkManager) }
         container.register(SpotServiceProtocol.self) { SpotService(networkManager: networkManager) }
-        // FIXME(KAN-52 임시): BE 미오픈 — Mock 사용. BE 오픈 시 아래로 되돌릴 것.
-        // container.register(SpotListServiceProtocol.self) { SpotListService(networkManager: networkManager) }
-        container.register(SpotListServiceProtocol.self) { SpotListMockService() }
+        container.register(SpotListServiceProtocol.self) { SpotListService(networkManager: networkManager) }
         // FIXME(KAN-53 임시): BE 미오픈 — Mock 사용. BE 오픈 시 ArchiveService(networkManager:)로 교체.
         container.register(ArchiveServiceProtocol.self) { ArchiveMockService() }
         container.register(ClusteringServiceProtocol.self) { ClusteringService(networkManager: networkManager) }

@@ -38,11 +38,11 @@ final class MockAuthServiceForArchive: AuthServiceProtocol, @unchecked Sendable 
 
     func signOut() async throws {}
 
-    func signInWithKakao(kakaoAccessToken: String) async throws -> KakaoSignInResponse {
+    func signInWithKakao(accessToken: String) async throws -> TokenResponse {
         fatalError("not used in archive tests")
     }
 
-    func signInWithApple(identityToken: String, nonce: String) async throws -> AppleSignInResponse {
+    func signInWithApple(identityToken: String, user: AppleUserInfo?) async throws -> TokenResponse {
         fatalError("not used in archive tests")
     }
 

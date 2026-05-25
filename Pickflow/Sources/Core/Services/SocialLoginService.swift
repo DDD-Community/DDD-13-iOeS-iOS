@@ -20,15 +20,20 @@ final class SocialLoginService: SocialLoginServiceProtocol {
 
     func signInWithKakao() async throws {
         let kakaoToken = try await kakaoAuthProvider.obtainAccessToken()
-        let response = try await authService.signInWithKakao(kakaoAccessToken: kakaoToken)
+        let response = try await authService.signInWithKakao(accessToken: kakaoToken)
         try tokenStore.save(AuthToken(accessToken: response.accessToken, refreshToken: response.refreshToken))
     }
 
     func signInWithApple() async throws {
         let credential = try await appleAuthProvider.obtainCredential()
+        let user = AppleUserInfo(
+            firstName: credential.fullName?.givenName,
+            lastName: credential.fullName?.familyName,
+            email: credential.email
+        )
         let response = try await authService.signInWithApple(
             identityToken: credential.identityToken,
-            nonce: credential.nonce
+            user: user
         )
         try tokenStore.save(AuthToken(accessToken: response.accessToken, refreshToken: response.refreshToken))
     }

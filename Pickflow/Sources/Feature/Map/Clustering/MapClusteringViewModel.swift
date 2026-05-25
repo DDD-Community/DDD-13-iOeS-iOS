@@ -14,16 +14,31 @@ final class MapClusteringViewModel: ObservableObject {
     @Published private(set) var selectedSpotId: Int64?
 
     private let clusteringService: ClusteringServiceProtocol
+    private let debounceMillis: Int
     private var lastViewport: Viewport?
     private var currentTheme: String?
+    private var debounceTask: Task<Void, Never>?
 
-    init(clusteringService: ClusteringServiceProtocol) {
+    /// 지도 카메라 이동/초기 진입 시 viewportChanged 가 짧은 간격으로 중복 발사되는 것을
+    /// 마지막 호출 1회만 fetch 되도록 디바운스. 테스트에선 0ms 로 즉시 fetch.
+    init(clusteringService: ClusteringServiceProtocol, debounceMillis: Int = 300) {
         self.clusteringService = clusteringService
+        self.debounceMillis = debounceMillis
     }
 
     func viewportChanged(_ viewport: Viewport) async {
+        debounceTask?.cancel()
         lastViewport = viewport
-        await fetch(viewport: viewport, theme: currentTheme)
+        let theme = currentTheme
+        let task = Task { [weak self, debounceMillis] in
+            if debounceMillis > 0 {
+                try? await Task.sleep(for: .milliseconds(debounceMillis))
+            }
+            guard !Task.isCancelled, let self else { return }
+            await self.fetch(viewport: viewport, theme: theme)
+        }
+        debounceTask = task
+        await task.value
     }
 
     func themeChanged(_ theme: String?) async {

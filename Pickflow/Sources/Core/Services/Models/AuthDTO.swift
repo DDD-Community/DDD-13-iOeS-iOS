@@ -2,54 +2,55 @@ import Foundation
 
 // MARK: - Token & Auth State
 
-/// 백엔드에서 발급되는 인증 토큰 쌍.
 struct AuthToken: Codable, Sendable {
     let accessToken: String
     let refreshToken: String
 }
 
-/// 앱 진입 시 판정되는 인증 상태.
 enum AuthState: Sendable {
     case signedOut
     case signedIn(AuthToken)
 }
 
-// MARK: - Responses
+// MARK: - API Response Wrapper
 
-/// `POST /auth/kakao` 응답. snake_case → camelCase 는
-/// `JSONDecoder.keyDecodingStrategy = .convertFromSnakeCase` 로 매핑.
-struct KakaoSignInResponse: Decodable, Sendable {
-    let accessToken: String
-    let refreshToken: String
-    let isNewUser: Bool
-    let user: AuthUser
+struct ApiResponse<T: Decodable & Sendable>: Decodable, Sendable {
+    let data: T
 }
 
-/// `POST /auth/apple` 응답. 카카오 로그인 응답과 동일한 shape를 사용한다.
-struct AppleSignInResponse: Decodable, Sendable {
+// MARK: - Token Response (Kakao & Apple 공통)
+
+struct TokenResponse: Decodable, Sendable {
     let accessToken: String
     let refreshToken: String
-    let isNewUser: Bool
-    let user: AuthUser
+    let profile: UserProfile
 }
 
-/// 로그인 응답에 포함되는 사용자 정보.
-struct AuthUser: Decodable, Sendable {
-    let id: Int64
+struct UserProfile: Decodable, Sendable {
+    let userId: String
+    let email: String?
     let nickname: String
-    let socialProvider: SocialProvider
+    let profileImageUrl: String?
+    let provider: SocialProvider
 }
 
-/// 소셜 로그인 제공자.
+// MARK: - Apple Request User Info
+
+struct AppleUserInfo: Sendable {
+    let firstName: String?
+    let lastName: String?
+    let email: String?
+}
+
+// MARK: - Social Provider
+
 enum SocialProvider: String, Codable, Sendable {
-    case kakao
-    case apple
+    case kakao = "KAKAO"
+    case apple = "APPLE"
 }
 
 // MARK: - AuthError
 
-/// 백엔드 공통 에러 코드 → 앱 도메인 에러 매핑.
-/// `LoginViewModel.errorMessage`는 `errorDescription`을 사용자에게 노출한다.
 enum AuthError: LocalizedError {
     case unauthorized
     case forbidden

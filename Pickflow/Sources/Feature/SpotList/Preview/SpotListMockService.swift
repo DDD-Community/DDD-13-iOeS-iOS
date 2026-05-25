@@ -8,8 +8,9 @@ final class SpotListMockService: SpotListServiceProtocol, Sendable {
     func fetchSpots(
         page: Int,
         theme: SpotTheme?,
-        latitude: Double?,
-        longitude: Double?
+        sort _: SpotListSort,
+        latitude _: Double?,
+        longitude _: Double?
     ) async throws -> SpotListPage {
         try await Task.sleep(for: .milliseconds(400))
 

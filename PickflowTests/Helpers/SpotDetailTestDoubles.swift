@@ -10,9 +10,11 @@ enum TestError: Error, LocalizedError {
 
 final class MockSpotService: SpotServiceProtocol, @unchecked Sendable {
     var result: Result<SpotDetail, any Error> = .success(.fixture())
+    var previewResult: Result<SpotPreviewResponse, any Error> = .success(.fixture())
     var registerSpotResult: Result<SpotId, any Error> = .success(SpotId(rawValue: "mock-spot-id"))
     var reportError: (any Error)?
     private(set) var requests: [(id: Int64, latitude: Double?, longitude: Double?)] = []
+    private(set) var previewRequests: [(id: Int64, latitude: Double?, longitude: Double?)] = []
     private(set) var registerDrafts: [SpotRegistrationDraft] = []
     private(set) var reportedSpotIds: [Int64] = []
     private(set) var reportedTypes: [SpotReportType] = []
@@ -21,6 +23,11 @@ final class MockSpotService: SpotServiceProtocol, @unchecked Sendable {
     func fetchSpotDetail(id: Int64, latitude: Double?, longitude: Double?) async throws -> SpotDetail {
         requests.append((id, latitude, longitude))
         return try result.get()
+    }
+
+    func fetchSpotPreview(id: Int64, latitude: Double?, longitude: Double?) async throws -> SpotPreviewResponse {
+        previewRequests.append((id, latitude, longitude))
+        return try previewResult.get()
     }
 
     func registerSpot(draft: SpotRegistrationDraft) async throws -> SpotId {
@@ -123,33 +130,66 @@ final class MockAnalyticsLogger: AnalyticsLoggerProtocol, @unchecked Sendable {
 
 extension SpotDetail {
     static func fixture(
+        spotId: Int64 = 1,
         isBookmarked: Bool = false,
         bookmarkCount: Int = 34,
         isMySpot: Bool = false,
         theme: SpotTheme = .sunset,
-        imageURL: String? = "https://example.com/spot.jpg",
-        comment: String = "걷다 보면 멀리 노을이 번져요."
+        imageUrl: String? = "https://example.com/spot.jpg",
+        comment: String = "걷다 보면 멀리 노을이 번져요.",
+        parkingInfo: String? = "무료 주차장"
     ) -> SpotDetail {
         SpotDetail(
-            id: 1,
+            spotId: spotId,
             name: "동작구 산책로",
             comment: comment,
             theme: theme,
             latitude: 37.501,
             longitude: 126.951,
             address: "서울 동작구",
-            imageUrl: imageURL,
-            recordedTime: imageURL != nil ? "19:30" : nil,
-            isBookmarked: isBookmarked,
+            imageUrl: imageUrl,
+            recordedDate: "2026-05-23",
+            recordedTime: "19:30",
+            weatherSky: .clear,
+            precipitation: .none,
+            precipitationProbability: 15,
+            congestionLevel: .relaxed,
+            sunsetTime: "18:40",
+            astronomyDate: "2026-05-23",
+            weatherUpdatedAt: "2026-05-23T18:00:00Z",
+            congestionUpdatedAt: "2026-05-23T18:00:00Z",
+            parkingInfo: isMySpot ? nil : parkingInfo,
             bookmarkCount: bookmarkCount,
+            isBookmarked: isBookmarked,
+            isMySpot: isMySpot
+        )
+    }
+}
+
+extension SpotPreviewResponse {
+    static func fixture(
+        spotId: Int64 = 1,
+        name: String = "동작구 산책로",
+        isMySpot: Bool = false,
+        theme: SpotTheme = .sunset,
+        bookmarkCount: Int = 34,
+        distanceKm: Double? = 2.5,
+        imageUrl: String? = "https://example.com/spot.jpg",
+        addressSimple: String = "서울 동작구",
+        addressRoad: String? = nil,
+        addressJibun: String? = nil
+    ) -> SpotPreviewResponse {
+        SpotPreviewResponse(
+            spotId: spotId,
+            name: name,
             isMySpot: isMySpot,
-            weather: SpotWeather(
-                precipitationProbability: 15,
-                condition: .clear,
-                sunsetTime: "18:40",
-                congestion: .relaxed,
-                parking: isMySpot ? nil : "무료 주차장"
-            )
+            theme: theme,
+            bookmarkCount: bookmarkCount,
+            distanceKm: distanceKm,
+            imageUrl: imageUrl,
+            addressSimple: addressSimple,
+            addressRoad: addressRoad,
+            addressJibun: addressJibun
         )
     }
 }

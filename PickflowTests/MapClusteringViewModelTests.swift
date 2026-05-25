@@ -9,7 +9,7 @@ final class MapClusteringViewModelTests: XCTestCase {
     override func setUp() async throws {
         try await super.setUp()
         clusteringService = MockClusteringService()
-        viewModel = MapClusteringViewModel(clusteringService: clusteringService)
+        viewModel = MapClusteringViewModel(clusteringService: clusteringService, debounceMillis: 0)
     }
 
     override func tearDown() async throws {
@@ -61,6 +61,26 @@ final class MapClusteringViewModelTests: XCTestCase {
         XCTAssertEqual(clusteringService.requests.count, 1)
         XCTAssertEqual(clusteringService.requests.first?.viewport, viewport)
         XCTAssertNil(clusteringService.requests.first?.theme)
+    }
+
+    // MARK: - debounce (1-A)
+
+    func test_viewportChanged_짧은시간내연속호출_마지막호출만fetch된다() async throws {
+        // debounceMillis > 0 으로 별도 인스턴스 사용. 처음 3건은 취소되고 마지막 1건만 살아남는다.
+        let debouncedVM = MapClusteringViewModel(clusteringService: clusteringService, debounceMillis: 30)
+        let viewportA = Viewport.fixture(topLeft: Coordinate(latitude: 1, longitude: 1))
+        let viewportB = Viewport.fixture(topLeft: Coordinate(latitude: 2, longitude: 2))
+        let viewportC = Viewport.fixture(topLeft: Coordinate(latitude: 3, longitude: 3))
+        let viewportD = Viewport.fixture(topLeft: Coordinate(latitude: 4, longitude: 4))
+
+        async let a: Void = debouncedVM.viewportChanged(viewportA)
+        async let b: Void = debouncedVM.viewportChanged(viewportB)
+        async let c: Void = debouncedVM.viewportChanged(viewportC)
+        async let d: Void = debouncedVM.viewportChanged(viewportD)
+        _ = await (a, b, c, d)
+
+        XCTAssertEqual(clusteringService.requests.count, 1)
+        XCTAssertEqual(clusteringService.requests.first?.viewport, viewportD)
     }
 
     // MARK: - themeChanged

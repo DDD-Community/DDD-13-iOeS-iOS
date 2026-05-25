@@ -2,14 +2,22 @@ import Foundation
 
 @MainActor
 final class SpotDetailViewModel: ObservableObject {
-    enum LoadState: Equatable {
+    enum PreviewState: Equatable {
+        case idle
+        case loading
+        case loaded(SpotPreviewResponse)
+        case failed(String)
+    }
+
+    enum DetailState: Equatable {
         case idle
         case loading
         case loaded(SpotDetail)
         case failed(String)
     }
 
-    @Published private(set) var state: LoadState = .idle
+    @Published private(set) var previewState: PreviewState = .idle
+    @Published private(set) var detailState: DetailState = .idle
     @Published private(set) var isBookmarked = false
     @Published var dismissRequested = false
     @Published var toast: String?
@@ -27,6 +35,8 @@ final class SpotDetailViewModel: ObservableObject {
     private let tokenStore: TokenStoreProtocol
     private let deviceIdProvider: @MainActor @Sendable () -> String
     private let clock: @Sendable () -> Date
+
+    private var detailLoadTask: Task<Void, Never>?
 
     init(
         spotId: Int64,
@@ -55,10 +65,40 @@ final class SpotDetailViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        state = .loading
+        previewState = .loading
 
         let coordinate = try? await locationService.currentLocation()
 
+        do {
+            let preview = try await spotService.fetchSpotPreview(
+                id: spotId,
+                latitude: coordinate?.latitude,
+                longitude: coordinate?.longitude
+            )
+            previewState = .loaded(preview)
+        } catch {
+            previewState = .failed(error.localizedDescription)
+        }
+        // detailState 는 .idle 유지 — sheet large 진입 시 loadDetailIfNeeded() 가 트리거.
+    }
+
+    func loadDetailIfNeeded() {
+        switch detailState {
+        case .loading, .loaded:
+            return
+        case .idle, .failed:
+            break
+        }
+        if detailLoadTask != nil { return }
+        detailState = .loading
+        detailLoadTask = Task { [weak self] in
+            await self?.performDetailLoad()
+        }
+    }
+
+    private func performDetailLoad() async {
+        defer { detailLoadTask = nil }
+        let coordinate = try? await locationService.currentLocation()
         do {
             let spot = try await spotService.fetchSpotDetail(
                 id: spotId,
@@ -66,15 +106,13 @@ final class SpotDetailViewModel: ObservableObject {
                 longitude: coordinate?.longitude
             )
             isBookmarked = spot.isBookmarked
-            state = .loaded(spot)
+            detailState = .loaded(spot)
         } catch {
-            state = .failed(error.localizedDescription)
+            detailState = .failed(error.localizedDescription)
         }
     }
 
     func toggleBookmark() async {
-        guard case let .loaded(spot) = state else { return }
-
         guard (try? tokenStore.load()) != nil else {
             isLoginRequired = true
             return
@@ -85,9 +123,9 @@ final class SpotDetailViewModel: ObservableObject {
 
         do {
             if previousValue {
-                try await bookmarkService.deleteBookmark(spotId: spot.id)
+                try await bookmarkService.deleteBookmark(spotId: spotId)
             } else {
-                try await bookmarkService.addBookmark(spotId: spot.id)
+                try await bookmarkService.addBookmark(spotId: spotId)
             }
         } catch BookmarkError.alreadyBookmarked {
             isBookmarked = true
@@ -98,12 +136,12 @@ final class SpotDetailViewModel: ObservableObject {
     }
 
     func openNaverMapsRoute() {
-        guard case let .loaded(spot) = state else { return }
+        guard case let .loaded(spot) = detailState else { return }
         externalAppLauncher.openNaverMapsRoute(latitude: spot.latitude, longitude: spot.longitude, name: spot.name)
     }
 
     func share() {
-        guard case let .loaded(spot) = state else { return }
+        guard case let .loaded(spot) = detailState else { return }
 
         analyticsLogger.log(SpotDetailAnalyticsEvent.shareButtonTap)
 
@@ -116,10 +154,10 @@ final class SpotDetailViewModel: ObservableObject {
     }
 
     func reportInvalidInfo() {
-        guard case let .loaded(spot) = state else { return }
+        guard case .loaded = detailState else { return }
         Task {
             do {
-                try await spotService.reportSpot(id: spot.id, type: .etc, content: "")
+                try await spotService.reportSpot(id: spotId, type: .etc, content: "")
                 showToast("제보가 접수되었습니다.")
             } catch {
                 showToast("제보 접수에 실패했어요.")
@@ -145,16 +183,20 @@ final class SpotDetailViewModel: ObservableObject {
 
     func promoteToFullCover() {
         presentationPhase = .fullCover
+        loadDetailIfNeeded()
     }
 
     func demoteToSheet() {
         presentationPhase = .sheetLarge
+        loadDetailIfNeeded()
     }
 
     func updateDetent(_ detent: SheetDetent) {
         switch detent {
         case .medium: presentationPhase = .sheetMedium
-        case .large:  presentationPhase = .sheetLarge
+        case .large:
+            presentationPhase = .sheetLarge
+            loadDetailIfNeeded()
         }
     }
 }

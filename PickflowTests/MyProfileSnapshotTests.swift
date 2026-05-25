@@ -1,6 +1,5 @@
 import SnapshotTesting
 import SwiftUI
-import UIKit
 import XCTest
 
 @testable import Pickflow
@@ -62,14 +61,14 @@ final class MyProfileSnapshotTests: XCTestCase {
 
     func test_my_profile_signedin_noimage_light() {
         assertSnapshot(
-            of: signedInScreen(user: .fixture(profileImageURL: nil)),
+            of: signedInScreen(user: .fixture(profileImageUrl: nil)),
             as: .image(layout: .fixed(width: 393, height: 852), traits: L.light)
         )
     }
 
     func test_my_profile_signedin_noimage_dark() {
         assertSnapshot(
-            of: signedInScreen(user: .fixture(profileImageURL: nil)),
+            of: signedInScreen(user: .fixture(profileImageUrl: nil)),
             as: .image(layout: .fixed(width: 393, height: 852), traits: L.dark)
         )
     }
@@ -78,14 +77,14 @@ final class MyProfileSnapshotTests: XCTestCase {
 
     func test_my_profile_signedin_withimage_light() {
         assertSnapshot(
-            of: signedInScreen(user: .fixture(profileImageURL: URL(string: "https://example.com/avatar.jpg")!)),
+            of: signedInScreen(user: .fixture(profileImageUrl: "https://example.com/avatar.jpg")),
             as: .image(layout: .fixed(width: 393, height: 852), traits: L.light)
         )
     }
 
     func test_my_profile_signedin_withimage_dark() {
         assertSnapshot(
-            of: signedInScreen(user: .fixture(profileImageURL: URL(string: "https://example.com/avatar.jpg")!)),
+            of: signedInScreen(user: .fixture(profileImageUrl: "https://example.com/avatar.jpg")),
             as: .image(layout: .fixed(width: 393, height: 852), traits: L.dark)
         )
     }
