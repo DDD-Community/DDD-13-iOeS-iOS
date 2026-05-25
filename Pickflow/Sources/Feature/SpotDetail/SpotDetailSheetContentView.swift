@@ -96,29 +96,25 @@ struct SpotDetailSheetContentView: View {
                 .pretendard(.body(.medium(.bold)))
                 .foregroundStyle(.gray10)
             dotSeparator
-            HStack(spacing: 0) {
-                Text(preview.addressSimple)
-                    .pretendard(.body(.medium(.regular)))
-                    .foregroundStyle(.gray0)
-                if hasAnyAddress {
-                    Image(systemName: isAddressExpanded ? "chevron.up" : "chevron.down")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 10, height: 6)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 7)
-                        .foregroundStyle(.gray10)
+            Button {
+                guard hasAnyAddress else { return }
+                withAnimation(.easeInOut(duration: 0.2)) { isAddressExpanded.toggle() }
+            } label: {
+                HStack(spacing: 0) {
+                    Text(preview.addressSimple)
+                        .pretendard(.body(.medium(.regular)))
+                        .foregroundStyle(.gray0)
+                    if hasAnyAddress {
+                        Image(systemName: isAddressExpanded ? "chevron.up" : "chevron.down")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 10, height: 6)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 7)
+                            .foregroundStyle(.gray10)
+                    }
                 }
             }
-            .contentShape(Rectangle())
-            // SpotBottomSheet의 UIPanGestureRecognizer가 다른 제스처를 우선 차단하므로
-            // simultaneousGesture로 Tap을 강제 동시 인식시킨다.
-            .simultaneousGesture(
-                TapGesture().onEnded {
-                    guard hasAnyAddress else { return }
-                    withAnimation(.easeInOut(duration: 0.2)) { isAddressExpanded.toggle() }
-                }
-            )
             Spacer(minLength: 0)
         }
     }
