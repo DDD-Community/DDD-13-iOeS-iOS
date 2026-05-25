@@ -22,6 +22,13 @@ final class ArchiveService: ArchiveServiceProtocol, Sendable {
         return SpotListPage(spots: spots, page: envelope.data.page, hasNext: envelope.data.hasNext)
     }
 
+    func renameArchive(_ name: String) async throws -> ArchiveInfo {
+        let envelope: APIEnvelope<ArchiveInfo> = try await networkManager.requestJSON(
+            endpoint: ArchiveEndpoint.renameArchive(name: name)
+        )
+        return envelope.data
+    }
+
     func uploadArchiveImage(_ data: Data) async throws -> ArchiveInfo {
         let envelope: APIEnvelope<ArchiveInfo> = try await networkManager.upload(
             endpoint: ArchiveEndpoint.uploadImage

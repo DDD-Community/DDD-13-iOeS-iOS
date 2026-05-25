@@ -10,6 +10,11 @@ final class ArchiveMockService: ArchiveServiceProtocol, Sendable {
         return ArchiveInfo(archiveName: "나의 보관함", archiveImageUrl: nil)
     }
 
+    func renameArchive(_ name: String) async throws -> ArchiveInfo {
+        try await Task.sleep(for: .milliseconds(200))
+        return ArchiveInfo(archiveName: name, archiveImageUrl: nil)
+    }
+
     func uploadArchiveImage(_ data: Data) async throws -> ArchiveInfo {
         try await Task.sleep(for: .milliseconds(300))
         return ArchiveInfo(archiveName: "나의 보관함", archiveImageUrl: nil)

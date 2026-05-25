@@ -180,7 +180,7 @@ struct ArchiveView: View {
                 ArchiveRenameDialog(
                     isPresented: $showRenameDialog,
                     initialName: viewModel.archiveName,
-                    onSave: { viewModel.renameArchive($0) }
+                    onSave: { name in Task { await viewModel.renameArchive(name) } }
                 )
                 .transition(.opacity)
                 .animation(.easeInOut(duration: 0.2), value: showRenameDialog)

@@ -103,10 +103,18 @@ final class ArchiveViewModel: ObservableObject {
         loginError = nil
     }
 
-    func renameArchive(_ name: String) {
+    func renameArchive(_ name: String) async {
         let trimmed = String(name.prefix(15))
         guard !trimmed.isEmpty else { return }
+        let previous = archiveName
         archiveName = trimmed
+        do {
+            let info = try await archiveService.renameArchive(trimmed)
+            archiveName = info.archiveName
+        } catch {
+            archiveName = previous
+            showToast("이름 변경에 실패했어요.")
+        }
     }
 
     func updateCoverImage(_ data: Data) async {

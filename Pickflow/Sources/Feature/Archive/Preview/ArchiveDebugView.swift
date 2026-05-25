@@ -86,6 +86,10 @@ final class ArchiveDebugService: ArchiveServiceProtocol, Sendable {
         ArchiveInfo(archiveName: "나의 보관함", archiveImageUrl: nil)
     }
 
+    func renameArchive(_ name: String) async throws -> ArchiveInfo {
+        ArchiveInfo(archiveName: name, archiveImageUrl: nil)
+    }
+
     func uploadArchiveImage(_ data: Data) async throws -> ArchiveInfo {
         ArchiveInfo(archiveName: "나의 보관함", archiveImageUrl: nil)
     }
