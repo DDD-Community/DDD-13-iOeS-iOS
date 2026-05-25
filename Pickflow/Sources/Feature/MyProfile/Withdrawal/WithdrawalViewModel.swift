@@ -51,6 +51,7 @@ final class WithdrawalViewModel: ObservableObject {
             try await userService.deleteAccount()
             try await authService.signOut()
             step = .done
+            NotificationCenter.default.post(name: .userDidWithdraw, object: nil)
         } catch {
             step = .failed(error.localizedDescription)
         }

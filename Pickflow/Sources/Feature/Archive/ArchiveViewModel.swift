@@ -143,6 +143,7 @@ final class ArchiveViewModel: ObservableObject {
 
         do {
             try await bookmarkService.deleteBookmark(spotId: spotId)
+            NotificationCenter.default.post(name: .spotBookmarkDidChange, object: nil)
         } catch {
             var restored = items
             restored.insert(removedItem, at: min(removedIndex, restored.count))
