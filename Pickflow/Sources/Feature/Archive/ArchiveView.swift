@@ -153,17 +153,22 @@ struct ArchiveView: View {
             }
             .ignoresSafeArea()
         )
-        .navigationDestination(item: $selectedSpotId) { spotId in
-            SpotDetailView(viewModel: SpotDetailViewModel(
-                spotId: spotId,
-                spotService: getSpotService(),
-                bookmarkService: getBookmarkService(),
-                shareIntentService: getShareIntentService(),
-                locationService: getLocationService(),
-                externalAppLauncher: getExternalAppLauncher(),
-                shareSheetPresenter: getShareSheetPresenter(),
-                deviceIdProvider: { UIDevice.current.identifierForVendor?.uuidString ?? "" }
-            ))
+        .fullScreenCover(isPresented: Binding(
+            get: { selectedSpotId != nil },
+            set: { if !$0 { selectedSpotId = nil } }
+        )) {
+            if let spotId = selectedSpotId {
+                SpotDetailView(viewModel: SpotDetailViewModel(
+                    spotId: spotId,
+                    spotService: getSpotService(),
+                    bookmarkService: getBookmarkService(),
+                    shareIntentService: getShareIntentService(),
+                    locationService: getLocationService(),
+                    externalAppLauncher: getExternalAppLauncher(),
+                    shareSheetPresenter: getShareSheetPresenter(),
+                    deviceIdProvider: { UIDevice.current.identifierForVendor?.uuidString ?? "" }
+                ))
+            }
         }
         .fullScreenCover(isPresented: $showRegistration) {
             SpotRegistrationAssembly.make { _ in showRegistration = false }
@@ -291,10 +296,9 @@ struct ArchiveView: View {
                     item: item,
                     isBookmarked: true,
                     bookmarkCount: nil,
-                    onBookmarkTap: { Task { await viewModel.bookmarkTapped(item.spotId) } }
+                    onBookmarkTap: { Task { await viewModel.bookmarkTapped(item.spotId) } },
+                    onCellTap: { selectedSpotId = item.spotId }
                 )
-                .contentShape(Rectangle())
-                .onTapGesture { selectedSpotId = item.spotId }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 16)
