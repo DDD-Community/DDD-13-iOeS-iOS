@@ -172,7 +172,7 @@ struct ArchiveView: View {
             ArchiveCoverImagePickerView(
                 archiveName: viewModel.archiveName,
                 currentImageData: viewModel.coverImageData,
-                onSelect: { data in viewModel.updateCoverImage(data) }
+                onSelect: { data in Task { await viewModel.updateCoverImage(data) } }
             )
         }
         .overlay {
@@ -216,7 +216,7 @@ struct ArchiveView: View {
 
             // z=1 (middle): photo in front of cards; top reaches screen top (behind status bar)
             ArchiveHeaderView(
-                thumbnailURL: firstThumbnailURL,
+                thumbnailURL: viewModel.archiveImageURL,
                 coverImageData: viewModel.coverImageData,
                 height: 240 + safeTop
             )
@@ -267,12 +267,6 @@ struct ArchiveView: View {
             .opacity(headerTitleOpacity)
             .allowsHitTesting(false)
         }
-    }
-
-    private var firstThumbnailURL: URL? {
-        guard case let .loaded(items, _) = viewModel.state,
-              let urlString = items.first?.thumbnailUrl else { return nil }
-        return URL(string: urlString)
     }
 
     @ViewBuilder

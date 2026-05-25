@@ -5,7 +5,17 @@ import Foundation
 final class ArchiveMockService: ArchiveServiceProtocol, Sendable {
     private static let pageSize = 8
 
-    func fetchArchive(page: Int) async throws -> SpotListPage {
+    func fetchArchiveInfo() async throws -> ArchiveInfo {
+        try await Task.sleep(for: .milliseconds(200))
+        return ArchiveInfo(archiveName: "나의 보관함", archiveImageUrl: nil)
+    }
+
+    func uploadArchiveImage(_ data: Data) async throws -> ArchiveInfo {
+        try await Task.sleep(for: .milliseconds(300))
+        return ArchiveInfo(archiveName: "나의 보관함", archiveImageUrl: nil)
+    }
+
+    func fetchSavedSpots(page: Int, latitude: Double?, longitude: Double?) async throws -> SpotListPage {
         try await Task.sleep(for: .milliseconds(400))
 
         let start = page * Self.pageSize
