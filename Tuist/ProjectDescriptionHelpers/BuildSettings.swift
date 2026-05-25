@@ -17,5 +17,7 @@ public extension SettingsDictionary {
         "SWIFT_VERSION": .string("6.0"),
         "IPHONEOS_DEPLOYMENT_TARGET": .string(ProjectEnvironment.deploymentTarget),
         "SDKROOT": .string("iphoneos"),
+        "MARKETING_VERSION": .string("1.0.0"),
+        "CURRENT_PROJECT_VERSION": .string("1"),
     ]
 }
