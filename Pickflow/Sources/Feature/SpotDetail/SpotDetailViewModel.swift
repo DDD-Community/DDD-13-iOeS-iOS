@@ -67,7 +67,7 @@ final class SpotDetailViewModel: ObservableObject {
     func onAppear() async {
         previewState = .loading
 
-        let coordinate = try? await locationService.currentLocation()
+        let coordinate = locationService.lastKnownLocation
 
         do {
             let preview = try await spotService.fetchSpotPreview(
@@ -98,7 +98,7 @@ final class SpotDetailViewModel: ObservableObject {
 
     private func performDetailLoad() async {
         defer { detailLoadTask = nil }
-        let coordinate = try? await locationService.currentLocation()
+        let coordinate = locationService.lastKnownLocation
         do {
             let spot = try await spotService.fetchSpotDetail(
                 id: spotId,

@@ -62,10 +62,18 @@ final class ArchiveViewModel: ObservableObject {
             state = .signedOut
             return
         }
-        currentCoordinate = try? await locationService.currentLocation()
+        let hadLocation = locationService.lastKnownLocation != nil
+        currentCoordinate = locationService.lastKnownLocation
         await withTaskGroup(of: Void.self) { group in
             group.addTask { await self.fetchArchiveInfo() }
             group.addTask { await self.fetchArchive() }
+        }
+        // 위치 없이 로드했다면, 위치 들어오는 즉시 거리 포함해 재조회
+        if !hadLocation {
+            if let coord = try? await locationService.currentLocation() {
+                currentCoordinate = coord
+                await fetchArchive()
+            }
         }
     }
 

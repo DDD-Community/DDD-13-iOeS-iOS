@@ -123,6 +123,7 @@ final class DebugShareIntentService: ShareIntentServiceProtocol, Sendable {
 }
 
 final class DebugLocationService: LocationServiceProtocol, Sendable {
+    var lastKnownLocation: Coordinate? { Coordinate(latitude: 37.501, longitude: 126.951) }
     func requestAuthorization() {}
 
     func authorizationStatus() -> CLAuthorizationStatus { .authorizedWhenInUse }

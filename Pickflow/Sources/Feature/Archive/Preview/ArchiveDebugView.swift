@@ -143,6 +143,7 @@ final class ArchiveDebugSocialService: SocialLoginServiceProtocol, Sendable {
 }
 
 final class ArchiveDebugLocationService: LocationServiceProtocol, Sendable {
+    var lastKnownLocation: Coordinate? { Coordinate(latitude: 37.5665, longitude: 126.9780) }
     func requestAuthorization() {}
     func authorizationStatus() -> CLAuthorizationStatus { .notDetermined }
     func currentLocation() async throws -> Coordinate { Coordinate(latitude: 37.5665, longitude: 126.9780) }
