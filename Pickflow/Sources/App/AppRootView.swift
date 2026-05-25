@@ -47,7 +47,7 @@ struct AppRootView: View {
                     isClosable: false
                 )
             case .signedIn:
-                ContentView()
+                ContentView(onSignedOut: viewModel.didSignOut)
                     .task {
                         viewModel.prepareLocationPermissionIfNeeded()
                     }
@@ -112,6 +112,10 @@ final class AppRootViewModel: ObservableObject {
 
     func didCompleteSignIn() {
         routeState = .signedIn
+    }
+
+    func didSignOut() {
+        routeState = .signedOut
     }
 
     func prepareLocationPermissionIfNeeded() {

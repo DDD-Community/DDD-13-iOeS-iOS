@@ -26,6 +26,11 @@ final class MockUserService: UserServiceProtocol, @unchecked Sendable {
     }
 }
 
+final class MockSocialLoginServiceForProfile: SocialLoginServiceProtocol, @unchecked Sendable {
+    func signInWithKakao() async throws {}
+    func signInWithApple() async throws {}
+}
+
 final class MockAuthServiceForProfile: AuthServiceProtocol, @unchecked Sendable {
     var stubbedAuthState: AuthState = .signedOut
     var signOutError: (any Error)?
@@ -38,11 +43,11 @@ final class MockAuthServiceForProfile: AuthServiceProtocol, @unchecked Sendable 
         if let signOutError { throw signOutError }
     }
 
-    func signInWithKakao(kakaoAccessToken: String) async throws -> KakaoSignInResponse {
+    func signInWithKakao(accessToken: String) async throws -> TokenResponse {
         fatalError("not used in profile tests")
     }
 
-    func signInWithApple(identityToken: String, nonce: String) async throws -> AppleSignInResponse {
+    func signInWithApple(identityToken: String, user: AppleUserInfo?) async throws -> TokenResponse {
         fatalError("not used in profile tests")
     }
 

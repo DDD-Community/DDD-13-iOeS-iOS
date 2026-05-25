@@ -7,26 +7,24 @@ protocol UserServiceProtocol: Sendable {
 }
 
 struct User: Codable, Equatable, Sendable {
-    let id: String
     let nickname: String
-    let email: String
-    let profileImageURL: URL?
-    let linkedSocialProvider: SocialProvider
+    let profileImageUrl: String?
+    let savedSpotCount: Int
+    let recordedSpotCount: Int
 }
 
 extension User {
     static func fixture(
         nickname: String = "capybara123",
-        email: String = "test@example.com",
-        profileImageURL: URL? = nil,
-        linkedSocialProvider: SocialProvider = .kakao
+        profileImageUrl: String? = nil,
+        savedSpotCount: Int = 0,
+        recordedSpotCount: Int = 0
     ) -> User {
         User(
-            id: "user-1",
             nickname: nickname,
-            email: email,
-            profileImageURL: profileImageURL,
-            linkedSocialProvider: linkedSocialProvider
+            profileImageUrl: profileImageUrl,
+            savedSpotCount: savedSpotCount,
+            recordedSpotCount: recordedSpotCount
         )
     }
 }

@@ -16,10 +16,10 @@ struct PickflowApp: App {
     var body: some Scene {
         WindowGroup {
             AppRootView(
-              authService: getAuthService(),
-              socialLoginService: getSocialLoginService(),
-              locationService: getLocationService(),
-              onboardingCompletionStore: getOnboardingCompletionStore()
+                authService: getAuthService(),
+                socialLoginService: getSocialLoginService(),
+                locationService: getLocationService(),
+                onboardingCompletionStore: getOnboardingCompletionStore()
             )
             .ignoresSafeArea(.keyboard, edges: .bottom)
             .onOpenURL { url in

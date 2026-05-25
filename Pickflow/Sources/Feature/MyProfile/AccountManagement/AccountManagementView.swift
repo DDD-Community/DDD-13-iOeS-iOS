@@ -6,6 +6,7 @@ struct AccountManagementView: View {
     @Environment(\.dismiss) private var dismiss
 
     var onLoggedOut: () -> Void = {}
+    var onSaved: () -> Void = {}
 
     @State private var isShowingWithdrawal = false
     @State private var photosPickerItem: PhotosPickerItem?
@@ -40,6 +41,14 @@ struct AccountManagementView: View {
                     isLoading: true
                 )
             }
+
+            if case .saving = viewModel.saveState {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                ProgressView()
+                    .tint(.white)
+                    .scaleEffect(1.4)
+            }
         }
         .navigationBarHidden(true)
         .task {
@@ -48,6 +57,12 @@ struct AccountManagementView: View {
         .onChange(of: viewModel.logoutState) { _, newState in
             if case .done = newState {
                 onLoggedOut()
+                dismiss()
+            }
+        }
+        .onChange(of: viewModel.saveState) { _, newState in
+            if case .saved = newState {
+                onSaved()
                 dismiss()
             }
         }
@@ -99,13 +114,13 @@ struct AccountManagementView: View {
                 Text("저장")
                     .pretendard(.body(.medium(.bold)))
                     .foregroundStyle(
-                        viewModel.isSaveEnabled
+                        viewModel.isSaveEnabled && viewModel.saveState != .saving
                             ? UIAsset.Colors.sunsetOrange.color
                             : UIAsset.Colors.gray50.color
                     )
             }
             .buttonStyle(.plain)
-            .disabled(!viewModel.isSaveEnabled)
+            .disabled(!viewModel.isSaveEnabled || viewModel.saveState == .saving)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 14)
@@ -165,7 +180,7 @@ struct AccountManagementView: View {
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .clipShape(Circle())
-        } else if let imageURL = viewModel.user?.profileImageURL {
+        } else if let urlString = viewModel.user?.profileImageUrl, let imageURL = URL(string: urlString) {
             AsyncImage(url: imageURL) { phase in
                 switch phase {
                 case let .success(image):
@@ -234,13 +249,7 @@ struct AccountManagementView: View {
         }
     }
 
-    private var socialProviderLabel: String {
-        switch viewModel.user?.linkedSocialProvider {
-        case .kakao: return "카카오로 로그인됨"
-        case .apple: return "Apple로 로그인됨"
-        case .none: return "—"
-        }
-    }
+    private var socialProviderLabel: String { "—" }
 
     // MARK: - Account Actions
 

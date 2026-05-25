@@ -101,13 +101,11 @@ final class ArchiveDebugAuthService: AuthServiceProtocol, Sendable {
             : .signedOut
     }
 
-    func signInWithKakao(kakaoAccessToken: String) async throws -> KakaoSignInResponse {
-        KakaoSignInResponse(accessToken: "", refreshToken: "", isNewUser: false,
-                            user: AuthUser(id: 1, nickname: "debug", socialProvider: .kakao))
+    func signInWithKakao(accessToken: String) async throws -> TokenResponse {
+        TokenResponse(accessToken: "", refreshToken: "", profile: UserProfile(userId: "1", email: nil, nickname: "debug", profileImageUrl: nil, provider: .kakao))
     }
-    func signInWithApple(identityToken: String, nonce: String) async throws -> AppleSignInResponse {
-        AppleSignInResponse(accessToken: "", refreshToken: "", isNewUser: false,
-                            user: AuthUser(id: 1, nickname: "debug", socialProvider: .apple))
+    func signInWithApple(identityToken: String, user: AppleUserInfo?) async throws -> TokenResponse {
+        TokenResponse(accessToken: "", refreshToken: "", profile: UserProfile(userId: "1", email: nil, nickname: "debug", profileImageUrl: nil, provider: .apple))
     }
     func refreshToken(_ refreshToken: String) async throws -> AuthToken {
         AuthToken(accessToken: "debug", refreshToken: "debug")

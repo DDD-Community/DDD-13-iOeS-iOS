@@ -2,18 +2,18 @@ import Foundation
 @testable import Pickflow
 
 final class MockAuthService: AuthServiceProtocol, @unchecked Sendable {
-    var kakaoResult: Result<KakaoSignInResponse, any Error> = .success(.fixture(provider: .kakao))
-    var appleResult: Result<AppleSignInResponse, any Error> = .success(.fixture(provider: .apple))
+    var kakaoResult: Result<TokenResponse, any Error> = .success(.fixture(provider: .kakao))
+    var appleResult: Result<TokenResponse, any Error> = .success(.fixture(provider: .apple))
     private(set) var kakaoAccessTokens: [String] = []
-    private(set) var appleRequests: [(identityToken: String, nonce: String)] = []
+    private(set) var appleRequests: [(identityToken: String, user: AppleUserInfo?)] = []
 
-    func signInWithKakao(kakaoAccessToken: String) async throws -> KakaoSignInResponse {
-        kakaoAccessTokens.append(kakaoAccessToken)
+    func signInWithKakao(accessToken: String) async throws -> TokenResponse {
+        kakaoAccessTokens.append(accessToken)
         return try kakaoResult.get()
     }
 
-    func signInWithApple(identityToken: String, nonce: String) async throws -> AppleSignInResponse {
-        appleRequests.append((identityToken, nonce))
+    func signInWithApple(identityToken: String, user: AppleUserInfo?) async throws -> TokenResponse {
+        appleRequests.append((identityToken, user))
         return try appleResult.get()
     }
 
@@ -38,7 +38,7 @@ final class MockKakaoAuthProvider: KakaoAuthProviderProtocol, @unchecked Sendabl
 
 final class MockAppleAuthProvider: AppleAuthProviderProtocol, @unchecked Sendable {
     var result: Result<AppleCredential, any Error> = .success(
-        AppleCredential(identityToken: "apple-identity-token", nonce: "raw-nonce")
+        AppleCredential(identityToken: "apple-identity-token", fullName: nil, email: nil)
     )
     private(set) var callCount = 0
 
@@ -47,6 +47,7 @@ final class MockAppleAuthProvider: AppleAuthProviderProtocol, @unchecked Sendabl
         return try result.get()
     }
 }
+
 
 final class MockTokenStore: TokenStoreProtocol, @unchecked Sendable {
     var saveError: (any Error)?
@@ -68,30 +69,18 @@ final class MockTokenStore: TokenStoreProtocol, @unchecked Sendable {
     }
 }
 
-extension KakaoSignInResponse {
-    static func fixture(provider: SocialProvider = .kakao) -> KakaoSignInResponse {
-        KakaoSignInResponse(
+extension TokenResponse {
+    static func fixture(provider: SocialProvider = .kakao) -> TokenResponse {
+        TokenResponse(
             accessToken: "access-token",
             refreshToken: "refresh-token",
-            isNewUser: false,
-            user: .fixture(provider: provider)
+            profile: UserProfile(
+                userId: "123",
+                email: "test@example.com",
+                nickname: "tester",
+                profileImageUrl: nil,
+                provider: provider
+            )
         )
-    }
-}
-
-extension AppleSignInResponse {
-    static func fixture(provider: SocialProvider = .apple) -> AppleSignInResponse {
-        AppleSignInResponse(
-            accessToken: "apple-access-token",
-            refreshToken: "apple-refresh-token",
-            isNewUser: false,
-            user: .fixture(provider: provider)
-        )
-    }
-}
-
-extension AuthUser {
-    static func fixture(provider: SocialProvider) -> AuthUser {
-        AuthUser(id: 1, nickname: "tester", socialProvider: provider)
     }
 }
