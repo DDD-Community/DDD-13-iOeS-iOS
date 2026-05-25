@@ -91,6 +91,7 @@ final class SpotListViewModel: ObservableObject {
             currentPage = response.page
             self.hasNext = response.hasNext
             let merged = items + response.spots
+            seedBookmarkStates(response.spots)
             state = .loaded(items: merged, hasNext: response.hasNext)
         } catch {
             toast = "다음 페이지를 불러오지 못했어요."
@@ -124,6 +125,13 @@ final class SpotListViewModel: ObservableObject {
 
     func isBookmarked(_ spotId: Int64) -> Bool {
         bookmarkStates[spotId] ?? false
+    }
+
+    /// 서버에서 받은 item.isBookmarked 로 로컬 상태 시드. 이미 사용자가 토글한 키는 덮어쓰지 않는다.
+    private func seedBookmarkStates(_ spots: [SpotListItem]) {
+        for spot in spots where bookmarkStates[spot.spotId] == nil {
+            bookmarkStates[spot.spotId] = spot.isBookmarked
+        }
     }
 
     // MARK: - Private
@@ -162,6 +170,7 @@ final class SpotListViewModel: ObservableObject {
             if response.spots.isEmpty {
                 state = .empty
             } else {
+                seedBookmarkStates(response.spots)
                 state = .loaded(items: response.spots, hasNext: response.hasNext)
             }
         } catch {

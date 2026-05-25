@@ -68,14 +68,14 @@ struct ArchiveEmptyDebugView: View {
 
 final class ArchiveDebugService: ArchiveServiceProtocol, Sendable {
     static let sampleItems: [SpotListItem] = [
-        SpotListItem(spotId: 1, name: "한강 노을길",      theme: .sunset,     thumbnailUrl: nil, distanceKm: 0.4),
-        SpotListItem(spotId: 2, name: "잠실 윤슬",        theme: .reflection, thumbnailUrl: nil, distanceKm: 1.2),
-        SpotListItem(spotId: 3, name: "응봉산 전망대",    theme: .sunset,     thumbnailUrl: nil, distanceKm: 2.0),
-        SpotListItem(spotId: 4, name: "반포 무지개 분수", theme: .reflection, thumbnailUrl: nil, distanceKm: 2.8),
-        SpotListItem(spotId: 5, name: "선유도 일몰 포인트", theme: .sunset,   thumbnailUrl: nil, distanceKm: 3.5),
-        SpotListItem(spotId: 6, name: "광나루 윤슬길",    theme: .reflection, thumbnailUrl: nil, distanceKm: 4.1),
-        SpotListItem(spotId: 7, name: "노들섬 노을 뷰",   theme: .sunset,     thumbnailUrl: nil, distanceKm: 4.7),
-        SpotListItem(spotId: 8, name: "성수 한강 윤슬",   theme: .reflection, thumbnailUrl: nil, distanceKm: 5.3),
+        SpotListItem(spotId: 1, name: "한강 노을길",      theme: .sunset,     thumbnailUrl: nil, distanceKm: 0.4, isBookmarked: false),
+        SpotListItem(spotId: 2, name: "잠실 윤슬",        theme: .reflection, thumbnailUrl: nil, distanceKm: 1.2, isBookmarked: false),
+        SpotListItem(spotId: 3, name: "응봉산 전망대",    theme: .sunset,     thumbnailUrl: nil, distanceKm: 2.0, isBookmarked: false),
+        SpotListItem(spotId: 4, name: "반포 무지개 분수", theme: .reflection, thumbnailUrl: nil, distanceKm: 2.8, isBookmarked: false),
+        SpotListItem(spotId: 5, name: "선유도 일몰 포인트", theme: .sunset,   thumbnailUrl: nil, distanceKm: 3.5, isBookmarked: false),
+        SpotListItem(spotId: 6, name: "광나루 윤슬길",    theme: .reflection, thumbnailUrl: nil, distanceKm: 4.1, isBookmarked: false),
+        SpotListItem(spotId: 7, name: "노들섬 노을 뷰",   theme: .sunset,     thumbnailUrl: nil, distanceKm: 4.7, isBookmarked: false),
+        SpotListItem(spotId: 8, name: "성수 한강 윤슬",   theme: .reflection, thumbnailUrl: nil, distanceKm: 5.3, isBookmarked: false),
     ]
 
     func fetchArchive(page: Int) async throws -> SpotListPage {
