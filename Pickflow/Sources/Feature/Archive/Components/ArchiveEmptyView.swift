@@ -7,12 +7,12 @@ struct ArchiveEmptyView: View {
         VStack(spacing: 36) {
             VStack(spacing: 12) {
                 Text("마음에 드는 스팟을\n발견하셨나요?")
-                    .pretendard(.body(.large(.bold)))
-                    .foregroundStyle(.gray0)
+                    .pretendard(.heading(.medium))
+                    .foregroundStyle(.gray30)
                     .multilineTextAlignment(.center)
 
                 Text("나만의 출사 리스트를 채워보세요.\n저장된 스팟은 여기서 언제든 확인할 수 있어요.")
-                    .pretendard(.body(.small()))
+                    .pretendard(.body(.large()))
                     .foregroundStyle(.gray50)
                     .multilineTextAlignment(.center)
             }
