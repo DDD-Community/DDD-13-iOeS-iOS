@@ -30,10 +30,6 @@ struct ArchiveHeaderView: View {
                         UIAsset.Colors.gray90.swiftUIColor
                     }
                 }
-            } else {
-                Image("onboarding_2_pic_0", bundle: PickflowResources.bundle)
-                    .resizable()
-                    .scaledToFill()
             }
         }
     }

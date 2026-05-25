@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 @MainActor
 final class MyProfileViewModel: ObservableObject {
@@ -10,6 +11,7 @@ final class MyProfileViewModel: ObservableObject {
     }
 
     @Published private(set) var state: LoadState = .loading
+    @Published private(set) var cachedProfileImage: UIImage?
     @Published var isNavigatingToAccountManagement = false
     @Published private(set) var isLoginLoading = false
     @Published private(set) var loginError: String?
@@ -124,8 +126,16 @@ final class MyProfileViewModel: ObservableObject {
         do {
             let user = try await userService.fetchCurrentUser()
             state = .signedIn(user)
+            await cacheProfileImageIfNeeded(urlString: user.profileImageUrl)
         } catch {
             state = .failed(error.localizedDescription)
         }
+    }
+
+    private func cacheProfileImageIfNeeded(urlString: String?) async {
+        guard let urlString, let url = URL(string: urlString) else { return }
+        guard let (data, _) = try? await URLSession.shared.data(from: url),
+              let image = UIImage(data: data) else { return }
+        cachedProfileImage = image
     }
 }

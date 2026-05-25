@@ -171,6 +171,7 @@ private struct SpotSearchPreviewAddressService: AddressServiceProtocol {
 }
 
 private struct SpotSearchPreviewLocationService: LocationServiceProtocol {
+    var lastKnownLocation: Coordinate? { Coordinate(latitude: 37.5209, longitude: 126.9833) }
     func requestAuthorization() {}
 
     func authorizationStatus() -> CLAuthorizationStatus {

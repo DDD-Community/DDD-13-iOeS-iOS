@@ -1,7 +1,9 @@
 import SwiftUI
+import UIKit
 
 struct MyProfileSignedInContent: View {
     let user: User
+    var cachedProfileImage: UIImage?
     var onAccountManagementTap: () -> Void = {}
 
     var body: some View {
@@ -61,7 +63,12 @@ struct MyProfileSignedInContent: View {
 
     @ViewBuilder
     private var profileImage: some View {
-        if let urlString = user.profileImageUrl, let imageURL = URL(string: urlString) {
+        if let uiImage = cachedProfileImage {
+            Image(uiImage: uiImage)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .clipShape(Circle())
+        } else if let urlString = user.profileImageUrl, let imageURL = URL(string: urlString) {
             AsyncImage(url: imageURL) { phase in
                 switch phase {
                 case let .success(image):

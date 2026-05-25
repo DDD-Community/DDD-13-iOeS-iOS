@@ -27,6 +27,7 @@ final class ArchiveViewModel: ObservableObject {
     @Published private(set) var isLoadingNextPage: Bool = false
     @Published private(set) var isLoginLoading: Bool = false
     @Published private(set) var loginError: String?
+    @Published private(set) var archiveImageURL: URL?
     @Published var toast: String?
     @Published var archiveName: String = "나의 보관함"
     @Published var coverImageData: Data?
@@ -35,20 +36,24 @@ final class ArchiveViewModel: ObservableObject {
     private let bookmarkService: BookmarkServiceProtocol
     private let authService: AuthServiceProtocol
     private let socialLoginService: SocialLoginServiceProtocol
+    private let locationService: LocationServiceProtocol
 
     private var currentPage: Int = 0
     private var hasNext: Bool = false
+    private var currentCoordinate: Coordinate?
 
     init(
         archiveService: ArchiveServiceProtocol,
         bookmarkService: BookmarkServiceProtocol,
         authService: AuthServiceProtocol,
-        socialLoginService: SocialLoginServiceProtocol
+        socialLoginService: SocialLoginServiceProtocol,
+        locationService: LocationServiceProtocol
     ) {
         self.archiveService = archiveService
         self.bookmarkService = bookmarkService
         self.authService = authService
         self.socialLoginService = socialLoginService
+        self.locationService = locationService
     }
 
     func onAppear() async {
@@ -57,7 +62,19 @@ final class ArchiveViewModel: ObservableObject {
             state = .signedOut
             return
         }
-        await fetchArchive()
+        let hadLocation = locationService.lastKnownLocation != nil
+        currentCoordinate = locationService.lastKnownLocation
+        await withTaskGroup(of: Void.self) { group in
+            group.addTask { await self.fetchArchiveInfo() }
+            group.addTask { await self.fetchArchive() }
+        }
+        // 위치 없이 로드했다면, 위치 들어오는 즉시 거리 포함해 재조회
+        if !hadLocation {
+            if let coord = try? await locationService.currentLocation() {
+                currentCoordinate = coord
+                await fetchArchive()
+            }
+        }
     }
 
     func signInWithKakao() async {
@@ -94,15 +111,33 @@ final class ArchiveViewModel: ObservableObject {
         loginError = nil
     }
 
-    func renameArchive(_ name: String) {
+    func renameArchive(_ name: String) async {
         let trimmed = String(name.prefix(15))
         guard !trimmed.isEmpty else { return }
+        let previous = archiveName
         archiveName = trimmed
+        do {
+            let info = try await archiveService.renameArchive(trimmed)
+            archiveName = info.archiveName
+        } catch {
+            archiveName = previous
+            showToast("이름 변경에 실패했어요.")
+        }
     }
 
-    func updateCoverImage(_ data: Data) {
+    func updateCoverImage(_ data: Data) async {
         coverImageData = data
-        showToast("커버 이미지가 변경되었습니다.")
+        do {
+            let info = try await archiveService.uploadArchiveImage(data)
+            archiveName = info.archiveName
+            if let urlString = info.archiveImageUrl {
+                archiveImageURL = URL(string: urlString)
+            }
+            showToast("커버 이미지가 변경되었습니다.")
+        } catch {
+            coverImageData = nil
+            showToast("이미지 업로드에 실패했어요.")
+        }
     }
 
     func showToast(_ message: String) {
@@ -124,7 +159,11 @@ final class ArchiveViewModel: ObservableObject {
 
         let nextPage = currentPage + 1
         do {
-            let response = try await archiveService.fetchArchive(page: nextPage)
+            let response = try await archiveService.fetchSavedSpots(
+                page: nextPage,
+                latitude: currentCoordinate?.latitude,
+                longitude: currentCoordinate?.longitude
+            )
             currentPage = response.page
             self.hasNext = response.hasNext
             state = .loaded(items: items + response.spots, hasNext: response.hasNext)
@@ -170,13 +209,29 @@ final class ArchiveViewModel: ObservableObject {
 
     // MARK: - Private
 
+    private func fetchArchiveInfo() async {
+        do {
+            let info = try await archiveService.fetchArchiveInfo()
+            archiveName = info.archiveName
+            if let urlString = info.archiveImageUrl {
+                archiveImageURL = URL(string: urlString)
+            }
+        } catch {
+            // 메타데이터 실패는 기본값 유지, 조용히 무시
+        }
+    }
+
     private func fetchArchive() async {
         state = .loading
         currentPage = 0
         hasNext = false
 
         do {
-            let response = try await archiveService.fetchArchive(page: 0)
+            let response = try await archiveService.fetchSavedSpots(
+                page: 0,
+                latitude: currentCoordinate?.latitude,
+                longitude: currentCoordinate?.longitude
+            )
             currentPage = response.page
             hasNext = response.hasNext
             state = response.spots.isEmpty

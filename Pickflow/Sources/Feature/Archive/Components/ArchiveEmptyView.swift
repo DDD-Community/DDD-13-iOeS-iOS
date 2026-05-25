@@ -4,18 +4,15 @@ struct ArchiveEmptyView: View {
     var onExploreTap: () -> Void = {}
 
     var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "bookmark.slash")
-                .font(.system(size: 48, weight: .regular))
-                .foregroundStyle(.gray40)
+        VStack(spacing: 36) {
+            VStack(spacing: 12) {
+                Text("마음에 드는 스팟을\n발견하셨나요?")
+                    .pretendard(.heading(.medium))
+                    .foregroundStyle(.gray30)
+                    .multilineTextAlignment(.center)
 
-            VStack(spacing: 8) {
-                Text("저장된 스팟이 없어요")
-                    .pretendard(.body(.large(.bold)))
-                    .foregroundStyle(.gray0)
-
-                Text("마음에 드는 스팟을 저장해 보세요.")
-                    .pretendard(.body(.small()))
+                Text("나만의 출사 리스트를 채워보세요.\n저장된 스팟은 여기서 언제든 확인할 수 있어요.")
+                    .pretendard(.body(.large()))
                     .foregroundStyle(.gray50)
                     .multilineTextAlignment(.center)
             }
@@ -27,7 +24,7 @@ struct ArchiveEmptyView: View {
                     .padding(.horizontal, 24)
                     .padding(.vertical, 10)
                     .background(UIAsset.Colors.sunsetOrange.swiftUIColor)
-                    .clipShape(Capsule())
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
             }
             .buttonStyle(.plain)
         }
