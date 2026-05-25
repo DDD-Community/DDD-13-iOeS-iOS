@@ -49,6 +49,7 @@ struct HomeMapView: View {
     @State private var topBarHeight: CGFloat = 0
     @State private var isSortExpanded: Bool = false
     @State private var cameraMoveRequest: CameraMoveRequest?
+    @State private var userLocation: Coordinate?
     @State private var showAddPlaceLoginPrompt: Bool = false
     @State private var isAddPlaceLoginViewPresented: Bool = false
     private let tokenStore = getTokenStore()
@@ -135,6 +136,7 @@ struct HomeMapView: View {
                     mySpots: clusteringViewModel.mySpots,
                     selectedSpotId: clusteringViewModel.selectedSpotId,
                     cameraMoveRequest: cameraMoveRequest,
+                    userLocation: userLocation,
                     onViewportChange: { viewport in
                         Task { await clusteringViewModel.viewportChanged(viewport) }
                     },
@@ -147,6 +149,9 @@ struct HomeMapView: View {
                     }
                 )
                 .ignoresSafeArea()
+            }
+            .task {
+                await refreshUserLocation()
             }
             .onChange(of: selectedMood) { _, mood in
                 Task { await clusteringViewModel.themeChanged(mood?.spotTheme.apiCode) }
@@ -318,6 +323,7 @@ struct HomeMapView: View {
                 .frame(width: Size.iconWidth, height: Size.iconHeight)
                 .background(.gray95)
                 .clipShape(Circle())
+                .overlay(Circle().stroke(UIAsset.Colors.gray80.swiftUIColor, lineWidth: 1))
                 .addTappableArea(.horizontal, 20)
         }
     }
@@ -330,6 +336,7 @@ struct HomeMapView: View {
                 .frame(width: Size.iconWidth, height: Size.iconHeight)
                 .background(.gray95)
                 .clipShape(Circle())
+                .overlay(Circle().stroke(UIAsset.Colors.gray80.swiftUIColor, lineWidth: 1))
                 .addTappableArea(.horizontal, 20)
         }
     }
@@ -340,7 +347,15 @@ struct HomeMapView: View {
             locationService.requestAuthorization()
         }
         if let coordinate = try? await locationService.currentLocation() {
+            userLocation = coordinate
             cameraMoveRequest = CameraMoveRequest(coordinate: coordinate, zoom: 15)
+        }
+    }
+
+    private func refreshUserLocation() async {
+        guard locationService.authorizationStatus() != .notDetermined else { return }
+        if let coordinate = try? await locationService.currentLocation() {
+            userLocation = coordinate
         }
     }
 
