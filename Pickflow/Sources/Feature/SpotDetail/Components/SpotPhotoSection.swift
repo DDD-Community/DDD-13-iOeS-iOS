@@ -5,9 +5,23 @@ struct SpotPhotoSection: View {
     let recordedTime: String?
     let address: String
 
+    @State private var isFullScreenPresented: Bool = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             photoView
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    if imageURL != nil {
+                        isFullScreenPresented = true
+                    }
+                }
+                .fullScreenCover(isPresented: $isFullScreenPresented) {
+                    SpotPhotoFullScreenView(
+                        imageURL: imageURL,
+                        onClose: { isFullScreenPresented = false }
+                    )
+                }
             HStack(spacing: 4) {
                 AssetImage(named: "icLocationOn", size: 16) {
                     Image(systemName: "location.fill")
