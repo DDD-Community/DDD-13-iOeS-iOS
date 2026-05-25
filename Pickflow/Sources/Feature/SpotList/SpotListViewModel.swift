@@ -112,8 +112,10 @@ final class SpotListViewModel: ObservableObject {
             } else {
                 try await bookmarkService.addBookmark(spotId: spotId)
             }
+            NotificationCenter.default.post(name: .spotBookmarkDidChange, object: nil)
         } catch BookmarkError.alreadyBookmarked {
             bookmarkStates[spotId] = true
+            NotificationCenter.default.post(name: .spotBookmarkDidChange, object: nil)
         } catch {
             bookmarkStates[spotId] = wasBookmarked
             toast = "북마크 변경에 실패했어요."

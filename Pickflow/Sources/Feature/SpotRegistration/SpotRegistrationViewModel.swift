@@ -106,6 +106,7 @@ final class SpotRegistrationViewModel: ObservableObject {
 
         do {
             registeredSpotId = try await spotService.registerSpot(draft: draft)
+            NotificationCenter.default.post(name: .spotDidRegister, object: nil)
         } catch {
             errorMessage = error.localizedDescription
         }

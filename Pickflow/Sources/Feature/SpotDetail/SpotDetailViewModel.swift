@@ -127,8 +127,10 @@ final class SpotDetailViewModel: ObservableObject {
             } else {
                 try await bookmarkService.addBookmark(spotId: spotId)
             }
+            NotificationCenter.default.post(name: .spotBookmarkDidChange, object: nil)
         } catch BookmarkError.alreadyBookmarked {
             isBookmarked = true
+            NotificationCenter.default.post(name: .spotBookmarkDidChange, object: nil)
         } catch {
             isBookmarked = previousValue
             toast = "북마크 변경에 실패했어요."

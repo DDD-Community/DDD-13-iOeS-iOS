@@ -18,6 +18,8 @@ final class MyProfileViewModel: ObservableObject {
     let authService: AuthServiceProtocol
     private let socialLoginService: SocialLoginServiceProtocol
 
+    nonisolated(unsafe) private var notificationObservers: [NSObjectProtocol] = []
+
     init(
         userService: UserServiceProtocol,
         authService: AuthServiceProtocol,
@@ -26,9 +28,18 @@ final class MyProfileViewModel: ObservableObject {
         self.userService = userService
         self.authService = authService
         self.socialLoginService = socialLoginService
+        setupNotificationObservers()
     }
 
+    deinit {
+        notificationObservers.forEach { NotificationCenter.default.removeObserver($0) }
+    }
+
+    // 화면 재진입 시에는 이미 로드된 데이터를 유지하고,
+    // 실제 변경 이벤트(노티피케이션)에만 반응해 갱신한다.
     func onAppear() async {
+        if case .signedIn = state { return }
+
         let authState = await authService.currentAuthState()
         guard case .signedIn = authState else {
             state = .signedOut
@@ -73,6 +84,33 @@ final class MyProfileViewModel: ObservableObject {
 
     func handleSignedOut() {
         state = .signedOut
+    }
+
+    private func setupNotificationObservers() {
+        let refreshTriggers: [Notification.Name] = [
+            .userProfileDidUpdate,
+            .spotBookmarkDidChange,
+            .spotDidRegister,
+        ]
+        let signOutTriggers: [Notification.Name] = [
+            .userDidSignOut,
+            .userDidWithdraw,
+        ]
+
+        notificationObservers = refreshTriggers.map { name in
+            NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    guard let self, case .signedIn = self.state else { return }
+                    await self.refresh()
+                }
+            }
+        } + signOutTriggers.map { name in
+            NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    self?.handleSignedOut()
+                }
+            }
+        }
     }
 
     #if DEBUG

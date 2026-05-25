@@ -67,6 +67,7 @@ final class AccountManagementViewModel: ObservableObject {
             nicknameDraft = updated.nickname
             draftProfileImageData = nil
             saveState = .saved
+            NotificationCenter.default.post(name: .userProfileDidUpdate, object: nil)
         } catch {
             saveState = .failed(error.localizedDescription)
         }
@@ -85,6 +86,7 @@ final class AccountManagementViewModel: ObservableObject {
         do {
             try await authService.signOut()
             logoutState = .done
+            NotificationCenter.default.post(name: .userDidSignOut, object: nil)
         } catch {
             logoutState = .failed(error.localizedDescription)
         }
