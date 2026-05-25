@@ -77,11 +77,17 @@ struct SpotDetailSheetContentView: View {
             Text(preview.theme.rawValue)
                 .pretendard(.body(.medium(.regular)))
                 .foregroundStyle(.gray10)
-            dotSeparator
-            Text("북마크 \(preview.bookmarkCount)")
-                .pretendard(.body(.medium(.regular)))
-                .foregroundStyle(.gray10)
+            if preview.bookmarkCount > 0 {
+                dotSeparator
+                Text("북마크 \(preview.bookmarkCount)")
+                    .pretendard(.body(.medium(.regular)))
+                    .foregroundStyle(.gray10)
+            }
         }
+    }
+
+    private var hasAnyAddress: Bool {
+        !(preview.addressRoad?.isEmpty ?? true) || !(preview.addressJibun?.isEmpty ?? true)
     }
 
     private var distanceAndAddressRow: some View {
@@ -90,13 +96,11 @@ struct SpotDetailSheetContentView: View {
                 .pretendard(.body(.medium(.bold)))
                 .foregroundStyle(.gray10)
             dotSeparator
-            Button {
-                withAnimation(.easeInOut(duration: 0.2)) { isAddressExpanded.toggle() }
-            } label: {
-                HStack(spacing: 0) {
-                    Text(preview.addressSimple)
-                        .pretendard(.body(.medium(.regular)))
-                        .foregroundStyle(.gray0)
+            HStack(spacing: 0) {
+                Text(preview.addressSimple)
+                    .pretendard(.body(.medium(.regular)))
+                    .foregroundStyle(.gray0)
+                if hasAnyAddress {
                     Image(systemName: isAddressExpanded ? "chevron.up" : "chevron.down")
                         .resizable()
                         .scaledToFit()
@@ -106,6 +110,15 @@ struct SpotDetailSheetContentView: View {
                         .foregroundStyle(.gray10)
                 }
             }
+            .contentShape(Rectangle())
+            // SpotBottomSheet의 UIPanGestureRecognizer가 다른 제스처를 우선 차단하므로
+            // simultaneousGesture로 Tap을 강제 동시 인식시킨다.
+            .simultaneousGesture(
+                TapGesture().onEnded {
+                    guard hasAnyAddress else { return }
+                    withAnimation(.easeInOut(duration: 0.2)) { isAddressExpanded.toggle() }
+                }
+            )
             Spacer(minLength: 0)
         }
     }
@@ -123,8 +136,8 @@ struct SpotDetailSheetContentView: View {
 
     private var addressBox: some View {
         VStack(alignment: .leading, spacing: 6) {
-            addressLine(label: "도로명", value: preview.addressRoad ?? "-")
-            addressLine(label: "지번", value: preview.addressJibun ?? "-")
+            addressLine(label: "도로명", value: preview.addressRoad)
+            addressLine(label: "지번", value: preview.addressJibun)
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -136,17 +149,23 @@ struct SpotDetailSheetContentView: View {
         )
     }
 
-    private func addressLine(label: String, value: String) -> some View {
+    private func addressLine(label: String, value: String?) -> some View {
         HStack(spacing: 4) {
             Text(label)
                 .pretendard(.body(.small(.regular)))
                 .foregroundStyle(.gray30)
-            Text(value)
-                .pretendard(.body(.small(.regular)))
-                .foregroundStyle(.gray0)
-            Text("복사")
-                .pretendard(.body(.small(.bold)))
-                .foregroundStyle(.sunsetOrange)
+            if let value, !value.isEmpty {
+                Text(value)
+                    .pretendard(.body(.small(.regular)))
+                    .foregroundStyle(.gray0)
+                Text("복사")
+                    .pretendard(.body(.small(.bold)))
+                    .foregroundStyle(.sunsetOrange)
+            } else {
+                Text("-")
+                    .pretendard(.body(.small(.regular)))
+                    .foregroundStyle(.gray0)
+            }
         }
     }
 
@@ -162,7 +181,9 @@ struct SpotDetailSheetContentView: View {
         }
         .frame(maxWidth: .infinity)
         .frame(height: 200)
+        .clipped()                           // scaledToFill 오버플로 영역을 hit 까지 자른다
         .clipShape(RoundedRectangle(cornerRadius: 8))
+        .contentShape(Rectangle())           // hit shape 명시 (외부 제스처 침범 방지)
     }
 
     private var mySpotBadge: some View {
