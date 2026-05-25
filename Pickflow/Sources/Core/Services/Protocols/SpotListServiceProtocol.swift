@@ -9,6 +9,7 @@ protocol SpotListServiceProtocol: Sendable {
     func fetchSpots(
         page: Int,
         theme: SpotTheme?,
+        sort: SpotListSort,
         latitude: Double?,
         longitude: Double?
     ) async throws -> SpotListPage

@@ -134,7 +134,7 @@ final class SpotListViewModelTests: XCTestCase {
         await viewModel.onAppear()
         let initialCount = spotListService.requests.count
 
-        await viewModel.sortChanged(.nearest)
+        await viewModel.sortChanged(.distance)
 
         XCTAssertEqual(spotListService.requests.count, initialCount)
     }
@@ -145,9 +145,9 @@ final class SpotListViewModelTests: XCTestCase {
         }
         await viewModel.onAppear()
 
-        await viewModel.sortChanged(.bookmark)
+        await viewModel.sortChanged(.recommended)
 
-        XCTAssertEqual(viewModel.sort, .bookmark)
+        XCTAssertEqual(viewModel.sort, .recommended)
         XCTAssertEqual(spotListService.requests.last?.page, 0)
     }
 

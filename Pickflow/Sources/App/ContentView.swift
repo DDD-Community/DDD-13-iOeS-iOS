@@ -4,8 +4,10 @@ import UIKit
 /// 앱 런치 시 첫 뷰. 실질 라우팅은 `AppRootView`에서 수행한다.
 struct ContentView: View {
     @State private var selectedTab: Tab
-    @State private var explorePath = NavigationPath()
+    @State private var isExploreAddPlacePresented = false
+    @State private var isExploreSpotDetailPresented = false
     @State private var savedPath = NavigationPath()
+    @StateObject private var clusteringViewModel: MapClusteringViewModel
     @StateObject private var myProfileViewModel: MyProfileViewModel
     @StateObject private var archiveViewModel: ArchiveViewModel
 
@@ -13,6 +15,7 @@ struct ContentView: View {
 
     init(
         initialTab: Tab = .explore,
+        clusteringViewModel: MapClusteringViewModel? = nil,
         myProfileViewModel: MyProfileViewModel? = nil,
         archiveViewModel: ArchiveViewModel? = nil,
         onSignedOut: @escaping () -> Void = {}
@@ -24,6 +27,11 @@ struct ContentView: View {
             authService: getAuthService(),
             socialLoginService: getSocialLoginService()
         ))
+      
+        _clusteringViewModel = StateObject(wrappedValue: clusteringViewModel ?? MapClusteringViewModel(
+            clusteringService: getClusteringService())
+        )
+      
         _archiveViewModel = StateObject(wrappedValue: archiveViewModel ?? ArchiveViewModel(
             archiveService: getArchiveService(),
             bookmarkService: getBookmarkService(),
@@ -34,7 +42,7 @@ struct ContentView: View {
 
     private var isTabBarVisible: Bool {
         switch selectedTab {
-        case .explore: explorePath.isEmpty
+        case .explore: !isExploreAddPlacePresented && !isExploreSpotDetailPresented
         case .saved: savedPath.isEmpty
         case .my: !myProfileViewModel.isNavigatingToAccountManagement
         }
@@ -44,12 +52,11 @@ struct ContentView: View {
         Group {
             switch selectedTab {
             case .explore:
-                NavigationStack(path: $explorePath) {
-                    ExploreHomeView()
-                        .navigationDestination(for: DummyRoute.self) { route in
-                            DetailDummyView(route: route)
-                        }
-                }
+                HomeMapView(
+                    isAddPlacePresented: $isExploreAddPlacePresented,
+                    isSpotDetailPresented: $isExploreSpotDetailPresented,
+                    clusteringViewModel: clusteringViewModel
+                )
             case .saved:
                 NavigationStack(path: $savedPath) {
                     ArchiveView(

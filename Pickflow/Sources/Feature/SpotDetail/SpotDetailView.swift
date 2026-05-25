@@ -19,9 +19,10 @@ struct SpotDetailView: View {
             }
         }
         .task {
-            if viewModel.state == .idle {
+            if viewModel.previewState == .idle {
                 await viewModel.onAppear()
             }
+            viewModel.loadDetailIfNeeded()
         }
         .onChange(of: viewModel.dismissRequested) { _, isRequested in
             if isRequested {
@@ -97,7 +98,7 @@ struct SpotDetailView: View {
 
     @ViewBuilder
     private var content: some View {
-        switch viewModel.state {
+        switch viewModel.detailState {
         case .idle, .loading:
             ProgressView()
                 .tint(UIAsset.Colors.gray0.color)
@@ -114,21 +115,18 @@ struct SpotDetailView: View {
                 VStack(alignment: .leading, spacing: 24) {
                     SpotHeaderSection(spot: spot)
                     SpotPhotoSection(
-                        imageURL: spot.primaryImage?.imageURL,
-                        recordedTime: spot.primaryImage?.recordedTime,
+                        imageURL: spot.imageUrl,
+                        recordedTime: spot.recordedTime,
                         address: spot.address
                     )
                     SpotActionButtons(
-                        isMine: spot.isMine,
+                        isMine: spot.isMySpot,
                         isBookmarked: viewModel.isBookmarked,
                         onRoute: viewModel.openNaverMapsRoute,
                         onBookmark: { Task { await viewModel.toggleBookmark() } },
                         onOpenSpot: viewModel.openSpot
                     )
-                    SpotRealTimeInfoSection(
-                        weather: spot.weather,
-                        isMine: spot.isMine
-                    )
+                    SpotRealTimeInfoSection(spot: spot)
                     ReportButton(action: { isReportSheetPresented = true })
                 }
                 .padding(.horizontal, 16)

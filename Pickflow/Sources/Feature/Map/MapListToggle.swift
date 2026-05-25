@@ -25,6 +25,10 @@ struct MapListToggle: View {
                 Capsule()
                     .fill(.gray95)
             )
+            .overlay(
+                Capsule()
+                    .stroke(.gray80, lineWidth: 1)
+            )
         }
     }
 
@@ -49,8 +53,4 @@ struct MapListToggle: View {
             }
         }
     }
-}
-
-#Preview {
-    HomeMapView()
 }

@@ -1,6 +1,5 @@
 import SnapshotTesting
 import SwiftUI
-import UIKit
 import XCTest
 
 @testable import Pickflow
@@ -101,28 +100,28 @@ final class SpotListSnapshotTests: XCTestCase {
 
     // MARK: - SortBar (무드 capsule 은 HomeMapView 헤더로 일원화 — §13a)
 
-    func test_spot_list_sortbar_nearest_collapsed_light() {
-        assertSnapshot(of: sortBar(sort: .nearest, expanded: false),
+    func test_spot_list_sortbar_distance_collapsed_light() {
+        assertSnapshot(of: sortBar(sort: .distance, expanded: false),
                        as: .image(layout: .fixed(width: filterBarWidth, height: 48), traits: Self.light))
     }
 
-    func test_spot_list_sortbar_nearest_collapsed_dark() {
-        assertSnapshot(of: sortBar(sort: .nearest, expanded: false),
+    func test_spot_list_sortbar_distance_collapsed_dark() {
+        assertSnapshot(of: sortBar(sort: .distance, expanded: false),
                        as: .image(layout: .fixed(width: filterBarWidth, height: 48), traits: Self.dark))
     }
 
-    func test_spot_list_sortbar_nearest_expanded_dark() {
-        assertSnapshot(of: sortBar(sort: .nearest, expanded: true),
+    func test_spot_list_sortbar_distance_expanded_dark() {
+        assertSnapshot(of: sortBar(sort: .distance, expanded: true),
                        as: .image(layout: .fixed(width: filterBarWidth, height: 200), traits: Self.dark))
     }
 
-    func test_spot_list_sortbar_bookmark_collapsed_light() {
-        assertSnapshot(of: sortBar(sort: .bookmark, expanded: false),
+    func test_spot_list_sortbar_recommended_collapsed_light() {
+        assertSnapshot(of: sortBar(sort: .recommended, expanded: false),
                        as: .image(layout: .fixed(width: filterBarWidth, height: 48), traits: Self.light))
     }
 
-    func test_spot_list_sortbar_bookmark_expanded_dark() {
-        assertSnapshot(of: sortBar(sort: .bookmark, expanded: true),
+    func test_spot_list_sortbar_recommended_expanded_dark() {
+        assertSnapshot(of: sortBar(sort: .recommended, expanded: true),
                        as: .image(layout: .fixed(width: filterBarWidth, height: 200), traits: Self.dark))
     }
 

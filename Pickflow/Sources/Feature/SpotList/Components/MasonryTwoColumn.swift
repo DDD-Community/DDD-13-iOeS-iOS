@@ -22,7 +22,9 @@ struct MasonryTwoColumn<Item: Identifiable, Cell: View>: View {
     var body: some View {
         HStack(alignment: .top, spacing: spacing) {
             column(parityEven: true)
+                .frame(maxWidth: .infinity)
             column(parityEven: false)
+                .frame(maxWidth: .infinity)
         }
     }
 
@@ -31,6 +33,7 @@ struct MasonryTwoColumn<Item: Identifiable, Cell: View>: View {
             ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                 if (index % 2 == 0) == parityEven {
                     cell(item)
+                        .frame(maxWidth: .infinity)
                         .onAppear { onAppearItem?(item) }
                 }
             }

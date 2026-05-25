@@ -1,6 +1,10 @@
 import SwiftUI
 
 struct CustomTabBar: View {
+    /// CustomTabBar 컨텐츠 높이(아이콘 24 + spacing 8 + label ~14 + top padding 14).
+    /// safe area inset 은 별도. 콘텐츠를 탭바 위로 올리고 싶을 때 padding.bottom 에 더한다.
+    static let height: CGFloat = 60
+
     @Binding var selectedTab: Tab
 
     var body: some View {

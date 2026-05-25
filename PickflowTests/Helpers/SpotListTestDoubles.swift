@@ -6,11 +6,11 @@ final class MockSpotListService: SpotListServiceProtocol, @unchecked Sendable {
     struct Request: Equatable {
         let page: Int
         let theme: SpotTheme?
+        let sort: SpotListSort
         let latitude: Double?
         let longitude: Double?
     }
 
-    /// 페이지별 응답 스텁. 기본은 빈 페이지.
     var responder: @Sendable (Request) -> Result<SpotListPage, any Error> = { _ in
         .success(SpotListPage(spots: [], page: 0, hasNext: false))
     }
@@ -20,10 +20,11 @@ final class MockSpotListService: SpotListServiceProtocol, @unchecked Sendable {
     func fetchSpots(
         page: Int,
         theme: SpotTheme?,
+        sort: SpotListSort,
         latitude: Double?,
         longitude: Double?
     ) async throws -> SpotListPage {
-        let request = Request(page: page, theme: theme, latitude: latitude, longitude: longitude)
+        let request = Request(page: page, theme: theme, sort: sort, latitude: latitude, longitude: longitude)
         requests.append(request)
         return try responder(request).get()
     }
