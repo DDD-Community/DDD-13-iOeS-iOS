@@ -20,6 +20,8 @@ platform :ios do
       xcodeproj: "Pickflow.xcodeproj"
     )
 
+    key_path = File.expand_path("~/.appstoreconnect/private_keys/AuthKey_#{ENV["ASC_API_KEY_ID"]}.p8")
+
     gym(
       workspace: "Pickflow.xcworkspace",
       scheme: "Pickflow",
@@ -27,7 +29,7 @@ platform :ios do
       export_method: "app-store",
       output_directory: "build",
       output_name: "Pickflow.ipa",
-      xcargs: "-allowProvisioningUpdates"
+      xcargs: "-allowProvisioningUpdates -authenticationKeyPath #{key_path} -authenticationKeyID #{ENV["ASC_API_KEY_ID"]} -authenticationKeyIssuerID #{ENV["ASC_ISSUER_ID"]}"
     )
 
     pilot(
