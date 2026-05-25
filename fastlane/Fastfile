@@ -26,7 +26,8 @@ platform :ios do
       configuration: "Release",
       export_method: "app-store",
       output_directory: "build",
-      output_name: "Pickflow.ipa"
+      output_name: "Pickflow.ipa",
+      xcargs: "-allowProvisioningUpdates"
     )
 
     pilot(

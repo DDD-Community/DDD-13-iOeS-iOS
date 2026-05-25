@@ -56,15 +56,13 @@ jobs:
           tuist install
           tuist generate --no-open
 
-      - name: Install certificates and provisioning profile
+      - name: Install certificate
         env:
           CERTIFICATES_P12_BASE64: ${{ secrets.CERTIFICATES_P12_BASE64 }}
           CERTIFICATES_P12_PASSWORD: ${{ secrets.CERTIFICATES_P12_PASSWORD }}
-          PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
         run: |
           set -euo pipefail
 
-          # 임시 키체인 생성
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
           KEYCHAIN_PASSWORD=$(openssl rand -base64 20)
 
@@ -72,7 +70,6 @@ jobs:
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
 
-          # 인증서 설치
           P12_PATH=$RUNNER_TEMP/certificate.p12
           printf '%s' "$CERTIFICATES_P12_BASE64" | base64 --decode > "$P12_PATH" || \
           printf '%s' "$CERTIFICATES_P12_BASE64" | base64 -D > "$P12_PATH"
@@ -81,15 +78,14 @@ jobs:
             -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
           security list-keychain -d user -s "$KEYCHAIN_PATH"
 
-          # 프로비저닝 프로파일 설치
-          PP_PATH=$RUNNER_TEMP/profile.mobileprovision
-          printf '%s' "$PROVISIONING_PROFILE_BASE64" | base64 --decode > "$PP_PATH" || \
-          printf '%s' "$PROVISIONING_PROFILE_BASE64" | base64 -D > "$PP_PATH"
-
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          PP_UUID=$(security cms -D -i "$PP_PATH" | plutil -extract UUID raw -)
-          echo "Installing provisioning profile UUID: $PP_UUID"
-          cp "$PP_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/"$PP_UUID".mobileprovision
+      - name: Setup App Store Connect API Key
+        env:
+          ASC_API_KEY_BASE64: ${{ secrets.ASC_API_KEY_BASE64 }}
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          printf '%s' "$ASC_API_KEY_BASE64" | base64 --decode > ~/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8 || \
+          printf '%s' "$ASC_API_KEY_BASE64" | base64 -D > ~/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
