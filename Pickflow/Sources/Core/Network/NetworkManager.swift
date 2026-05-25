@@ -22,22 +22,14 @@ final class NetworkManager: NetworkManagerProtocol, Sendable {
 
     init(
         interceptor: AuthInterceptor = AuthInterceptor(tokenStore: KeychainTokenStore()),
-        session: Session = NetworkManager.defaultSession(),
         decoder: JSONDecoder = .pickflow
     ) {
-        self.session = Session(interceptor: interceptor)
-        self.decoder = decoder
-    }
-
-    private static func defaultSession() -> Session {
         #if DEBUG
-        return Session(
-            interceptor: AuthInterceptor(),
-            eventMonitors: [ConsoleNetworkLogger()]
-        )
+        self.session = Session(interceptor: interceptor, eventMonitors: [ConsoleNetworkLogger()])
         #else
-        return Session(interceptor: AuthInterceptor())
+        self.session = Session(interceptor: interceptor)
         #endif
+        self.decoder = decoder
     }
 
     func request<T: Decodable & Sendable>(endpoint: any APIEndpoint) async throws -> T {
