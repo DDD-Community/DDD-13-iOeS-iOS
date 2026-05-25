@@ -1,8 +1,10 @@
 import Foundation
 
 protocol ArchiveServiceProtocol: Sendable {
-    // FIXME(BE-API): 응답이 SpotListPage와 다른 구조면 ArchivePage 별도 정의
-    func fetchArchive(page: Int) async throws -> SpotListPage
+    func fetchArchiveInfo() async throws -> ArchiveInfo
+    func fetchSavedSpots(page: Int, latitude: Double?, longitude: Double?) async throws -> SpotListPage
+    func renameArchive(_ name: String) async throws -> ArchiveInfo
+    func uploadArchiveImage(_ data: Data) async throws -> ArchiveInfo
 }
 
 @MainActor

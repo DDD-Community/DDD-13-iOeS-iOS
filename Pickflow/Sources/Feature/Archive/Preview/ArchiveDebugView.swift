@@ -1,4 +1,5 @@
 #if DEBUG
+import CoreLocation
 import SwiftUI
 
 // MARK: - 로그인 상태 (Mock 데이터 로드)
@@ -11,7 +12,8 @@ struct ArchiveSignedInDebugView: View {
             archiveService: ArchiveDebugService(),
             bookmarkService: ArchiveDebugBookmarkService(),
             authService: ArchiveDebugAuthService(state: state),
-            socialLoginService: ArchiveDebugSocialService(state: state)
+            socialLoginService: ArchiveDebugSocialService(state: state),
+            locationService: ArchiveDebugLocationService()
         )
         vm.applyLoadedState(items: ArchiveDebugService.sampleItems)
         return vm
@@ -32,7 +34,8 @@ struct ArchiveSignedOutDebugView: View {
             archiveService: ArchiveDebugService(),
             bookmarkService: ArchiveDebugBookmarkService(),
             authService: ArchiveDebugAuthService(state: state),
-            socialLoginService: ArchiveDebugSocialService(state: state)
+            socialLoginService: ArchiveDebugSocialService(state: state),
+            locationService: ArchiveDebugLocationService()
         )
         vm.applySignedOutState()
         return vm
@@ -53,7 +56,8 @@ struct ArchiveEmptyDebugView: View {
             archiveService: ArchiveDebugService(),
             bookmarkService: ArchiveDebugBookmarkService(),
             authService: ArchiveDebugAuthService(state: state),
-            socialLoginService: ArchiveDebugSocialService(state: state)
+            socialLoginService: ArchiveDebugSocialService(state: state),
+            locationService: ArchiveDebugLocationService()
         )
         vm.applyEmptyState()
         return vm
@@ -78,7 +82,19 @@ final class ArchiveDebugService: ArchiveServiceProtocol, Sendable {
         SpotListItem(spotId: 8, name: "성수 한강 윤슬",   theme: .reflection, thumbnailUrl: nil, distanceKm: 5.3, isBookmarked: false),
     ]
 
-    func fetchArchive(page: Int) async throws -> SpotListPage {
+    func fetchArchiveInfo() async throws -> ArchiveInfo {
+        ArchiveInfo(archiveName: "나의 보관함", archiveImageUrl: nil)
+    }
+
+    func renameArchive(_ name: String) async throws -> ArchiveInfo {
+        ArchiveInfo(archiveName: name, archiveImageUrl: nil)
+    }
+
+    func uploadArchiveImage(_ data: Data) async throws -> ArchiveInfo {
+        ArchiveInfo(archiveName: "나의 보관함", archiveImageUrl: nil)
+    }
+
+    func fetchSavedSpots(page: Int, latitude: Double?, longitude: Double?) async throws -> SpotListPage {
         SpotListPage(spots: Self.sampleItems, page: page, hasNext: false)
     }
 }
@@ -124,5 +140,13 @@ final class ArchiveDebugSocialService: SocialLoginServiceProtocol, Sendable {
     init(state: ArchiveDebugSharedState) { self.state = state }
     func signInWithKakao() async throws { state.isSignedIn = true }
     func signInWithApple() async throws { state.isSignedIn = true }
+}
+
+final class ArchiveDebugLocationService: LocationServiceProtocol, Sendable {
+    var lastKnownLocation: Coordinate? { Coordinate(latitude: 37.5665, longitude: 126.9780) }
+    func requestAuthorization() {}
+    func authorizationStatus() -> CLAuthorizationStatus { .notDetermined }
+    func currentLocation() async throws -> Coordinate { Coordinate(latitude: 37.5665, longitude: 126.9780) }
+    func startUpdatingLocation() -> AsyncStream<Coordinate> { AsyncStream { _ in } }
 }
 #endif

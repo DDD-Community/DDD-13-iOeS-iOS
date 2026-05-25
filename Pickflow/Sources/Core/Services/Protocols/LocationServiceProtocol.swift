@@ -2,6 +2,7 @@ import CoreLocation
 import Foundation
 
 protocol LocationServiceProtocol: Sendable {
+    var lastKnownLocation: Coordinate? { get }
     func requestAuthorization()
     func authorizationStatus() -> CLAuthorizationStatus
     func currentLocation() async throws -> Coordinate

@@ -153,17 +153,22 @@ struct ArchiveView: View {
             }
             .ignoresSafeArea()
         )
-        .navigationDestination(item: $selectedSpotId) { spotId in
-            SpotDetailView(viewModel: SpotDetailViewModel(
-                spotId: spotId,
-                spotService: getSpotService(),
-                bookmarkService: getBookmarkService(),
-                shareIntentService: getShareIntentService(),
-                locationService: getLocationService(),
-                externalAppLauncher: getExternalAppLauncher(),
-                shareSheetPresenter: getShareSheetPresenter(),
-                deviceIdProvider: { UIDevice.current.identifierForVendor?.uuidString ?? "" }
-            ))
+        .fullScreenCover(isPresented: Binding(
+            get: { selectedSpotId != nil },
+            set: { if !$0 { selectedSpotId = nil } }
+        )) {
+            if let spotId = selectedSpotId {
+                SpotDetailView(viewModel: SpotDetailViewModel(
+                    spotId: spotId,
+                    spotService: getSpotService(),
+                    bookmarkService: getBookmarkService(),
+                    shareIntentService: getShareIntentService(),
+                    locationService: getLocationService(),
+                    externalAppLauncher: getExternalAppLauncher(),
+                    shareSheetPresenter: getShareSheetPresenter(),
+                    deviceIdProvider: { UIDevice.current.identifierForVendor?.uuidString ?? "" }
+                ))
+            }
         }
         .fullScreenCover(isPresented: $showRegistration) {
             SpotRegistrationAssembly.make { _ in showRegistration = false }
@@ -172,7 +177,7 @@ struct ArchiveView: View {
             ArchiveCoverImagePickerView(
                 archiveName: viewModel.archiveName,
                 currentImageData: viewModel.coverImageData,
-                onSelect: { data in viewModel.updateCoverImage(data) }
+                onSelect: { data in Task { await viewModel.updateCoverImage(data) } }
             )
         }
         .overlay {
@@ -180,7 +185,7 @@ struct ArchiveView: View {
                 ArchiveRenameDialog(
                     isPresented: $showRenameDialog,
                     initialName: viewModel.archiveName,
-                    onSave: { viewModel.renameArchive($0) }
+                    onSave: { name in Task { await viewModel.renameArchive(name) } }
                 )
                 .transition(.opacity)
                 .animation(.easeInOut(duration: 0.2), value: showRenameDialog)
@@ -216,7 +221,7 @@ struct ArchiveView: View {
 
             // z=1 (middle): photo in front of cards; top reaches screen top (behind status bar)
             ArchiveHeaderView(
-                thumbnailURL: firstThumbnailURL,
+                thumbnailURL: viewModel.archiveImageURL,
                 coverImageData: viewModel.coverImageData,
                 height: 240 + safeTop
             )
@@ -269,12 +274,6 @@ struct ArchiveView: View {
         }
     }
 
-    private var firstThumbnailURL: URL? {
-        guard case let .loaded(items, _) = viewModel.state,
-              let urlString = items.first?.thumbnailUrl else { return nil }
-        return URL(string: urlString)
-    }
-
     @ViewBuilder
     private var tabContent: some View {
         switch viewModel.selectedTab {
@@ -297,10 +296,9 @@ struct ArchiveView: View {
                     item: item,
                     isBookmarked: true,
                     bookmarkCount: nil,
-                    onBookmarkTap: { Task { await viewModel.bookmarkTapped(item.spotId) } }
+                    onBookmarkTap: { Task { await viewModel.bookmarkTapped(item.spotId) } },
+                    onCellTap: { selectedSpotId = item.spotId }
                 )
-                .contentShape(Rectangle())
-                .onTapGesture { selectedSpotId = item.spotId }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 16)

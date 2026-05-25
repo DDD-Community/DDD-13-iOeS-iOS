@@ -36,7 +36,8 @@ struct ContentView: View {
             archiveService: getArchiveService(),
             bookmarkService: getBookmarkService(),
             authService: getAuthService(),
-            socialLoginService: getSocialLoginService()
+            socialLoginService: getSocialLoginService(),
+            locationService: getLocationService()
         ))
     }
 

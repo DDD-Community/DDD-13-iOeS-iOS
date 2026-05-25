@@ -22,6 +22,7 @@ struct MyProfileView: View {
             case let .signedIn(user):
                 MyProfileSignedInContent(
                     user: user,
+                    cachedProfileImage: viewModel.cachedProfileImage,
                     onAccountManagementTap: { viewModel.navigateToAccountManagement() }
                 )
 
