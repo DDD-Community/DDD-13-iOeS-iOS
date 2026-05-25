@@ -37,5 +37,6 @@ extension InfoPlist {
             .string(URLScheme.portrait)
         ]),
         "UIUserInterfaceStyle": .string("Dark"),
+        "ITSAppUsesNonExemptEncryption": .boolean(false),
     ])
 }
