@@ -1,0 +1,102 @@
+name: TestFlight Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "빌드할 브랜치 이름"
+        required: true
+        default: "develop"
+      release_notes:
+        description: "테스트 노트 (선택)"
+        required: false
+        default: ""
+
+jobs:
+  deploy:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Setup mise and Tuist
+        uses: jdx/mise-action@v4
+        with:
+          mise_toml: |
+            [tools]
+            tuist = "4.174.2"
+
+      - name: Restore local config files
+        env:
+          COMMON_XCCONFIG: ${{ secrets.COMMON_XCCONFIG }}
+          GOOGLE_SERVICE_INFO_PLIST_B64: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_B64 }}
+        run: |
+          set -euo pipefail
+
+          test -n "$COMMON_XCCONFIG"
+          test -n "$GOOGLE_SERVICE_INFO_PLIST_B64"
+
+          mkdir -p Configs
+
+          printf '%s\n' "$COMMON_XCCONFIG" > Configs/Common.xcconfig
+
+          printf '%s' "$GOOGLE_SERVICE_INFO_PLIST_B64" | base64 --decode > Configs/GoogleService-Info.plist || \
+          printf '%s' "$GOOGLE_SERVICE_INFO_PLIST_B64" | base64 -D > Configs/GoogleService-Info.plist
+
+      - name: Generate project
+        run: |
+          tuist install
+          tuist generate --no-open
+
+      - name: Install certificate
+        env:
+          CERTIFICATES_P12_BASE64: ${{ secrets.CERTIFICATES_P12_BASE64 }}
+          CERTIFICATES_P12_PASSWORD: ${{ secrets.CERTIFICATES_P12_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          KEYCHAIN_PASSWORD=$(openssl rand -base64 20)
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          P12_PATH=$RUNNER_TEMP/certificate.p12
+          printf '%s' "$CERTIFICATES_P12_BASE64" | base64 --decode > "$P12_PATH" || \
+          printf '%s' "$CERTIFICATES_P12_BASE64" | base64 -D > "$P12_PATH"
+
+          security import "$P12_PATH" -P "$CERTIFICATES_P12_PASSWORD" -A \
+            -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+
+      - name: Setup App Store Connect API Key
+        env:
+          ASC_API_KEY_BASE64: ${{ secrets.ASC_API_KEY_BASE64 }}
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          printf '%s' "$ASC_API_KEY_BASE64" | base64 --decode > ~/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8 || \
+          printf '%s' "$ASC_API_KEY_BASE64" | base64 -D > ~/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.1"
+          bundler-cache: true
+
+      - name: Deploy to TestFlight
+        env:
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_API_KEY_BASE64: ${{ secrets.ASC_API_KEY_BASE64 }}
+          RELEASE_NOTES: ${{ github.event.inputs.release_notes }}
+        run: bundle exec fastlane beta

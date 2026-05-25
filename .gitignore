@@ -29,3 +29,5 @@ CLAUDE.md
 *.ipa
 *.dSYM.zip
 *.dSYM
+vendor/
+.bundle/
