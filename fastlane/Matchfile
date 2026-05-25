@@ -1,0 +1,9 @@
+git_url(ENV["MATCH_GIT_URL"])
+
+storage_mode("git")
+
+type("appstore")
+
+app_identifier(["com.pickflow"])
+
+username(ENV["FASTLANE_USER"])
