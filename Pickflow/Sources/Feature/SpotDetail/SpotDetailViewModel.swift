@@ -19,8 +19,10 @@ final class SpotDetailViewModel: ObservableObject {
     @Published private(set) var previewState: PreviewState = .idle
     @Published private(set) var detailState: DetailState = .idle
     @Published private(set) var isBookmarked = false
+    @Published private(set) var isOpenSpotSheetPresented = false
     @Published var dismissRequested = false
     @Published var toast: String?
+    @Published var updateNotificationToast: String?
     @Published var isLoginRequired = false
     @Published private(set) var presentationPhase: SpotPresentationPhase = .sheetMedium
 
@@ -154,7 +156,11 @@ final class SpotDetailViewModel: ObservableObject {
         }
         shareSheetPresenter.present(items: [text])
     }
-
+    
+    func openFakedoorSheet() {
+        isOpenSpotSheetPresented = true
+    }
+    
     func reportInvalidInfo() {
         guard case .loaded = detailState else { return }
         Task {
@@ -173,10 +179,6 @@ final class SpotDetailViewModel: ObservableObject {
             try? await Task.sleep(for: .seconds(3))
             toast = nil
         }
-    }
-
-    func openSpot() {
-        toast = "준비 중이에요."
     }
 
     func close() {

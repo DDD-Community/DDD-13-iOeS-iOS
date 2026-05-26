@@ -11,11 +11,15 @@ struct SpotHeaderSection: View {
                     .foregroundStyle(.gray0)
                 if spot.isMySpot {
                     Text("MY 스팟")
-                        .pretendard(.label(.medium))
-                        .foregroundStyle(.white)
+                        .pretendard(.body(.small(.bold)))
+                        .foregroundStyle(.sunsetOrange)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 3)
-                        .background(.sunsetOrange)
+                        .background(
+                          RoundedRectangle(cornerRadius: 4)
+                            .fill(.clear)
+                            .stroke(UIAsset.Colors.sunsetOrange.color, lineWidth: 1)
+                        )
                         .clipShape(RoundedRectangle(cornerRadius: 4))
                 }
             }
