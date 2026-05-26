@@ -166,8 +166,3 @@ struct SpotDetailView: View {
     }
 }
 
-#if DEBUG
-#Preview("SpotDetail - isMySpot true") {
-    SpotDetailView(viewModel: SpotDetailDebugFactory.makeMyViewModel(spotId: 2))
-}
-#endif

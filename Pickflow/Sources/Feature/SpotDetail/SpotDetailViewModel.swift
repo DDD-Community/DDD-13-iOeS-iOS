@@ -19,7 +19,6 @@ final class SpotDetailViewModel: ObservableObject {
     @Published private(set) var previewState: PreviewState = .idle
     @Published private(set) var detailState: DetailState = .idle
     @Published private(set) var isBookmarked = false
-    @Published private(set) var isOpenSpotSheetPresented = false
     @Published var dismissRequested = false
     @Published var toast: String?
     @Published var updateNotificationToast: String?
@@ -155,10 +154,6 @@ final class SpotDetailViewModel: ObservableObject {
             try? await shareIntentService.recordIntent(deviceId: deviceId)
         }
         shareSheetPresenter.present(items: [text])
-    }
-    
-    func openFakedoorSheet() {
-        isOpenSpotSheetPresented = true
     }
     
     func reportInvalidInfo() {
