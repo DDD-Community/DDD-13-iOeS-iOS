@@ -7,6 +7,7 @@ struct SpotDetailSheetContentView: View {
     let onRoute: () -> Void
     let onBookmark: () -> Void
     @State private var isAddressExpanded: Bool
+    @State private var isPhotoFullScreenPresented: Bool = false
 
     init(
         preview: SpotPreviewResponse,
@@ -59,6 +60,18 @@ struct SpotDetailSheetContentView: View {
                             .transition(.opacity)
                             .offset(y: -16)
                     }
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    if preview.imageUrl != nil {
+                        isPhotoFullScreenPresented = true
+                    }
+                }
+                .fullScreenCover(isPresented: $isPhotoFullScreenPresented) {
+                    SpotPhotoFullScreenView(
+                        imageURL: preview.imageUrl,
+                        onClose: { isPhotoFullScreenPresented = false }
+                    )
                 }
 
             SpotBottomSheetActionButtons(
