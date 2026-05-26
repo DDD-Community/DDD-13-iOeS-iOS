@@ -4,10 +4,12 @@ struct SpotPhotoSection: View {
     let imageURL: String?
     let recordedTime: String?
     let address: String
+    var onPhotoTap: (() -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             photoView
+                .onTapGesture { onPhotoTap?() }
             HStack(spacing: 4) {
                 AssetImage(named: "icLocationOn", size: 16) {
                     Image(systemName: "location.fill")

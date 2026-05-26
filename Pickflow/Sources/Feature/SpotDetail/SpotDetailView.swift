@@ -5,6 +5,7 @@ struct SpotDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var isReportSheetPresented = false
     @State private var isLoginViewPresented = false
+    @State private var isPhotoDetailPresented = false
 
     var body: some View {
         ZStack {
@@ -75,6 +76,14 @@ struct SpotDetailView: View {
                 onSignInSucceeded: { isLoginViewPresented = false }
             )
         }
+        .fullScreenCover(isPresented: $isPhotoDetailPresented) {
+            if case let .loaded(spot) = viewModel.detailState {
+                SpotPhotoDetailView(
+                    imageURL: spot.imageUrl,
+                    onClose: { isPhotoDetailPresented = false }
+                )
+            }
+        }
         .overlay {
             if let toast = viewModel.toast {
                 HStack(spacing: 8) {
@@ -117,7 +126,8 @@ struct SpotDetailView: View {
                     SpotPhotoSection(
                         imageURL: spot.imageUrl,
                         recordedTime: spot.recordedTime,
-                        address: spot.address
+                        address: spot.address,
+                        onPhotoTap: spot.imageUrl != nil ? { isPhotoDetailPresented = true } : nil
                     )
                     SpotActionButtons(
                         isMine: spot.isMySpot,
