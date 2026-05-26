@@ -70,11 +70,11 @@ struct SpotActionButtons: View {
             Button(action: onOpenSpot) {
                 Text("내 스팟 오픈하기")
                     .pretendard(.body(.large(.bold)))
-                    .foregroundStyle(.gray0)
+                    .foregroundStyle(.gray80)
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
             }
-            .background(.gray95)
+            .background(.gray0)
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(.gray80, lineWidth: 1))
             .clipShape(RoundedRectangle(cornerRadius: 8))
         }

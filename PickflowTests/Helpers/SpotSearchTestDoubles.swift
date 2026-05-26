@@ -20,6 +20,9 @@ final class MockAddressService: AddressServiceProtocol, @unchecked Sendable {
 
 final class SpotSearchMockLocationService: LocationServiceProtocol, @unchecked Sendable {
     var result: Result<Coordinate, any Error> = .success(Coordinate(latitude: 37.5209, longitude: 126.9833))
+    var lastKnownLocation: Coordinate? {
+        try? result.get()
+    }
 
     func requestAuthorization() {}
 

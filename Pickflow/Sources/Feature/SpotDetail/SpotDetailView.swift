@@ -5,6 +5,7 @@ struct SpotDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var isReportSheetPresented = false
     @State private var isLoginViewPresented = false
+    @State private var isOpenSpotSheetPresented = false
 
     var body: some View {
         ZStack {
@@ -75,6 +76,34 @@ struct SpotDetailView: View {
                 onSignInSucceeded: { isLoginViewPresented = false }
             )
         }
+        .sheet(isPresented: $isOpenSpotSheetPresented) {
+            MySpotComingSoonSheet(
+                onCancel: { isOpenSpotSheetPresented = false },
+                onNotify: {
+                    isOpenSpotSheetPresented = false
+                    viewModel.notifyUpdateRequested()
+                }
+            )
+            .presentationDetents([.height(310)])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(UIAsset.Colors.gray95.swiftUIColor)
+        }
+        .overlay {
+            if let updateToast = viewModel.updateNotificationToast {
+                Text(updateToast)
+                    .pretendard(.body(.large(.bold)))
+                    .foregroundStyle(.gray90)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(.gray0)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .shadow(color: .black.opacity(0.12), radius: 12, x: 0, y: 4)
+                    .padding(.horizontal, 16)
+                    .transition(.opacity)
+                    .animation(.easeInOut(duration: 0.2), value: viewModel.updateNotificationToast)
+            }
+        }
         .overlay {
             if let toast = viewModel.toast {
                 HStack(spacing: 8) {
@@ -124,7 +153,7 @@ struct SpotDetailView: View {
                         isBookmarked: viewModel.isBookmarked,
                         onRoute: viewModel.openNaverMapsRoute,
                         onBookmark: { Task { await viewModel.toggleBookmark() } },
-                        onOpenSpot: viewModel.openSpot
+                        onOpenSpot: { isOpenSpotSheetPresented = true }
                     )
                     SpotRealTimeInfoSection(spot: spot)
                     ReportButton(action: { isReportSheetPresented = true })
@@ -136,3 +165,4 @@ struct SpotDetailView: View {
         }
     }
 }
+
