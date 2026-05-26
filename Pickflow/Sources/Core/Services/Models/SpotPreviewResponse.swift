@@ -7,6 +7,7 @@ struct SpotPreviewResponse: Codable, Sendable, Identifiable, Equatable {
     let isMySpot: Bool
     let theme: SpotTheme
     let bookmarkCount: Int
+    let isBookmarked: Bool
     let distanceKm: Double?
     let imageUrl: String?
     let addressSimple: String

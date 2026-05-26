@@ -5,10 +5,25 @@ import SwiftUI
 /// `NMCClusterer` 사용은 `UIViewController` + `UIViewControllerRepresentable` 래핑 필수.
 /// `UIViewRepresentable`(NMFNaverMapView 직접 반환) 형태에서는 `leafMarkerUpdater`/`clusterMarkerUpdater`
 /// 콜백이 호출되지 않는 이슈가 KAN-82 검증에서 확인됨.
+/// 동일 좌표 재탭에서도 카메라 이동이 다시 트리거되도록 UUID 기반 식별자를 함께 보낸다.
+struct CameraMoveRequest: Equatable {
+    let id: UUID
+    let coordinate: Coordinate
+    let zoom: Double?
+
+    init(coordinate: Coordinate, zoom: Double? = nil) {
+        self.id = UUID()
+        self.coordinate = coordinate
+        self.zoom = zoom
+    }
+}
+
 struct NaverMapView: UIViewControllerRepresentable {
     var spots: [ClusterableSpot] = []
     var mySpots: [MySpot] = []
     var selectedSpotId: Int64?
+    var cameraMoveRequest: CameraMoveRequest?
+    var userLocation: Coordinate?
     var onViewportChange: ((Viewport) -> Void)?
     var onSpotTap: ((Int64) -> Void)?
     var onMapBackgroundTap: (() -> Void)?
@@ -22,6 +37,10 @@ struct NaverMapView: UIViewControllerRepresentable {
         vc.onSpotTap = onSpotTap
         vc.onMapBackgroundTap = onMapBackgroundTap
         vc.update(spots: spots, mySpots: mySpots, selectedSpotId: selectedSpotId)
+        vc.updateUserLocation(userLocation)
+        if let request = cameraMoveRequest {
+            vc.applyCameraMoveRequest(request)
+        }
     }
 }
 
@@ -39,6 +58,7 @@ final class NaverMapViewController: UIViewController, @preconcurrency NMFMapView
     private var idleTask: Task<Void, Never>?
     private let debounceMillis: Int = 300
     private var hasTriggeredInitialViewport = false
+    private var lastAppliedCameraRequestId: UUID?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -92,6 +112,51 @@ final class NaverMapViewController: UIViewController, @preconcurrency NMFMapView
             applyLeafSelectionDelta(previous: previousSelected, current: selectedSpotId)
         }
         updateMySpotMarkers(mySpots: mySpots, mapView: mapView)
+    }
+
+    func updateUserLocation(_ coordinate: Coordinate?) {
+        guard let mapView = naverMapView?.mapView else { return }
+        let overlay = mapView.locationOverlay
+        if let coordinate {
+            overlay.location = NMGLatLng(lat: coordinate.latitude, lng: coordinate.longitude)
+            overlay.icon = NMFOverlayImage(image: Self.userLocationDotImage)
+            overlay.iconWidth = 22
+            overlay.iconHeight = 22
+            overlay.circleColor = UIAsset.Colors.sunsetOrange.uiColor.withAlphaComponent(0.25)
+            overlay.hidden = false
+        } else {
+            overlay.hidden = true
+        }
+    }
+
+    /// 네이버 기본 locationOverlay 아이콘 스펙: 22pt 전체 / 흰 테두리 ~3pt / 안쪽 disc ~16pt.
+    /// 색만 sunsetOrange 로 교체.
+    private static let userLocationDotImage: UIImage = {
+        let size = CGSize(width: 22, height: 22)
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = max(UIScreen.main.scale, 3.0)
+        let renderer = UIGraphicsImageRenderer(size: size, format: format)
+        return renderer.image { ctx in
+            let cg = ctx.cgContext
+            cg.setFillColor(UIColor.white.cgColor)
+            cg.fillEllipse(in: CGRect(origin: .zero, size: size))
+            cg.setFillColor(UIAsset.Colors.sunsetOrange.uiColor.cgColor)
+            cg.fillEllipse(in: CGRect(origin: .zero, size: size).insetBy(dx: 3, dy: 3))
+        }
+    }()
+
+    func applyCameraMoveRequest(_ request: CameraMoveRequest) {
+        guard request.id != lastAppliedCameraRequestId else { return }
+        guard let mapView = naverMapView?.mapView else { return }
+        lastAppliedCameraRequestId = request.id
+        let latlng = NMGLatLng(
+            lat: request.coordinate.latitude,
+            lng: request.coordinate.longitude
+        )
+        let position = NMFCameraPosition(latlng, zoom: request.zoom ?? mapView.zoomLevel)
+        let update = NMFCameraUpdate(position: position)
+        update.animation = .easeOut
+        mapView.moveCamera(update)
     }
 
     fileprivate func applyLeafSelectionDelta(previous: Int64?, current: Int64?) {

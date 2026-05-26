@@ -6,6 +6,7 @@ struct SpotListItem: Codable, Sendable, Identifiable, Equatable {
     let theme: SpotTheme
     let thumbnailUrl: String?
     let distanceKm: Double?
+    let isBookmarked: Bool
 
     var id: Int64 { spotId }
 }

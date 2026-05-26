@@ -76,6 +76,7 @@ final class SpotDetailViewModel: ObservableObject {
                 longitude: coordinate?.longitude
             )
             previewState = .loaded(preview)
+            isBookmarked = preview.isBookmarked
         } catch {
             previewState = .failed(error.localizedDescription)
         }
@@ -138,8 +139,21 @@ final class SpotDetailViewModel: ObservableObject {
     }
 
     func openNaverMapsRoute() {
-        guard case let .loaded(spot) = detailState else { return }
-        externalAppLauncher.openNaverMapsRoute(latitude: spot.latitude, longitude: spot.longitude, name: spot.name)
+        // medium 시트(SpotDetailSheetContentView)에서는 detailState 가 .idle 이라
+        // 기존 guard 에 막혀 silent fail 되던 문제를 해소: 필요하면 detail 을 먼저 로드한 뒤 실행.
+        Task { await openNaverMapsRouteFlow() }
+    }
+
+    private func openNaverMapsRouteFlow() async {
+        if case let .loaded(spot) = detailState {
+            externalAppLauncher.openNaverMapsRoute(latitude: spot.latitude, longitude: spot.longitude, name: spot.name)
+            return
+        }
+        loadDetailIfNeeded()
+        await detailLoadTask?.value
+        if case let .loaded(spot) = detailState {
+            externalAppLauncher.openNaverMapsRoute(latitude: spot.latitude, longitude: spot.longitude, name: spot.name)
+        }
     }
 
     func share() {

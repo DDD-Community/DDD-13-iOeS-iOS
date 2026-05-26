@@ -48,6 +48,12 @@ struct HomeMapView: View {
     )
     @State private var topBarHeight: CGFloat = 0
     @State private var isSortExpanded: Bool = false
+    @State private var cameraMoveRequest: CameraMoveRequest?
+    @State private var userLocation: Coordinate?
+    @State private var showAddPlaceLoginPrompt: Bool = false
+    @State private var isAddPlaceLoginViewPresented: Bool = false
+    private let tokenStore = getTokenStore()
+    private let locationService = getLocationService()
 
     var body: some View {
         NavigationStack {
@@ -104,16 +110,14 @@ struct HomeMapView: View {
                     }
                 }
 
-                // MARK: - Bottom trailing overlay (지도 모드에서만 표시)
-                if mapListMode == .map {
-                    VStack {
+                // MARK: - Bottom trailing overlay (Add Place 는 항상, 현재위치는 지도 모드 전용)
+                VStack {
+                    Spacer()
+                    HStack {
                         Spacer()
-                        HStack {
-                            Spacer()
-                            trailingControls
-                                .padding(.trailing, Padding.containerHorizontal)
-                                .padding(.bottom, Padding.containerBottom + CustomTabBar.height)
-                        }
+                        trailingControls
+                            .padding(.trailing, Padding.containerHorizontal)
+                            .padding(.bottom, Padding.containerBottom + CustomTabBar.height)
                     }
                 }
 
@@ -131,6 +135,8 @@ struct HomeMapView: View {
                     spots: clusteringViewModel.state.spots,
                     mySpots: clusteringViewModel.mySpots,
                     selectedSpotId: clusteringViewModel.selectedSpotId,
+                    cameraMoveRequest: cameraMoveRequest,
+                    userLocation: userLocation,
                     onViewportChange: { viewport in
                         Task { await clusteringViewModel.viewportChanged(viewport) }
                     },
@@ -143,6 +149,9 @@ struct HomeMapView: View {
                     }
                 )
                 .ignoresSafeArea()
+            }
+            .task {
+                await refreshUserLocation()
             }
             .onChange(of: selectedMood) { _, mood in
                 Task { await clusteringViewModel.themeChanged(mood?.spotTheme.apiCode) }
@@ -175,6 +184,40 @@ struct HomeMapView: View {
                 if !isPresented {
                     clusteringViewModel.mapBackgroundTapped()
                 }
+            }
+            .overlay {
+                if showAddPlaceLoginPrompt {
+                    ZStack {
+                        Color.black.opacity(0.5).ignoresSafeArea()
+                            .onTapGesture {
+                                withAnimation(.easeInOut(duration: 0.25)) {
+                                    showAddPlaceLoginPrompt = false
+                                }
+                            }
+                        LoginPromptPopup(
+                            onCancel: {
+                                withAnimation(.easeInOut(duration: 0.25)) {
+                                    showAddPlaceLoginPrompt = false
+                                }
+                            },
+                            onLogin: {
+                                withAnimation(.easeInOut(duration: 0.25)) {
+                                    showAddPlaceLoginPrompt = false
+                                }
+                                isAddPlaceLoginViewPresented = true
+                            }
+                        )
+                        .padding(.horizontal, 32)
+                    }
+                    .transition(.opacity)
+                    .animation(.easeInOut(duration: 0.25), value: showAddPlaceLoginPrompt)
+                }
+            }
+            .fullScreenCover(isPresented: $isAddPlaceLoginViewPresented) {
+                LoginView(
+                    viewModel: LoginViewModel(socialLoginService: getSocialLoginService()),
+                    onSignInSucceeded: { isAddPlaceLoginViewPresented = false }
+                )
             }
         }
     }
@@ -258,29 +301,62 @@ struct HomeMapView: View {
 
     private var trailingControls: some View {
         VStack(spacing: 12) {
-            // Add place button
-            Button {
-                isAddPlacePresented = true
-            } label: {
-                Image(.addLocation)
-                    .frame(width: Size.iconWidth, height: Size.iconHeight)
-                    .background(.gray95)
-                    .clipShape(Circle())
-                    .addTappableArea(.horizontal, 20)
-            }
-
-            // Current position button
-            Button {
-                // TODO: 현재 위치로 이동
-            } label: {
-                Image(.myLocation)
-                    .frame(width: Size.iconWidth, height: Size.iconHeight)
-                    .background(.gray95)
-                    .clipShape(Circle())
-                    .addTappableArea(.horizontal, 20)
+            addPlaceButton
+            if mapListMode == .map {
+                currentPositionButton
             }
         }
         .padding(.horizontal, -20)
+    }
+
+    private var addPlaceButton: some View {
+        Button {
+            if (try? tokenStore.load()) != nil {
+                isAddPlacePresented = true
+            } else {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    showAddPlaceLoginPrompt = true
+                }
+            }
+        } label: {
+            Image(.addLocation)
+                .frame(width: Size.iconWidth, height: Size.iconHeight)
+                .background(.gray95)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(UIAsset.Colors.gray80.swiftUIColor, lineWidth: 1))
+                .addTappableArea(.horizontal, 20)
+        }
+    }
+
+    private var currentPositionButton: some View {
+        Button {
+            Task { await moveCameraToCurrentLocation() }
+        } label: {
+            Image(.myLocation)
+                .frame(width: Size.iconWidth, height: Size.iconHeight)
+                .background(.gray95)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(UIAsset.Colors.gray80.swiftUIColor, lineWidth: 1))
+                .addTappableArea(.horizontal, 20)
+        }
+    }
+
+    private func moveCameraToCurrentLocation() async {
+        let status = locationService.authorizationStatus()
+        if status == .notDetermined {
+            locationService.requestAuthorization()
+        }
+        if let coordinate = try? await locationService.currentLocation() {
+            userLocation = coordinate
+            cameraMoveRequest = CameraMoveRequest(coordinate: coordinate, zoom: 15)
+        }
+    }
+
+    private func refreshUserLocation() async {
+        guard locationService.authorizationStatus() != .notDetermined else { return }
+        if let coordinate = try? await locationService.currentLocation() {
+            userLocation = coordinate
+        }
     }
 
 }

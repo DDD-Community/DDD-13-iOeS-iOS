@@ -12,7 +12,7 @@ struct SavedSpotItem: Decodable, Sendable {
     let deleted: Bool
 
     func toSpotListItem() -> SpotListItem {
-        SpotListItem(spotId: spotId, name: name, theme: theme, thumbnailUrl: imageUrl, distanceKm: distanceKm)
+        SpotListItem(spotId: spotId, name: name, theme: theme, thumbnailUrl: imageUrl, distanceKm: distanceKm, isBookmarked: true)
     }
 }
 
