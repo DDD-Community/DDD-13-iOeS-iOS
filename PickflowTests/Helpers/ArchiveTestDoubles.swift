@@ -8,9 +8,21 @@ final class MockArchiveService: ArchiveServiceProtocol, @unchecked Sendable {
 
     private(set) var requestedPages: [Int] = []
 
-    func fetchArchive(page: Int) async throws -> SpotListPage {
+    func fetchArchiveInfo() async throws -> ArchiveInfo {
+        fatalError("not used in archive tests")
+    }
+
+    func fetchSavedSpots(page: Int, latitude _: Double?, longitude _: Double?) async throws -> SpotListPage {
         requestedPages.append(page)
         return try responder(page).get()
+    }
+
+    func renameArchive(_: String) async throws -> ArchiveInfo {
+        fatalError("not used in archive tests")
+    }
+
+    func uploadArchiveImage(_: Data) async throws -> ArchiveInfo {
+        fatalError("not used in archive tests")
     }
 }
 

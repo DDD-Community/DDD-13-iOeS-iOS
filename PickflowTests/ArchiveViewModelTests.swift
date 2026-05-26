@@ -7,6 +7,7 @@ final class ArchiveViewModelTests: XCTestCase {
     private var bookmarkService: MockBookmarkService!
     private var authService: MockAuthServiceForArchive!
     private var socialLoginService: MockSocialLoginService!
+    private var locationService: MockLocationService!
     private var viewModel: ArchiveViewModel!
 
     override func setUp() async throws {
@@ -15,11 +16,13 @@ final class ArchiveViewModelTests: XCTestCase {
         bookmarkService = MockBookmarkService()
         authService = MockAuthServiceForArchive()
         socialLoginService = MockSocialLoginService()
+        locationService = MockLocationService()
         viewModel = makeViewModel()
     }
 
     override func tearDown() async throws {
         viewModel = nil
+        locationService = nil
         socialLoginService = nil
         authService = nil
         bookmarkService = nil
@@ -263,7 +266,8 @@ final class ArchiveViewModelTests: XCTestCase {
             archiveService: archiveService,
             bookmarkService: bookmarkService,
             authService: authService,
-            socialLoginService: socialLoginService
+            socialLoginService: socialLoginService,
+            locationService: locationService
         )
     }
 }
