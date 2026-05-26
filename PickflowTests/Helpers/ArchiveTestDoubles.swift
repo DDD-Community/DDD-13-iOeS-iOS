@@ -29,6 +29,9 @@ final class MockSocialLoginService: SocialLoginServiceProtocol, @unchecked Senda
         appleCallCount += 1
         if let appleError { throw appleError }
     }
+
+    func restoreAccount(restoreToken: String) async throws {}
+    func retrySignIn(with credential: ProviderCredential) async throws {}
 }
 
 final class MockAuthServiceForArchive: AuthServiceProtocol, @unchecked Sendable {
@@ -47,6 +50,10 @@ final class MockAuthServiceForArchive: AuthServiceProtocol, @unchecked Sendable 
     }
 
     func refreshToken(_ refreshToken: String) async throws -> AuthToken {
+        fatalError("not used in archive tests")
+    }
+
+    func restoreAccount(restoreToken: String) async throws {
         fatalError("not used in archive tests")
     }
 }

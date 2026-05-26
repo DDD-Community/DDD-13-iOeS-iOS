@@ -37,4 +37,19 @@ final class SocialLoginService: SocialLoginServiceProtocol {
         )
         try tokenStore.save(AuthToken(accessToken: response.accessToken, refreshToken: response.refreshToken))
     }
+
+    func restoreAccount(restoreToken: String) async throws {
+        try await authService.restoreAccount(restoreToken: restoreToken)
+    }
+
+    func retrySignIn(with credential: ProviderCredential) async throws {
+        let response: TokenResponse
+        switch credential {
+        case let .kakao(accessToken):
+            response = try await authService.signInWithKakao(accessToken: accessToken)
+        case let .apple(identityToken, user):
+            response = try await authService.signInWithApple(identityToken: identityToken, user: user)
+        }
+        try tokenStore.save(AuthToken(accessToken: response.accessToken, refreshToken: response.refreshToken))
+    }
 }

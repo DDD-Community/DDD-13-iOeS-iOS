@@ -49,6 +49,27 @@ enum SocialProvider: String, Codable, Sendable {
     case apple = "APPLE"
 }
 
+// MARK: - Withdrawal Restore (U007)
+
+struct LoginFailureResponse: Decodable, Sendable {
+    let code: String
+    let data: WithdrawalRestoreData?
+}
+
+struct WithdrawalRestoreData: Decodable, Sendable {
+    let restoreToken: String
+}
+
+enum ProviderCredential: Sendable {
+    case kakao(accessToken: String)
+    case apple(identityToken: String, user: AppleUserInfo?)
+
+    var isSocialKakao: Bool {
+        if case .kakao = self { return true }
+        return false
+    }
+}
+
 // MARK: - AuthError
 
 enum AuthError: LocalizedError {
@@ -56,6 +77,7 @@ enum AuthError: LocalizedError {
     case forbidden
     case validation
     case external
+    case withdrawalRestoreRequired(restoreToken: String, credential: ProviderCredential)
     case unknown(Error)
 
     var errorDescription: String? {
@@ -64,6 +86,7 @@ enum AuthError: LocalizedError {
         case .forbidden: "권한이 없습니다."
         case .validation: "입력값을 확인해 주세요."
         case .external: "일시적인 오류가 발생했어요. 잠시 후 다시 시도해 주세요."
+        case .withdrawalRestoreRequired: "탈퇴 이력이 있습니다 재가입하시겠습니까?"
         case let .unknown(error): error.localizedDescription
         }
     }

@@ -9,6 +9,9 @@ protocol NetworkManagerProtocol: Sendable {
     /// 응답은 snake_case ↔ camelCase 자동 매핑.
     func requestJSON<T: Decodable & Sendable>(endpoint: any APIEndpoint) async throws -> T
 
+    /// JSON Body 요청 후 raw Data 반환. 호출자가 직접 파싱이 필요할 때 사용한다.
+    func requestJSONData(endpoint: any APIEndpoint) async throws -> Data
+
     /// Multipart form-data 업로드. 이미지/파일 전송 시 사용한다.
     func upload<T: Decodable & Sendable>(
         endpoint: any APIEndpoint,
@@ -73,6 +76,24 @@ final class NetworkManager: NetworkManagerProtocol, Sendable {
         )
         .serializingDecodable(T.self, decoder: Self.snakeCaseDecoder)
         .value
+    }
+
+    func requestJSONData(endpoint: any APIEndpoint) async throws -> Data {
+        let response = await session.request(
+            endpoint.url,
+            method: endpoint.method,
+            parameters: endpoint.parameters,
+            encoding: JSONEncoding.default,
+            headers: endpoint.headers
+        )
+        .serializingData()
+        .response
+
+        if let error = response.error { throw error }
+        guard let data = response.data else {
+            throw AFError.responseSerializationFailed(reason: .inputDataNilOrZeroLength)
+        }
+        return data
     }
 
     func upload<T: Decodable & Sendable>(

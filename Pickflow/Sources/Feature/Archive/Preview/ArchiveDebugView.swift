@@ -127,6 +127,7 @@ final class ArchiveDebugAuthService: AuthServiceProtocol, Sendable {
         AuthToken(accessToken: "debug", refreshToken: "debug")
     }
     func signOut() async throws {}
+    func restoreAccount(restoreToken: String) async throws {}
 }
 
 // 로그인 성공 여부를 두 서비스가 공유
@@ -140,6 +141,8 @@ final class ArchiveDebugSocialService: SocialLoginServiceProtocol, Sendable {
     init(state: ArchiveDebugSharedState) { self.state = state }
     func signInWithKakao() async throws { state.isSignedIn = true }
     func signInWithApple() async throws { state.isSignedIn = true }
+    func restoreAccount(restoreToken: String) async throws {}
+    func retrySignIn(with credential: ProviderCredential) async throws { state.isSignedIn = true }
 }
 
 final class ArchiveDebugLocationService: LocationServiceProtocol, Sendable {

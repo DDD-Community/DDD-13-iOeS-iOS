@@ -6,6 +6,7 @@ protocol AuthServiceProtocol: Sendable {
     func refreshToken(_ refreshToken: String) async throws -> AuthToken
     func signOut() async throws
     func currentAuthState() async -> AuthState
+    func restoreAccount(restoreToken: String) async throws
 }
 
 @MainActor
