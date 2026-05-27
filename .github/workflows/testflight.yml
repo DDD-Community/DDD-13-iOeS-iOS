@@ -100,3 +100,44 @@ jobs:
           ASC_API_KEY_BASE64: ${{ secrets.ASC_API_KEY_BASE64 }}
           RELEASE_NOTES: ${{ github.event.inputs.release_notes }}
         run: bundle exec fastlane beta
+
+      - name: Notify Discord on success
+        if: success()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          VERSION=$(xcrun agvtool mvers -terse1 2>/dev/null || echo "unknown")
+          BUILD=$(xcrun agvtool vers -terse 2>/dev/null || echo "unknown")
+          curl -s -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"embeds\": [{
+                \"title\": \"✅ TestFlight 배포 완료\",
+                \"color\": 5763719,
+                \"fields\": [
+                  {\"name\": \"버전\", \"value\": \"${VERSION} (${BUILD})\", \"inline\": true},
+                  {\"name\": \"브랜치\", \"value\": \"${{ github.event.inputs.branch }}\", \"inline\": true},
+                  {\"name\": \"배포자\", \"value\": \"${{ github.actor }}\", \"inline\": true},
+                  {\"name\": \"테스트 노트\", \"value\": \"${{ github.event.inputs.release_notes || '없음' }}\"}
+                ]
+              }]
+            }"
+
+      - name: Notify Discord on failure
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          curl -s -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"embeds\": [{
+                \"title\": \"❌ TestFlight 배포 실패\",
+                \"color\": 15548997,
+                \"fields\": [
+                  {\"name\": \"브랜치\", \"value\": \"${{ github.event.inputs.branch }}\", \"inline\": true},
+                  {\"name\": \"배포자\", \"value\": \"${{ github.actor }}\", \"inline\": true},
+                  {\"name\": \"로그\", \"value\": \"[${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\"}
+                ]
+              }]
+            }"
