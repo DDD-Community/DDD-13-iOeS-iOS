@@ -3,6 +3,8 @@ import Foundation
 protocol SocialLoginServiceProtocol: Sendable {
     func signInWithKakao() async throws
     func signInWithApple() async throws
+    func restoreAccount(restoreToken: String) async throws
+    func retrySignIn(with credential: ProviderCredential) async throws
 }
 
 @MainActor

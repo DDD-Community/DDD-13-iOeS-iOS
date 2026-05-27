@@ -43,10 +43,13 @@ private final class MockAuthServiceForProfile: AuthServiceProtocol, @unchecked S
     }
     func signOut() async throws {}
     func currentAuthState() async -> AuthState { .signedIn(AuthToken(accessToken: "mock", refreshToken: "mock")) }
+    func restoreAccount(restoreToken: String) async throws {}
 }
 
 private final class MockSocialLoginServiceForProfile: SocialLoginServiceProtocol, @unchecked Sendable {
     func signInWithKakao() async throws {}
     func signInWithApple() async throws {}
+    func restoreAccount(restoreToken: String) async throws {}
+    func retrySignIn(with credential: ProviderCredential) async throws {}
 }
 #endif

@@ -6,6 +6,7 @@ enum AuthEndpoint: APIEndpoint {
     case appleSignIn(identityToken: String, user: AppleUserInfo?)
     case refresh(refreshToken: String)
     case logout(refreshToken: String)
+    case restoreAccount(restoreToken: String)
 
     var baseURL: String { AppConfig.baseURL }
 
@@ -15,12 +16,21 @@ enum AuthEndpoint: APIEndpoint {
         case .appleSignIn: "/v1/auth/apple"
         case .refresh: "/v1/auth/refresh"
         case .logout: "/v1/auth/logout"
+        case .restoreAccount: "/v1/users/restore"
         }
     }
 
     var method: HTTPMethod {
         switch self {
         case .kakaoSignIn, .appleSignIn, .refresh, .logout: .post
+        case .restoreAccount: .patch
+        }
+    }
+
+    var encoding: any ParameterEncoding {
+        switch self {
+        case .restoreAccount: URLEncoding.queryString
+        default: JSONEncoding.default
         }
     }
 
@@ -44,6 +54,8 @@ enum AuthEndpoint: APIEndpoint {
             return ["refreshToken": refreshToken]
         case let .logout(refreshToken):
             return ["refreshToken": refreshToken]
+        case let .restoreAccount(restoreToken):
+            return ["restoreToken": restoreToken]
         }
     }
 }

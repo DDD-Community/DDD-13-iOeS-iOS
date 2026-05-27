@@ -48,6 +48,20 @@ struct LoginView: View {
         } message: { message in
             Text(message)
         }
+        .alert(
+            "재가입 안내",
+            isPresented: restoreAlertBinding,
+            presenting: viewModel.withdrawnAccountInfo
+        ) { _ in
+            Button("확인") {
+                Task { await viewModel.confirmRestoreTapped() }
+            }
+            Button("취소", role: .cancel) {
+                viewModel.cancelRestoreTapped()
+            }
+        } message: { _ in
+            Text("탈퇴 이력이 있습니다\n재가입하시겠습니까?")
+        }
     }
 
     // MARK: - Background
@@ -171,10 +185,14 @@ struct LoginView: View {
     private var errorAlertBinding: Binding<Bool> {
         Binding(
             get: { viewModel.errorMessage != nil },
-            set: { _ in
-                // alert dismiss 시 상태를 강제로 소거할 별도 메서드는 두지 않는다.
-                // 다음 사용자 액션에서 ViewModel이 새 상태로 덮어쓴다.
-            }
+            set: { _ in }
+        )
+    }
+
+    private var restoreAlertBinding: Binding<Bool> {
+        Binding(
+            get: { viewModel.withdrawnAccountInfo != nil },
+            set: { _ in }
         )
     }
 }
@@ -195,6 +213,12 @@ private final class PreviewSocialLoginService: SocialLoginServiceProtocol, @unch
         try await Task.sleep(nanoseconds: 500_000_000)
     }
     func signInWithApple() async throws {
+        try await Task.sleep(nanoseconds: 500_000_000)
+    }
+    func restoreAccount(restoreToken: String) async throws {
+        try await Task.sleep(nanoseconds: 500_000_000)
+    }
+    func retrySignIn(with credential: ProviderCredential) async throws {
         try await Task.sleep(nanoseconds: 500_000_000)
     }
 }

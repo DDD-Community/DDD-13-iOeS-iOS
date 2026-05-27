@@ -14,9 +14,14 @@ final class AuthService: AuthServiceProtocol, Sendable {
 
     func signInWithKakao(accessToken: String) async throws -> TokenResponse {
         do {
-            let response: ApiResponse<TokenResponse> = try await networkManager.requestJSON(
-                endpoint: AuthEndpoint.kakaoSignIn(accessToken: accessToken)
-            )
+            let data = try await networkManager.requestJSONData(endpoint: AuthEndpoint.kakaoSignIn(accessToken: accessToken))
+            if let failure = try? Self.snakeCaseDecoder.decode(LoginFailureResponse.self, from: data),
+               failure.code == "U007",
+               let restoreToken = failure.data?.restoreToken
+            {
+                throw AuthError.withdrawalRestoreRequired(restoreToken: restoreToken, credential: .kakao(accessToken: accessToken))
+            }
+            let response = try Self.snakeCaseDecoder.decode(ApiResponse<TokenResponse>.self, from: data)
             return response.data
         } catch {
             throw Self.map(error)
@@ -25,10 +30,25 @@ final class AuthService: AuthServiceProtocol, Sendable {
 
     func signInWithApple(identityToken: String, user: AppleUserInfo?) async throws -> TokenResponse {
         do {
-            let response: ApiResponse<TokenResponse> = try await networkManager.requestJSON(
-                endpoint: AuthEndpoint.appleSignIn(identityToken: identityToken, user: user)
-            )
+            let data = try await networkManager.requestJSONData(endpoint: AuthEndpoint.appleSignIn(identityToken: identityToken, user: user))
+            if let failure = try? Self.snakeCaseDecoder.decode(LoginFailureResponse.self, from: data),
+               failure.code == "U007",
+               let restoreToken = failure.data?.restoreToken
+            {
+                throw AuthError.withdrawalRestoreRequired(restoreToken: restoreToken, credential: .apple(identityToken: identityToken, user: user))
+            }
+            let response = try Self.snakeCaseDecoder.decode(ApiResponse<TokenResponse>.self, from: data)
             return response.data
+        } catch {
+            throw Self.map(error)
+        }
+    }
+
+    func restoreAccount(restoreToken: String) async throws {
+        do {
+            let _: EmptyResponse = try await networkManager.request(
+                endpoint: AuthEndpoint.restoreAccount(restoreToken: restoreToken)
+            )
         } catch {
             throw Self.map(error)
         }
@@ -74,6 +94,14 @@ final class AuthService: AuthServiceProtocol, Sendable {
 
         return .signedOut
     }
+
+    // MARK: - Helpers
+
+    private static let snakeCaseDecoder: JSONDecoder = {
+        let d = JSONDecoder()
+        d.keyDecodingStrategy = .convertFromSnakeCase
+        return d
+    }()
 
     // MARK: - Error Mapping
 

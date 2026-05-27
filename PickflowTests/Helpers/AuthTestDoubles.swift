@@ -24,6 +24,8 @@ final class MockAuthService: AuthServiceProtocol, @unchecked Sendable {
     func signOut() async throws {}
 
     func currentAuthState() async -> AuthState { .signedOut }
+
+    func restoreAccount(restoreToken: String) async throws {}
 }
 
 final class MockKakaoAuthProvider: KakaoAuthProviderProtocol, @unchecked Sendable {

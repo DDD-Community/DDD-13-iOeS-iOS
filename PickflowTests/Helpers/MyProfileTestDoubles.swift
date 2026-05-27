@@ -29,6 +29,8 @@ final class MockUserService: UserServiceProtocol, @unchecked Sendable {
 final class MockSocialLoginServiceForProfile: SocialLoginServiceProtocol, @unchecked Sendable {
     func signInWithKakao() async throws {}
     func signInWithApple() async throws {}
+    func restoreAccount(restoreToken: String) async throws {}
+    func retrySignIn(with credential: ProviderCredential) async throws {}
 }
 
 final class MockAuthServiceForProfile: AuthServiceProtocol, @unchecked Sendable {
@@ -52,6 +54,10 @@ final class MockAuthServiceForProfile: AuthServiceProtocol, @unchecked Sendable 
     }
 
     func refreshToken(_ refreshToken: String) async throws -> AuthToken {
+        fatalError("not used in profile tests")
+    }
+
+    func restoreAccount(restoreToken: String) async throws {
         fatalError("not used in profile tests")
     }
 }
