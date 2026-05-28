@@ -125,8 +125,8 @@ final class NaverMapViewController: UIViewController, @preconcurrency NMFMapView
         if let coordinate {
             overlay.location = NMGLatLng(lat: coordinate.latitude, lng: coordinate.longitude)
             overlay.icon = NMFOverlayImage(image: Self.userLocationDotImage)
-            overlay.iconWidth = 22
-            overlay.iconHeight = 22
+            overlay.iconWidth = 18
+            overlay.iconHeight = 18
             overlay.circleColor = UIAsset.Colors.sunsetOrange.uiColor.withAlphaComponent(0.25)
             overlay.hidden = false
         } else {
@@ -134,10 +134,10 @@ final class NaverMapViewController: UIViewController, @preconcurrency NMFMapView
         }
     }
 
-    /// 네이버 기본 locationOverlay 아이콘 스펙: 22pt 전체 / 흰 테두리 ~3pt / 안쪽 disc ~16pt.
+    /// locationOverlay 아이콘 스펙: 18pt 전체 / 흰 테두리 ~2.5pt / 안쪽 disc ~13pt.
     /// 색만 sunsetOrange 로 교체.
     private static let userLocationDotImage: UIImage = {
-        let size = CGSize(width: 22, height: 22)
+        let size = CGSize(width: 18, height: 18)
         let format = UIGraphicsImageRendererFormat.default()
         format.scale = max(UIScreen.main.scale, 3.0)
         let renderer = UIGraphicsImageRenderer(size: size, format: format)
@@ -146,7 +146,7 @@ final class NaverMapViewController: UIViewController, @preconcurrency NMFMapView
             cg.setFillColor(UIColor.white.cgColor)
             cg.fillEllipse(in: CGRect(origin: .zero, size: size))
             cg.setFillColor(UIAsset.Colors.sunsetOrange.uiColor.cgColor)
-            cg.fillEllipse(in: CGRect(origin: .zero, size: size).insetBy(dx: 3, dy: 3))
+            cg.fillEllipse(in: CGRect(origin: .zero, size: size).insetBy(dx: 2.5, dy: 2.5))
         }
     }()
 
