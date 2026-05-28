@@ -5,8 +5,8 @@
         "appIDs": ["4DUZKVXU2R.com.pickflow"],
         "components": [
           {
-            "/": "/spot/*",
-            "comment": "SpotDetail 화면 딥링크 - /spot/{spotId}"
+            "/": "/*",
+            "comment": "encoded token - type+id (e.g. spot: k-3mHv)"
           }
         ]
       }

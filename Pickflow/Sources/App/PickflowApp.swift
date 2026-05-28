@@ -36,9 +36,8 @@ struct PickflowApp: App {
 
     private func handleUniversalLink(_ url: URL) {
         guard url.host == "pickflow-api.us",
-              url.pathComponents.count >= 3,
-              url.pathComponents[1] == "spot",
-              let spotId = Int64(url.pathComponents[2]) else { return }
+              url.pathComponents.count == 2,
+              let spotId = SpotIDCoder.decodeSpot(url.pathComponents[1]) else { return }
         deepLinkRouter.pendingSpotId = spotId
     }
 

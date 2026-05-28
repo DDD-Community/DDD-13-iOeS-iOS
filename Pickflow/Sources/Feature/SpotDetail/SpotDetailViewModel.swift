@@ -164,7 +164,7 @@ final class SpotDetailViewModel: ObservableObject {
 
         analyticsLogger.log(SpotDetailAnalyticsEvent.shareButtonTap)
 
-        let url = "https://pickflow-api.us/spot/\(spotId)"
+        let url = "https://pickflow-api.us/\(SpotIDCoder.encodeSpot(spotId))"
         if case let .loaded(spot) = detailState {
             shareSheetPresenter.present(items: ["\(spot.name) - \(spot.comment)\n\(url)"])
         } else {
