@@ -16,11 +16,6 @@ struct SpotListView: View {
             onBookmarkTap: { id in Task { await viewModel.bookmarkTapped(id) } },
             onCellTap: onCellTap,
             onRetry: { Task { await viewModel.onAppear() } },
-            onOpenSettings: {
-                if let url = URL(string: UIApplication.openSettingsURLString) {
-                    UIApplication.shared.open(url)
-                }
-            },
             onAppearItem: { item in
                 Task { await viewModel.loadNextPageIfNeeded(currentItem: item) }
             },
@@ -55,6 +50,36 @@ struct SpotListView: View {
                 .animation(.easeInOut(duration: 0.25), value: viewModel.showLoginPrompt)
             }
         }
+        .overlay {
+            if viewModel.showLocationPermissionPrompt {
+                ZStack {
+                    Color.black.opacity(0.5).ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                viewModel.showLocationPermissionPrompt = false
+                            }
+                        }
+                    LocationPermissionDeniedPopup(
+                        onCancel: {
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                viewModel.showLocationPermissionPrompt = false
+                            }
+                        },
+                        onOpenSettings: {
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                viewModel.showLocationPermissionPrompt = false
+                            }
+                            if let url = URL(string: UIApplication.openSettingsURLString) {
+                                UIApplication.shared.open(url)
+                            }
+                        }
+                    )
+                    .padding(.horizontal, 32)
+                }
+                .transition(.opacity)
+                .animation(.easeInOut(duration: 0.25), value: viewModel.showLocationPermissionPrompt)
+            }
+        }
         .fullScreenCover(isPresented: $isLoginViewPresented) {
             LoginView(
                 viewModel: LoginViewModel(socialLoginService: getSocialLoginService()),
@@ -72,7 +97,6 @@ struct SpotListScreenContent: View {
     let onBookmarkTap: (Int64) -> Void
     var onCellTap: (Int64) -> Void = { _ in }
     let onRetry: () -> Void
-    let onOpenSettings: () -> Void
     let onAppearItem: (SpotListItem) -> Void
     var contentTopInset: CGFloat = 0
 
@@ -94,8 +118,6 @@ struct SpotListScreenContent: View {
             SpotListEmptyView()
         case let .failed(message):
             SpotListFailedView(message: message, onRetry: onRetry)
-        case .locationUnauthorized:
-            SpotListUnauthorizedLocationView(onOpenSettings: onOpenSettings)
         }
     }
 

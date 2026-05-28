@@ -81,23 +81,6 @@ final class SpotListSnapshotTests: XCTestCase {
                        as: .image(layout: .fixed(width: screenSize.width, height: screenSize.height), traits: Self.dark))
     }
 
-    // MARK: - Full Screen — locationUnauthorized
-
-    func test_spot_list_unauthorized_light() {
-        assertSnapshot(of: screen(state: .locationUnauthorized),
-                       as: .image(layout: .fixed(width: screenSize.width, height: screenSize.height), traits: Self.light))
-    }
-
-    func test_spot_list_unauthorized_dark() {
-        assertSnapshot(of: screen(state: .locationUnauthorized),
-                       as: .image(layout: .fixed(width: screenSize.width, height: screenSize.height), traits: Self.dark))
-    }
-
-    func test_spot_list_unauthorized_a11y_light() {
-        assertSnapshot(of: screen(state: .locationUnauthorized),
-                       as: .image(layout: .fixed(width: screenSize.width, height: screenSize.height), traits: Self.a11yLight))
-    }
-
     // MARK: - SortBar (무드 capsule 은 HomeMapView 헤더로 일원화 — §13a)
 
     func test_spot_list_sortbar_distance_collapsed_light() {
@@ -207,7 +190,6 @@ final class SpotListSnapshotTests: XCTestCase {
             bookmarkCount: { _ in nil },
             onBookmarkTap: { _ in },
             onRetry: {},
-            onOpenSettings: {},
             onAppearItem: { _ in }
         )
     }
