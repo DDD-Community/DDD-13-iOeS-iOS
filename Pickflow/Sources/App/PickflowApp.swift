@@ -6,6 +6,7 @@ import KakaoSDKCommon
 @main
 struct PickflowApp: App {
     private let container = AppContainer.shared
+    @StateObject private var apiErrorHandler = APIErrorHandler()
 
     init() {
         configureFirebase()
@@ -21,6 +22,7 @@ struct PickflowApp: App {
                 locationService: getLocationService(),
                 onboardingCompletionStore: getOnboardingCompletionStore()
             )
+            .apiErrorAlert(apiErrorHandler)
             .ignoresSafeArea(.keyboard, edges: .bottom)
             .onOpenURL { url in
                 if AuthApi.isKakaoTalkLoginUrl(url) {

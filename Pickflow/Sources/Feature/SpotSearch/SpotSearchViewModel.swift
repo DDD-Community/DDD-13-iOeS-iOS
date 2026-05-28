@@ -41,6 +41,10 @@ final class SpotSearchViewModel: ObservableObject {
             let addresses = try await addressService.searchAddress(query: query)
             currentCoordinate = await location
             state = addresses.isEmpty ? .empty : .loaded(addresses)
+        } catch let e as APIError {
+            currentCoordinate = await location
+            state = .failed(e.message)
+            e.post()
         } catch {
             currentCoordinate = await location
             state = .failed(error.localizedDescription)

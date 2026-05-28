@@ -18,6 +18,8 @@ final class ProfileViewModel: ObservableObject {
 
         do {
             user = try await userService.fetchCurrentUser()
+        } catch let e as APIError {
+            e.post()
         } catch {
             errorMessage = error.localizedDescription
         }

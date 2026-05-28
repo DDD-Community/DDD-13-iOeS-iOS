@@ -37,6 +37,8 @@ final class LoginViewModel: ObservableObject {
             didSignInSucceed = true
         } catch AuthError.withdrawalRestoreRequired(let restoreToken, let credential) {
             withdrawnAccountInfo = WithdrawnAccountInfo(restoreToken: restoreToken, credential: credential)
+        } catch let e as APIError {
+            e.post()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -54,6 +56,8 @@ final class LoginViewModel: ObservableObject {
             didSignInSucceed = true
         } catch AuthError.withdrawalRestoreRequired(let restoreToken, let credential) {
             withdrawnAccountInfo = WithdrawnAccountInfo(restoreToken: restoreToken, credential: credential)
+        } catch let e as APIError {
+            e.post()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -71,6 +75,8 @@ final class LoginViewModel: ObservableObject {
             try await socialLoginService.restoreAccount(restoreToken: info.restoreToken)
             try await socialLoginService.retrySignIn(with: info.credential)
             didSignInSucceed = true
+        } catch let e as APIError {
+            e.post()
         } catch {
             errorMessage = error.localizedDescription
         }

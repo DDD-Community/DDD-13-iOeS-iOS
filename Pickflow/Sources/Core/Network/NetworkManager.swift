@@ -55,27 +55,32 @@ final class NetworkManager: NetworkManagerProtocol, Sendable {
             throw error
         }
 
-        if T.self == EmptyResponse.self {
-            return EmptyResponse() as! T
-        }
-
         guard let data = response.data else {
             throw AFError.responseSerializationFailed(reason: .inputDataNilOrZeroLength)
+        }
+
+        try Self.checkForAPIError(in: data)
+
+        if T.self == EmptyResponse.self {
+            return EmptyResponse() as! T
         }
 
         return try decoder.decode(T.self, from: data)
     }
 
     func requestJSON<T: Decodable & Sendable>(endpoint: any APIEndpoint) async throws -> T {
-        try await session.request(
+        let data = try await session.request(
             endpoint.url,
             method: endpoint.method,
             parameters: endpoint.parameters,
             encoding: JSONEncoding.default,
             headers: endpoint.headers
         )
-        .serializingDecodable(T.self, decoder: Self.snakeCaseDecoder)
+        .serializingData()
         .value
+
+        try Self.checkForAPIError(in: data)
+        return try Self.snakeCaseDecoder.decode(T.self, from: data)
     }
 
     func requestJSONData(endpoint: any APIEndpoint) async throws -> Data {
@@ -100,14 +105,34 @@ final class NetworkManager: NetworkManagerProtocol, Sendable {
         endpoint: any APIEndpoint,
         multipartFormData: @escaping @Sendable (MultipartFormData) -> Void
     ) async throws -> T {
-        try await session.upload(
+        let data = try await session.upload(
             multipartFormData: multipartFormData,
             to: endpoint.url,
             method: endpoint.method,
             headers: endpoint.headers
         )
-        .serializingDecodable(T.self, decoder: decoder)
+        .serializingData()
         .value
+
+        try Self.checkForAPIError(in: data)
+        return try decoder.decode(T.self, from: data)
+    }
+
+    // MARK: - API Error Check
+
+    private struct APIResponseMeta: Decodable {
+        let success: Bool?
+        let code: String?
+        let message: String?
+    }
+
+    private static func checkForAPIError(in data: Data) throws {
+        guard let meta = try? snakeCaseDecoder.decode(APIResponseMeta.self, from: data),
+              meta.success == false else { return }
+        throw APIError(
+            code: meta.code ?? "",
+            message: meta.message ?? "알 수 없는 오류가 발생했어요."
+        )
     }
 
     // MARK: - Helpers
