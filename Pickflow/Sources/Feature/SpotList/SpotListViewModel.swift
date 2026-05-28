@@ -9,13 +9,13 @@ final class SpotListViewModel: ObservableObject {
         case loaded(items: [SpotListItem], hasNext: Bool)
         case empty
         case failed(String)
-        case locationUnauthorized
     }
 
     @Published private(set) var state: LoadState = .idle
     @Published private(set) var selectedTheme: SpotTheme?
     @Published private(set) var sort: SpotListSort = .distance
     @Published var showLoginPrompt: Bool = false
+    @Published var showLocationPermissionPrompt: Bool = false
     @Published var toast: String?
     @Published private(set) var bookmarkStates: [Int64: Bool] = [:]
     @Published private(set) var isLoadingNextPage: Bool = false
@@ -28,6 +28,7 @@ final class SpotListViewModel: ObservableObject {
     private var currentPage: Int = 0
     private var hasNext: Bool = false
     private var currentCoordinate: Coordinate?
+    private var hasInitializedSort: Bool = false
 
     init(
         spotListService: SpotListServiceProtocol,
@@ -64,6 +65,15 @@ final class SpotListViewModel: ObservableObject {
     }
 
     func sortChanged(_ sort: SpotListSort) async {
+        if sort == .distance, !hasLocationPermission {
+            switch locationService.authorizationStatus() {
+            case .notDetermined:
+                locationService.requestAuthorization()
+            default:
+                showLocationPermissionPrompt = true
+            }
+            return
+        }
         guard self.sort != sort else { return }
         self.sort = sort
         await reload()
@@ -136,25 +146,30 @@ final class SpotListViewModel: ObservableObject {
 
     // MARK: - Private
 
+    private var hasLocationPermission: Bool {
+        switch locationService.authorizationStatus() {
+        case .authorizedAlways, .authorizedWhenInUse: true
+        default: false
+        }
+    }
+
     private func reload() async {
-        let status = locationService.authorizationStatus()
-        switch status {
-        case .denied, .restricted:
-            state = .locationUnauthorized
-            return
-        case .notDetermined:
+        let permitted = hasLocationPermission
+        if !hasInitializedSort {
+            hasInitializedSort = true
+            if !permitted {
+                sort = .recommended
+            }
+        }
+        if locationService.authorizationStatus() == .notDetermined {
             locationService.requestAuthorization()
-            state = .locationUnauthorized
-            return
-        default:
-            break
         }
 
         state = .loading
         currentPage = 0
         hasNext = false
 
-        let coordinate = try? await locationService.currentLocation()
+        let coordinate = permitted ? try? await locationService.currentLocation() : nil
         currentCoordinate = coordinate
 
         do {

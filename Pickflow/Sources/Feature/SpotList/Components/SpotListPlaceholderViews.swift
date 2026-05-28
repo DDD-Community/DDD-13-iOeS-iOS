@@ -73,33 +73,3 @@ struct SpotListFailedView: View {
     }
 }
 
-struct SpotListUnauthorizedLocationView: View {
-    let onOpenSettings: () -> Void
-
-    var body: some View {
-        VStack(spacing: 12) {
-            Image(.icLocationOn)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 48, height: 48)
-                .foregroundStyle(.gray40)
-            Text("위치 권한이 필요해요")
-                .pretendard(.body(.large(.bold)))
-                .foregroundStyle(.gray0)
-                .multilineTextAlignment(.center)
-            Text("가까운 스팟을 보여드리려면\n위치 권한 허용이 필요합니다.")
-                .pretendard(.body(.small()))
-                .foregroundStyle(.gray50)
-                .multilineTextAlignment(.center)
-            Button("설정으로 이동", action: onOpenSettings)
-                .pretendard(.body(.medium(.bold)))
-                .foregroundStyle(.white)
-                .padding(.horizontal, 24)
-                .padding(.vertical, 10)
-                .background(UIAsset.Colors.sunsetOrange.swiftUIColor)
-                .clipShape(Capsule())
-        }
-        .padding(24)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-}

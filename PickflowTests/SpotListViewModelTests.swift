@@ -44,22 +44,34 @@ final class SpotListViewModelTests: XCTestCase {
         XCTAssertEqual(spotListService.requests.first?.longitude, 127.1)
     }
 
-    func test_onAppear_권한거부시_locationUnauthorized로전환되고fetch를호출하지않는다() async {
+    func test_onAppear_권한거부시_sort가recommended로기본설정되고좌표없이fetch를호출한다() async {
         locationService.stubbedAuthorizationStatus = .denied
+        spotListService.responder = { _ in
+            .success(SpotListPage(spots: [.fixture()], page: 0, hasNext: false))
+        }
 
         await viewModel.onAppear()
 
-        XCTAssertEqual(viewModel.state, .locationUnauthorized)
-        XCTAssertTrue(spotListService.requests.isEmpty)
+        XCTAssertEqual(viewModel.sort, .recommended)
+        XCTAssertEqual(spotListService.requests.count, 1)
+        XCTAssertNil(spotListService.requests.first?.latitude)
+        XCTAssertNil(spotListService.requests.first?.longitude)
+        XCTAssertEqual(spotListService.requests.first?.sort, .recommended)
     }
 
-    func test_onAppear_권한미결정시_locationUnauthorized로전환되고권한요청한다() async {
-        locationService.stubbedAuthorizationStatus = .notDetermined
-
+    func test_sortChanged_권한거부상태에서distance선택시_팝업이뜨고sort는변경되지않는다() async {
+        locationService.stubbedAuthorizationStatus = .denied
+        spotListService.responder = { _ in
+            .success(SpotListPage(spots: [.fixture()], page: 0, hasNext: false))
+        }
         await viewModel.onAppear()
+        let beforeCount = spotListService.requests.count
 
-        XCTAssertEqual(viewModel.state, .locationUnauthorized)
-        XCTAssertTrue(spotListService.requests.isEmpty)
+        await viewModel.sortChanged(.distance)
+
+        XCTAssertTrue(viewModel.showLocationPermissionPrompt)
+        XCTAssertEqual(viewModel.sort, .recommended)
+        XCTAssertEqual(spotListService.requests.count, beforeCount)
     }
 
     func test_onAppear_빈응답시_상태가empty로전환된다() async {

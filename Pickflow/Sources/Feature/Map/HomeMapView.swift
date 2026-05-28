@@ -52,6 +52,7 @@ struct HomeMapView: View {
     @State private var userLocation: Coordinate?
     @State private var showAddPlaceLoginPrompt: Bool = false
     @State private var isAddPlaceLoginViewPresented: Bool = false
+    @State private var showLocationPermissionPopup: Bool = false
     private let tokenStore = getTokenStore()
     private let locationService = getLocationService()
 
@@ -219,6 +220,36 @@ struct HomeMapView: View {
                     onSignInSucceeded: { isAddPlaceLoginViewPresented = false }
                 )
             }
+            .overlay {
+                if showLocationPermissionPopup {
+                    ZStack {
+                        Color.black.opacity(0.5).ignoresSafeArea()
+                            .onTapGesture {
+                                withAnimation(.easeInOut(duration: 0.25)) {
+                                    showLocationPermissionPopup = false
+                                }
+                            }
+                        LocationPermissionDeniedPopup(
+                            onCancel: {
+                                withAnimation(.easeInOut(duration: 0.25)) {
+                                    showLocationPermissionPopup = false
+                                }
+                            },
+                            onOpenSettings: {
+                                withAnimation(.easeInOut(duration: 0.25)) {
+                                    showLocationPermissionPopup = false
+                                }
+                                if let url = URL(string: UIApplication.openSettingsURLString) {
+                                    UIApplication.shared.open(url)
+                                }
+                            }
+                        )
+                        .padding(.horizontal, 32)
+                    }
+                    .transition(.opacity)
+                    .animation(.easeInOut(duration: 0.25), value: showLocationPermissionPopup)
+                }
+            }
         }
     }
 
@@ -342,9 +373,16 @@ struct HomeMapView: View {
     }
 
     private func moveCameraToCurrentLocation() async {
-        let status = locationService.authorizationStatus()
-        if status == .notDetermined {
+        switch locationService.authorizationStatus() {
+        case .denied, .restricted:
+            withAnimation(.easeInOut(duration: 0.25)) {
+                showLocationPermissionPopup = true
+            }
+            return
+        case .notDetermined:
             locationService.requestAuthorization()
+        default:
+            break
         }
         if let coordinate = try? await locationService.currentLocation() {
             userLocation = coordinate
