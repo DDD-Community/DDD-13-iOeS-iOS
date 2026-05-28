@@ -36,14 +36,16 @@ extension SpotListItem {
         name: String = "한강 노을 스팟",
         theme: SpotTheme = .sunset,
         thumbnailUrl: String? = "https://example.com/spot.jpg",
-        distanceKm: Double? = 1.2
+        distanceKm: Double? = 1.2,
+        isBookmarked: Bool = false
     ) -> SpotListItem {
         SpotListItem(
             spotId: spotId,
             name: name,
             theme: theme,
             thumbnailUrl: thumbnailUrl,
-            distanceKm: distanceKm
+            distanceKm: distanceKm,
+            isBookmarked: isBookmarked
         )
     }
 }
