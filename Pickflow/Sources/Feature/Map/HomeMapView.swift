@@ -279,10 +279,8 @@ struct HomeMapView: View {
 
     private var topBar: some View {
         VStack(alignment: .leading, spacing: 14) {
-          HStack(alignment: .center) {    
-              Image(.logo)
-                    .padding(.leading, 16)
-                    .padding(.top, 12)
+          HStack(alignment: .center) {
+              PickflowWorkMarkLogo()
 
                 Spacer()
 
