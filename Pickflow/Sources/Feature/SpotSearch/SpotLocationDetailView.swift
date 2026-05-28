@@ -22,17 +22,17 @@ struct SpotLocationDetailView: View {
             VStack(spacing: 0) {
                 headerView
 
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 16) {
                     mapCard
 
                     Text("핀을 움직여 정확한 위치로 이동해 주세요")
-                        .pretendard(.body(.small()))
+                    .pretendard(.body(.medium(.bold)))
                         .foregroundStyle(UIAsset.Colors.gray30.color)
                         .frame(maxWidth: .infinity, alignment: .center)
 
-                    Spacer()
-
                     confirmButton
+
+                    Spacer()
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 20)
@@ -146,7 +146,7 @@ struct SpotLocationDetailView: View {
                 } else {
                     Text("이 장소가 맞아요")
                         .pretendard(.body(.large(.bold)))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(.gray0)
                 }
             }
             .frame(maxWidth: .infinity)

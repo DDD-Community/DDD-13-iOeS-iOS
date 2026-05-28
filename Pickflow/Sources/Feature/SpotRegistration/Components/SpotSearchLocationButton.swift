@@ -11,7 +11,7 @@ struct SpotSearchLocationButton: View {
                         .font(.system(size: 24, weight: .semibold))
                 }
 
-                Text("장소 검색하기")
+                Text("어디에서 찍으셨나요?")
                     .pretendard(.body(.large(.bold)))
             }
             .foregroundStyle(.white)

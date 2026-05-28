@@ -115,7 +115,7 @@ struct SpotRegistrationView: View {
         .padding(.horizontal, 16)
         .padding(.top, 8)
         .padding(.bottom, 12)
-        .background(Color.spotBackground)
+        .background(UIAsset.Colors.gray95.color)
     }
 
     var body: some View {
@@ -138,7 +138,7 @@ struct SpotRegistrationView: View {
 
                 CountedTextField(
                     title: "스팟 이름",
-                    placeholder: "스팟 이름을 입력해 주세요.",
+                    placeholder: "이 장소를 무엇이라 부를까요?",
                     text: spotNameBinding,
                     count: viewModel.spotNameCount,
                     maxCount: 20
@@ -155,7 +155,7 @@ struct SpotRegistrationView: View {
 
                 CountedTextEditor(
                     title: "한 줄 코멘트",
-                    placeholder: "스팟에 대한 한 줄 코멘트를 남겨주세요.",
+                    placeholder: "다른 사람을 위한 꿀팁이나\n촬영 후기를 남겨주세요.",
                     text: commentBinding,
                     count: viewModel.commentCount,
                     maxCount: 50
@@ -172,7 +172,7 @@ struct SpotRegistrationView: View {
         .safeAreaInset(edge: .top, spacing: 0) {
             headerView
         }
-        .background(Color.spotBackground.ignoresSafeArea())
+        .background(UIAsset.Colors.gray95.color.ignoresSafeArea())
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $isDateSheetPresented) {
