@@ -23,9 +23,10 @@ extension MySpot {
     static func fixture(
         id: Int64 = 100,
         latitude: Double = 37.55,
-        longitude: Double = 127.05
+        longitude: Double = 127.05,
+        imageUrl: String = ""
     ) -> MySpot {
-        MySpot(id: id, coordinate: Coordinate(latitude: latitude, longitude: longitude))
+        MySpot(id: id, coordinate: Coordinate(latitude: latitude, longitude: longitude), imageUrl: imageUrl)
     }
 }
 
@@ -44,8 +45,9 @@ extension ClusterableSpot {
     static func fixture(
         id: Int64 = 1,
         latitude: Double = 37.5,
-        longitude: Double = 127.0
+        longitude: Double = 127.0,
+        imageUrl: String = ""
     ) -> ClusterableSpot {
-        ClusterableSpot(id: id, coordinate: Coordinate(latitude: latitude, longitude: longitude))
+        ClusterableSpot(id: id, coordinate: Coordinate(latitude: latitude, longitude: longitude), imageUrl: imageUrl)
     }
 }

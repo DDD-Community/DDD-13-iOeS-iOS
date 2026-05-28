@@ -93,6 +93,10 @@ final class NaverMapViewController: UIViewController, @preconcurrency NMFMapView
     private var lastMySpotIdsHash: Int?
     private var mySpotMarkers: [NMFMarker] = []
     fileprivate var leafMarkerRefs: [Int64: NMFMarker] = [:]
+    private var mySpotMarkerRefs: [Int64: NMFMarker] = [:]
+    /// spotId → 로드 완료된 마커 이미지. 뷰포트 재진입 시 동기 렌더 경로에서 즉시 재사용한다.
+    fileprivate var loadedImages: [Int64: UIImage] = [:]
+    private var imageLoadTask: Task<Void, Never>?
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
@@ -112,6 +116,7 @@ final class NaverMapViewController: UIViewController, @preconcurrency NMFMapView
             applyLeafSelectionDelta(previous: previousSelected, current: selectedSpotId)
         }
         updateMySpotMarkers(mySpots: mySpots, mapView: mapView)
+        loadMarkerImages(spots: spots, mySpots: mySpots)
     }
 
     func updateUserLocation(_ coordinate: Coordinate?) {
@@ -161,10 +166,10 @@ final class NaverMapViewController: UIViewController, @preconcurrency NMFMapView
 
     fileprivate func applyLeafSelectionDelta(previous: Int64?, current: Int64?) {
         if let previous, let marker = leafMarkerRefs[previous] {
-            marker.iconImage = NMFOverlayImage(image: ClusteringMarkerImage.spotMarker(isSelected: false))
+            marker.iconImage = NMFOverlayImage(image: ClusteringMarkerImage.spotMarker(isSelected: false, image: loadedImages[previous]))
         }
         if let current, let marker = leafMarkerRefs[current] {
-            marker.iconImage = NMFOverlayImage(image: ClusteringMarkerImage.spotMarker(isSelected: true))
+            marker.iconImage = NMFOverlayImage(image: ClusteringMarkerImage.spotMarker(isSelected: true, image: loadedImages[current]))
         }
     }
 
@@ -204,6 +209,7 @@ final class NaverMapViewController: UIViewController, @preconcurrency NMFMapView
             marker.mapView = nil
         }
         mySpotMarkers.removeAll()
+        mySpotMarkerRefs.removeAll()
 
         // 신규 my markers 추가.
         let currentSelectedId = selectedSpotId
@@ -213,7 +219,7 @@ final class NaverMapViewController: UIViewController, @preconcurrency NMFMapView
                 lat: spot.coordinate.latitude,
                 lng: spot.coordinate.longitude
             ))
-            marker.iconImage = NMFOverlayImage(image: ClusteringMarkerImage.mySpotMarker(isSelected: isSelected))
+            marker.iconImage = NMFOverlayImage(image: ClusteringMarkerImage.mySpotMarker(isSelected: isSelected, image: loadedImages[spot.id]))
             marker.width = MyClusterPinView.diameter
             marker.height = MyClusterPinView.diameter
             marker.anchor = CGPoint(x: 0.5, y: 0.5)
@@ -229,6 +235,46 @@ final class NaverMapViewController: UIViewController, @preconcurrency NMFMapView
             }
             marker.mapView = mapView
             mySpotMarkers.append(marker)
+            mySpotMarkerRefs[spot.id] = marker
+        }
+    }
+
+    /// 마커 URL을 비동기로 UIImage 로드 후, 살아있는 marker의 iconImage를 교체한다.
+    /// ImageRenderer가 동기라 뷰 내부 AsyncImage는 불가 — 미리 로드해 주입하는 방식.
+    private func loadMarkerImages(spots: [ClusterableSpot], mySpots: [MySpot]) {
+        imageLoadTask?.cancel()
+        var targets: [(id: Int64, url: String)] = []
+        for spot in spots where loadedImages[spot.id] == nil {
+            targets.append((spot.id, spot.imageUrl))
+        }
+        for spot in mySpots where loadedImages[spot.id] == nil {
+            targets.append((spot.id, spot.imageUrl))
+        }
+        guard !targets.isEmpty else { return }
+
+        imageLoadTask = Task { [weak self] in
+            await withTaskGroup(of: (Int64, UIImage?).self) { group in
+                for target in targets {
+                    group.addTask {
+                        (target.id, await MarkerImageLoader.shared.image(for: target.url))
+                    }
+                }
+                for await (id, image) in group {
+                    guard let image else { continue }
+                    await MainActor.run { self?.applyLoadedImage(spotId: id, image: image) }
+                }
+            }
+        }
+    }
+
+    private func applyLoadedImage(spotId: Int64, image: UIImage) {
+        loadedImages[spotId] = image
+        let isSelected = (spotId == selectedSpotId)
+        if let marker = leafMarkerRefs[spotId] {
+            marker.iconImage = NMFOverlayImage(image: ClusteringMarkerImage.spotMarker(isSelected: isSelected, image: image))
+        }
+        if let marker = mySpotMarkerRefs[spotId] {
+            marker.iconImage = NMFOverlayImage(image: ClusteringMarkerImage.mySpotMarker(isSelected: isSelected, image: image))
         }
     }
 
@@ -281,15 +327,15 @@ enum ClusteringMarkerImage {
         }
     }
 
-    static func spotMarker(isSelected: Bool) -> UIImage {
+    static func spotMarker(isSelected: Bool, image: UIImage? = nil) -> UIImage {
         MainActor.assumeIsolated {
-            render(SpotMarkerView(isSelected: isSelected), size: 44)
+            render(SpotMarkerView(isSelected: isSelected, image: image), size: 44)
         }
     }
 
-    static func mySpotMarker(isSelected: Bool) -> UIImage {
+    static func mySpotMarker(isSelected: Bool, image: UIImage? = nil) -> UIImage {
         MainActor.assumeIsolated {
-            render(MyClusterPinView(isSelected: isSelected), size: MyClusterPinView.diameter)
+            render(MyClusterPinView(isSelected: isSelected, image: image), size: MyClusterPinView.diameter)
         }
     }
 
@@ -324,12 +370,12 @@ private final class MapLeafMarkerUpdater: NMCDefaultLeafMarkerUpdater {
         super.updateLeafMarker(info, marker)
         // tag는 NSNull이므로 cluster key에서 spot id 추출 (NMC SDK 헤더상 info.key가 NMCClusteringKey).
         let spotId = (info.key as? MapSpotClusterKey)?.spotId
-        let isSelected: Bool = MainActor.assumeIsolated { [weak controller] in
-            guard let spotId, let controller else { return false }
+        let (isSelected, image): (Bool, UIImage?) = MainActor.assumeIsolated { [weak controller] in
+            guard let spotId, let controller else { return (false, nil) }
             controller.leafMarkerRefs[spotId] = marker  // selected 토글용 reference 등록 (clusterer 재생성 없이 iconImage 교체)
-            return spotId == controller.selectedSpotId
+            return (spotId == controller.selectedSpotId, controller.loadedImages[spotId])
         }
-        let img = ClusteringMarkerImage.spotMarker(isSelected: isSelected)
+        let img = ClusteringMarkerImage.spotMarker(isSelected: isSelected, image: image)
 
         marker.iconImage = NMFOverlayImage(image: img)
         marker.width = 44
