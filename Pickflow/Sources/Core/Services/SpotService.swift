@@ -51,8 +51,8 @@ final class SpotService: SpotServiceProtocol, Sendable {
         let request = SpotRegisterRequest(
             name: draft.spotName,
             theme: draft.theme?.apiCode,
-            latitude: coordinate.latitude,
-            longitude: coordinate.longitude,
+            latitude: coordinate.latitude.roundedTo6,
+            longitude: coordinate.longitude.roundedTo6,
             comment: draft.comment,
             recordedDate: DateFormatter.serverDate.string(from: draft.capturedAt),
             recordedTime: DateFormatter.serverTime.string(from: draft.capturedAt)
@@ -82,5 +82,11 @@ final class SpotService: SpotServiceProtocol, Sendable {
         let _: EmptyResponse = try await networkManager.request(
             endpoint: ReportEndpoint(spotId: id, type: type, content: content)
         )
+    }
+}
+
+private extension Double {
+    var roundedTo6: Double {
+        (self * 1_000_000).rounded() / 1_000_000
     }
 }

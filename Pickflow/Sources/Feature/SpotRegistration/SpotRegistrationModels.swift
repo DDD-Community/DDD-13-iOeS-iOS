@@ -1,7 +1,6 @@
 import SwiftUI
 
 enum SpotRegistrationCopy {
-    static let mockPlaceName = "잠원 한강공원"
     static let mockDistanceText = "2.5km"
 }
 
@@ -23,20 +22,6 @@ extension SpotTheme {
             "🌊"
         }
     }
-}
-
-extension Address {
-    static let mockSpotRegistrationAddress = Address(
-        id: "mock-cityhall",
-        name: SpotRegistrationCopy.mockPlaceName,
-        fullAddress: "서울 중구 세종대로 110 서울시청",
-        roadAddress: "서울 중구 세종대로 110",
-        jibunAddress: nil,
-        zipCode: nil,
-        city: "서울",
-        district: "중구",
-        coordinate: Coordinate(latitude: 37.5665, longitude: 126.9780)
-    )
 }
 
 extension Calendar {

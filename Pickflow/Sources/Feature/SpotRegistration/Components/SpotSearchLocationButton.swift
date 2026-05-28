@@ -2,7 +2,6 @@ import SwiftUI
 
 struct SpotSearchLocationButton: View {
     let action: () -> Void
-    let debugLongPressAction: (() -> Void)?
 
     var body: some View {
         Button(action: action) {
@@ -22,11 +21,5 @@ struct SpotSearchLocationButton: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("장소 검색하기")
-        .simultaneousGesture(
-            LongPressGesture(minimumDuration: 0.8)
-                .onEnded { _ in
-                    debugLongPressAction?()
-                }
-        )
     }
 }

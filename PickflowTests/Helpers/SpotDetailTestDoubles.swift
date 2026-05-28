@@ -180,7 +180,8 @@ extension SpotPreviewResponse {
         imageUrl: String? = "https://example.com/spot.jpg",
         addressSimple: String = "서울 동작구",
         addressRoad: String? = nil,
-        addressJibun: String? = nil
+        addressJibun: String? = nil,
+        isBookmarked: Bool = false
     ) -> SpotPreviewResponse {
         SpotPreviewResponse(
             spotId: spotId,
@@ -188,6 +189,7 @@ extension SpotPreviewResponse {
             isMySpot: isMySpot,
             theme: theme,
             bookmarkCount: bookmarkCount,
+            isBookmarked: isBookmarked,
             distanceKm: distanceKm,
             imageUrl: imageUrl,
             addressSimple: addressSimple,

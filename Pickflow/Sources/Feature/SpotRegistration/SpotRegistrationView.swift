@@ -132,16 +132,9 @@ struct SpotRegistrationView: View {
                     )
                 }
 
-                SpotSearchLocationButton(
-                    action: {
-                        isSpotSearchPresented = true
-                    },
-                    debugLongPressAction: {
-                        #if DEBUG
-                        viewModel.applyMockAddressSelection()
-                        #endif
-                    }
-                )
+                SpotSearchLocationButton {
+                    isSpotSearchPresented = true
+                }
 
                 CountedTextField(
                     title: "스팟 이름",
@@ -195,7 +188,7 @@ struct SpotRegistrationView: View {
                 viewModel.setCapturedTime(time)
             }
         }
-        .fullScreenCoverKeyboardFixed(isPresented: $isSpotSearchPresented) {
+        .navigationDestination(isPresented: $isSpotSearchPresented) {
             SpotSearchView(
                 viewModel: SpotSearchViewModel(
                     addressService: getAddressService(),

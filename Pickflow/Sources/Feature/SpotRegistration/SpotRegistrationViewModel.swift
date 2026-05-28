@@ -44,10 +44,6 @@ final class SpotRegistrationViewModel: ObservableObject {
         photoData = data
     }
 
-    func applyMockAddressSelection() {
-        applyAddressSelection(.mockSpotRegistrationAddress)
-    }
-
     func applyAddressSelection(_ address: Address, distanceText: String? = nil) {
         selectedAddress = address
         selectedAddressName = address.name ?? address.fullAddress
