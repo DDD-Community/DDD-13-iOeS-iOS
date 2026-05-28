@@ -304,15 +304,14 @@ struct HomeMapView: View {
         Button {
             selectedMood = selectedMood == mood ? nil : mood
         } label: {
-            HStack(spacing: 4) {
-
+            HStack(spacing: 6) {
+                
                 Image(mood.imageName)
                     .renderingMode(.original)
 
                 Text(mood.rawValue)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .padding(.vertical, 6)
+                    .pretendard(.body(.large(.bold)))
+                    .padding(.vertical, 8)
                     .foregroundStyle(selectedMood == mood ? .white : .primary)
             }
             .padding(.horizontal, 14)
