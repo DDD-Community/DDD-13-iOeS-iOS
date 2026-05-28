@@ -31,10 +31,10 @@ struct SpotRegistrationView: View {
         )
     }
 
-    private var categoryBinding: Binding<PhotoCategory?> {
+    private var themeBinding: Binding<SpotTheme?> {
         Binding(
-            get: { viewModel.category },
-            set: { viewModel.category = $0 }
+            get: { viewModel.theme },
+            set: { viewModel.theme = $0 }
         )
     }
 
@@ -151,7 +151,7 @@ struct SpotRegistrationView: View {
                     maxCount: 20
                 )
 
-                PhotoCategoryChipGroup(selectedCategory: categoryBinding)
+                SpotThemeChipGroup(selectedCategory: themeBinding)
 
                 CaptureDateTimeRow(
                     dateText: displayedDateText,

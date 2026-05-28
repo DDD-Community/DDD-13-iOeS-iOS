@@ -5,7 +5,7 @@ enum SpotRegistrationCopy {
     static let mockDistanceText = "2.5km"
 }
 
-extension PhotoCategory {
+extension SpotTheme {
     var iconAssetName: String {
         switch self {
         case .sunset:
@@ -23,28 +23,19 @@ extension PhotoCategory {
             "🌊"
         }
     }
-
-    var displayName: String {
-        switch self {
-        case .sunset:
-            "노을"
-        case .reflection:
-            "윤슬"
-        }
-    }
 }
 
 extension Address {
     static let mockSpotRegistrationAddress = Address(
-        id: "mock-jamwon",
+        id: "mock-cityhall",
         name: SpotRegistrationCopy.mockPlaceName,
-        fullAddress: "서울 서초구 잠원로 221-124 잠원한강공원",
-        roadAddress: "서울 서초구 잠원로 221-124 잠원한강공원",
+        fullAddress: "서울 중구 세종대로 110 서울시청",
+        roadAddress: "서울 중구 세종대로 110",
         jibunAddress: nil,
         zipCode: nil,
         city: "서울",
-        district: "서초구",
-        coordinate: Coordinate(latitude: 37.5209, longitude: 127.0116)
+        district: "중구",
+        coordinate: Coordinate(latitude: 37.5665, longitude: 126.9780)
     )
 }
 
