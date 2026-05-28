@@ -11,11 +11,19 @@ protocol ShareSheetPresenterProtocol: Sendable {
 final class ShareSheetPresenter: ShareSheetPresenterProtocol {
     func present(items: [String]) {
         guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let rootViewController = scene.windows.first(where: { $0.isKeyWindow })?.rootViewController
+              let root = scene.windows.first(where: { $0.isKeyWindow })?.rootViewController
         else { return }
 
+        let top = topMost(of: root)
         let activityViewController = UIActivityViewController(activityItems: items, applicationActivities: nil)
-        rootViewController.present(activityViewController, animated: true)
+        top.present(activityViewController, animated: true)
+    }
+
+    private func topMost(of viewController: UIViewController) -> UIViewController {
+        if let presented = viewController.presentedViewController {
+            return topMost(of: presented)
+        }
+        return viewController
     }
 }
 

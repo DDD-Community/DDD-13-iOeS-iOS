@@ -6,6 +6,7 @@ import KakaoSDKCommon
 @main
 struct PickflowApp: App {
     private let container = AppContainer.shared
+    @StateObject private var deepLinkRouter = DeepLinkRouter()
 
     init() {
         configureFirebase()
@@ -21,13 +22,24 @@ struct PickflowApp: App {
                 locationService: getLocationService(),
                 onboardingCompletionStore: getOnboardingCompletionStore()
             )
+            .environmentObject(deepLinkRouter)
             .ignoresSafeArea(.keyboard, edges: .bottom)
             .onOpenURL { url in
                 if AuthApi.isKakaoTalkLoginUrl(url) {
                     _ = AuthController.handleOpenUrl(url: url)
+                    return
                 }
+                handleUniversalLink(url)
             }
         }
+    }
+
+    private func handleUniversalLink(_ url: URL) {
+        guard url.host == "pickflow-api.us",
+              url.pathComponents.count >= 3,
+              url.pathComponents[1] == "spot",
+              let spotId = Int64(url.pathComponents[2]) else { return }
+        deepLinkRouter.pendingSpotId = spotId
     }
 
     private func configureFirebase() {

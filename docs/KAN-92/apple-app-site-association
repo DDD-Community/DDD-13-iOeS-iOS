@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["4DUZKVXU2R.com.pickflow"],
+        "components": [
+          {
+            "/": "/spot/*",
+            "comment": "SpotDetail 화면 딥링크 - /spot/{spotId}"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -162,7 +162,6 @@ struct ArchiveView: View {
                     spotId: spotId,
                     spotService: getSpotService(),
                     bookmarkService: getBookmarkService(),
-                    shareIntentService: getShareIntentService(),
                     locationService: getLocationService(),
                     externalAppLauncher: getExternalAppLauncher(),
                     shareSheetPresenter: getShareSheetPresenter(),
