@@ -296,7 +296,8 @@ final class ArchiveSnapshotTests: XCTestCase {
             name: ["한강 노을길", "잠실 윤슬", "응봉산 전망대", "반포 분수", "선유도 일몰", "광나루 윤슬길", "노들섬 노을 뷰", "성수 한강"][i - 1],
             theme: i.isMultiple(of: 2) ? .reflection : .sunset,
             thumbnailUrl: nil,
-            distanceKm: Double(i) * 0.8
+            distanceKm: Double(i) * 0.8,
+            isBookmarked: false
         )
     }
 }
