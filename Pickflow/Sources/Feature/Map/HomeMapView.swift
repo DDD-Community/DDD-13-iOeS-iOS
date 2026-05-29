@@ -31,6 +31,7 @@ enum MoodFilter: String, CaseIterable, Sendable {
 }
 
 struct HomeMapView: View {
+    @EnvironmentObject private var deepLinkRouter: DeepLinkRouter
     @State private var selectedMood: MoodFilter? = nil
     @State private var mapListMode: MapListMode = .map
     @Binding var isAddPlacePresented: Bool
@@ -186,6 +187,13 @@ struct HomeMapView: View {
                     clusteringViewModel.mapBackgroundTapped()
                 }
             }
+            .onAppear {
+                openPendingDeepLink()
+            }
+            .onChange(of: deepLinkRouter.pendingSpotId) { _, spotId in
+                guard spotId != nil else { return }
+                openPendingDeepLink()
+            }
             .overlay {
                 if showAddPlaceLoginPrompt {
                     ZStack {
@@ -255,6 +263,13 @@ struct HomeMapView: View {
 
     // MARK: - Detail Presentation
 
+    private func openPendingDeepLink() {
+        guard let spotId = deepLinkRouter.pendingSpotId else { return }
+        deepLinkRouter.pendingSpotId = nil
+        listDetailVM = makeSpotDetailViewModel(spotId: spotId)
+        isSpotDetailPresented = true
+    }
+
     private func presentSpotDetail(spotId: Int64) {
         selectedSpotVM = makeSpotDetailViewModel(spotId: spotId)
         isSpotDetailSheetPresented = true
@@ -265,7 +280,6 @@ struct HomeMapView: View {
             spotId: spotId,
             spotService: getSpotService(),
             bookmarkService: getBookmarkService(),
-            shareIntentService: getShareIntentService(),
             locationService: getLocationService(),
             externalAppLauncher: getExternalAppLauncher(),
             shareSheetPresenter: getShareSheetPresenter(),
@@ -438,4 +452,5 @@ extension View {
         isSpotDetailPresented: .constant(false),
         clusteringViewModel: MapClusteringViewModel(clusteringService: getClusteringService())
     )
+    .environmentObject(DeepLinkRouter())
 }
