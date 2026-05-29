@@ -90,7 +90,7 @@ struct SpotDetailSheetContentView: View {
             Text(preview.theme.rawValue)
                 .pretendard(.body(.medium(.regular)))
                 .foregroundStyle(.gray10)
-            if preview.bookmarkCount > 0 {
+            if !preview.isMySpot {
                 dotSeparator
                 Text("북마크 \(preview.bookmarkCount)")
                     .pretendard(.body(.medium(.regular)))

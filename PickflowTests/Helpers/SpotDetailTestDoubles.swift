@@ -176,6 +176,7 @@ extension SpotPreviewResponse {
         isMySpot: Bool = false,
         theme: SpotTheme = .sunset,
         bookmarkCount: Int = 34,
+        isBookmarked: Bool = false,
         distanceKm: Double? = 2.5,
         imageUrl: String? = "https://example.com/spot.jpg",
         addressSimple: String = "서울 동작구",

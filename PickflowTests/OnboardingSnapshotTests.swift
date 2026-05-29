@@ -254,7 +254,7 @@ final class OnboardingSnapshotTests: XCTestCase {
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-              Image(.logo)
+                PickflowWorkMarkLogo()
                     .padding(.leading, 16)
                     .padding(.top, 12)
             }

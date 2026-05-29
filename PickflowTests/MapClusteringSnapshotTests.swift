@@ -1,5 +1,6 @@
 import SnapshotTesting
 import SwiftUI
+import UIKit
 import XCTest
 @testable import Pickflow
 
@@ -132,5 +133,40 @@ final class MapClusteringSnapshotTests: XCTestCase {
 
     func test_spotMarker_selected_dark() {
         assertPin(of: SpotMarkerView(isSelected: true).snapshotEnvironment(colorScheme: .dark), named: "spot-marker-selected-dark")
+    }
+
+    // MARK: - 이미지 표시 경로 (placeholder 대신 실제 이미지)
+
+    /// 결정적 단색 이미지 — 스냅샷이 네트워크에 의존하지 않도록 생성.
+    private func solidImage(_ color: UIColor, size: CGFloat = 56) -> UIImage {
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: size, height: size))
+        return renderer.image { ctx in
+            color.setFill()
+            ctx.fill(CGRect(x: 0, y: 0, width: size, height: size))
+        }
+    }
+
+    func test_spotMarker_withImage_light() {
+        assertPin(
+            of: SpotMarkerView(isSelected: false, image: solidImage(.systemTeal))
+                .snapshotEnvironment(colorScheme: .light),
+            named: "spot-marker-with-image-light"
+        )
+    }
+
+    func test_spotMarker_withImage_selected_light() {
+        assertPin(
+            of: SpotMarkerView(isSelected: true, image: solidImage(.systemTeal))
+                .snapshotEnvironment(colorScheme: .light),
+            named: "spot-marker-with-image-selected-light"
+        )
+    }
+
+    func test_myClusterPin_withImage_light() {
+        assertPin(
+            of: MyClusterPinView(isSelected: false, image: solidImage(.systemTeal))
+                .snapshotEnvironment(colorScheme: .light),
+            named: "my-cluster-pin-with-image-light"
+        )
     }
 }
