@@ -46,6 +46,7 @@ final class AppContainer {
             )
         }
         container.register(AnalyticsLoggerProtocol.self, scope: .container) { FirebaseAnalyticsLogger() }
+        container.register(CrashReporterProtocol.self, scope: .container) { FirebaseCrashlyticsReporter() }
         container.register(OnboardingCompletionStore.self, scope: .container) { UserDefaultsOnboardingCompletionStore() }
     }
 }
