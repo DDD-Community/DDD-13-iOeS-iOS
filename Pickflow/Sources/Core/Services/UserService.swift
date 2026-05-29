@@ -19,7 +19,10 @@ final class UserService: UserServiceProtocol, Sendable {
                 formData.append(data, withName: "nickname")
             }
             if let imageData = profileImageData {
-                formData.append(imageData, withName: "profileImage", fileName: "profile.jpg", mimeType: "image/jpeg")
+                let isPNG = imageData.prefix(4) == Data([0x89, 0x50, 0x4E, 0x47])
+                let fileName = isPNG ? "profile.png" : "profile.jpg"
+                let mimeType = isPNG ? "image/png" : "image/jpeg"
+                formData.append(imageData, withName: "profileImage", fileName: fileName, mimeType: mimeType)
             }
         }
         return try await fetchCurrentUser()
