@@ -97,7 +97,7 @@ struct HomeMapView: View {
                                 .padding(.trailing, Padding.containerHorizontal)
                                 // PICKFLOW row 높이(~38pt) + 헤더 padding 합 → 정렬 버튼 아래로 떠오름
                                 .offset(y: Padding.containerTop + 38 + 4)
-                                .transition(.opacity.combined(with: .move(edge: .top)))
+                                .transition(.opacity)
                             }
                         }
                     Spacer()
