@@ -59,7 +59,7 @@ struct OnboardingView: View {
         .contentShape(Rectangle())
         .simultaneousGesture(makePagerGesture(pageWidth: pagerSize.width))
         .overlay(alignment: .topLeading) {
-            logo
+            PickflowWorkMarkLogo()
         }
         .onChange(of: viewModel.isFinished) { _, isFinished in
             if isFinished {
@@ -119,12 +119,6 @@ struct OnboardingView: View {
                     dragOffset = 0
                 }
             }
-    }
-
-    private var logo: some View {
-      Image(.logo)
-            .padding(.leading, 16)
-            .padding(.top, 12)
     }
 }
 

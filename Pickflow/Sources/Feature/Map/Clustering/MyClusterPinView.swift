@@ -1,14 +1,23 @@
 import SwiftUI
+import UIKit
 
 /// my spot 단일 마커. 큐레이션 클러스터링에 참여하지 않고 항상 단일로 표시되는 디자인.
 /// 회색 그라데이션(검정 → 흰색 톤) 배경 + 사진 아이콘 + "MY" 텍스트.
 struct MyClusterPinView: View {
     static let diameter: CGFloat = 56
     var isSelected: Bool = false
+    var image: UIImage? = nil
 
     var body: some View {
         ZStack {
           circleBackground
+          if let image {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+                .frame(width: Self.diameter, height: Self.diameter)
+                .clipShape(Circle())
+          }
           rectangle125
           content
         }
@@ -51,7 +60,7 @@ struct MyClusterPinView: View {
               .resizable()
               .scaledToFit()
               .frame(width: 18, height: 18)
-              .opacity(0.5)
+              .opacity(image == nil ? 0.5 : 0)
               .padding(10)
               .overlay(alignment: .bottom, content: {
                 Text("MY")
