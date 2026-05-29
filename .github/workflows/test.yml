@@ -1,0 +1,110 @@
+name: Unit Tests
+
+on:
+  pull_request:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  unit-tests:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Setup mise and Tuist
+        uses: jdx/mise-action@v4
+        with:
+          mise_toml: |
+            [tools]
+            tuist = "4.174.2"
+
+      - name: Restore local config files
+        env:
+          COMMON_XCCONFIG: ${{ secrets.COMMON_XCCONFIG }}
+          GOOGLE_SERVICE_INFO_PLIST_B64: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_B64 }}
+        run: |
+          set -euo pipefail
+
+          test -n "$COMMON_XCCONFIG"
+          test -n "$GOOGLE_SERVICE_INFO_PLIST_B64"
+
+          mkdir -p Configs
+
+          printf '%s\n' "$COMMON_XCCONFIG" > Configs/Common.xcconfig
+
+          printf '%s' "$GOOGLE_SERVICE_INFO_PLIST_B64" | base64 --decode > Configs/GoogleService-Info.plist || \
+          printf '%s' "$GOOGLE_SERVICE_INFO_PLIST_B64" | base64 -D > Configs/GoogleService-Info.plist
+
+      - name: Generate project
+        run: |
+          tuist install
+          tuist generate --no-open
+
+      - name: Select iOS Simulator
+        id: simulator
+        run: |
+          set -euo pipefail
+
+          # Pick the available iPhone simulator with the highest iOS runtime so we
+          # don't break when Xcode bumps default device names / runtimes.
+          DEVICE_ID=$(xcrun simctl list devices available --json | python3 -c '
+          import json, sys
+
+          data = json.load(sys.stdin)["devices"]
+
+          def runtime_key(runtime):
+              # e.g. "com.apple.CoreSimulator.SimRuntime.iOS-26-0" -> (26, 0)
+              parts = runtime.rsplit("iOS-", 1)
+              if len(parts) != 2:
+                  return (0, 0)
+              nums = [int(n) for n in parts[1].split("-") if n.isdigit()]
+              while len(nums) < 2:
+                  nums.append(0)
+              return tuple(nums[:2])
+
+          candidates = []
+          for runtime, devices in data.items():
+              if "iOS" not in runtime:
+                  continue
+              for device in devices:
+                  if device.get("isAvailable") and device["name"].startswith("iPhone"):
+                      candidates.append((runtime_key(runtime), device["udid"], device["name"]))
+
+          if not candidates:
+              sys.exit("No available iOS iPhone simulator found")
+
+          candidates.sort(key=lambda c: c[0])
+          best = candidates[-1]
+          print(best[1])
+          sys.stderr.write(f"Selected simulator: {best[2]} (iOS {best[0][0]}.{best[0][1]})\n")
+          ')
+
+          echo "device_id=$DEVICE_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Run unit tests
+        run: |
+          set -euo pipefail
+
+          xcodebuild test \
+            -workspace Pickflow.xcworkspace \
+            -scheme Pickflow \
+            -configuration Debug \
+            -destination "id=${{ steps.simulator.outputs.device_id }}" \
+            -resultBundlePath TestResults.xcresult \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults.xcresult
+          retention-days: 7
