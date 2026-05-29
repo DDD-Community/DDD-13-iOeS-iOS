@@ -7,6 +7,9 @@ struct ContentView: View {
     @State private var isExploreAddPlacePresented = false
     @State private var isExploreSpotDetailPresented = false
     @State private var savedPath = NavigationPath()
+    #if DEBUG
+    @State private var isCrashlyticsDebugPresented = false
+    #endif
     @StateObject private var clusteringViewModel: MapClusteringViewModel
     @StateObject private var myProfileViewModel: MyProfileViewModel
     @StateObject private var archiveViewModel: ArchiveViewModel
@@ -79,6 +82,23 @@ struct ContentView: View {
             }
         }
         .animation(.easeInOut(duration: 0.25), value: isTabBarVisible)
+        #if DEBUG
+        .overlay(alignment: .topTrailing) {
+            Button {
+                isCrashlyticsDebugPresented = true
+            } label: {
+                Image(systemName: "ant.circle.fill")
+                    .font(.system(size: 36))
+                    .foregroundStyle(.red.opacity(0.8))
+                    .padding(.top, 60)
+                    .padding(.trailing, 16)
+            }
+        }
+        .sheet(isPresented: $isCrashlyticsDebugPresented) {
+            CrashlyticsSampleView()
+                .presentationDetents([.medium])
+        }
+        #endif
     }
 }
 
