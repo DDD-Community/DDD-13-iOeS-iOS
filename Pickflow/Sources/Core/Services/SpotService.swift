@@ -1,5 +1,26 @@
 import Foundation
 
+private struct SpotRegisterRequest: Encodable, Sendable {
+    let name: String
+    let theme: String?
+    let latitude: Double
+    let longitude: Double
+    let comment: String?
+    let recordedDate: String
+    let recordedTime: String
+}
+
+enum SpotRegistrationError: LocalizedError {
+    case missingCoordinate
+
+    var errorDescription: String? {
+        switch self {
+        case .missingCoordinate:
+            "선택한 장소의 좌표를 가져올 수 없습니다."
+        }
+    }
+}
+
 final class SpotService: SpotServiceProtocol, Sendable {
     private let networkManager: NetworkManagerProtocol
 
@@ -23,16 +44,49 @@ final class SpotService: SpotServiceProtocol, Sendable {
 
 
     func registerSpot(draft: SpotRegistrationDraft) async throws -> SpotId {
-        _ = networkManager
-        // TODO(BE-API): 실제 네트워크 호출로 교체
-        // TODO(BE-API): 이미지 업로드, 카테고리 enum 키, 응답 스키마 확정 필요
-        try await Task.sleep(for: .seconds(1))
-        return SpotId(rawValue: UUID().uuidString)
+        guard let coordinate = draft.address.coordinate else {
+            throw SpotRegistrationError.missingCoordinate
+        }
+
+        let request = SpotRegisterRequest(
+            name: draft.spotName,
+            theme: draft.theme?.apiCode,
+            latitude: coordinate.latitude.roundedTo6,
+            longitude: coordinate.longitude.roundedTo6,
+            comment: draft.comment,
+            recordedDate: DateFormatter.serverDate.string(from: draft.capturedAt),
+            recordedTime: DateFormatter.serverTime.string(from: draft.capturedAt)
+        )
+        let requestJSON = try JSONEncoder().encode(request)
+        let photoData = draft.photoData
+
+        let envelope: APIEnvelope<SpotRegisterResponse> = try await networkManager.upload(
+            endpoint: SpotEndpoint.register
+        ) { formData in
+            formData.append(
+                requestJSON,
+                withName: "request",
+                mimeType: "application/json"
+            )
+            formData.append(
+                photoData,
+                withName: "image",
+                fileName: "spot.jpg",
+                mimeType: "image/jpeg"
+            )
+        }
+        return SpotId(rawValue: String(envelope.data.spotId))
     }
 
     func reportSpot(id: Int64, type: SpotReportType, content: String) async throws {
         let _: EmptyResponse = try await networkManager.request(
             endpoint: ReportEndpoint(spotId: id, type: type, content: content)
         )
+    }
+}
+
+private extension Double {
+    var roundedTo6: Double {
+        (self * 1_000_000).rounded() / 1_000_000
     }
 }

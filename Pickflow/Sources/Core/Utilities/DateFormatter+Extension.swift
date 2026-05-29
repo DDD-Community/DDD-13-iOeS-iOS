@@ -9,6 +9,24 @@ extension DateFormatter {
         return formatter
     }()
 
+    /// 서버 전송용 날짜 포매터. `yyyy-MM-dd`, 로컬 타임존 기준.
+    static let serverDate: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = .current
+        return formatter
+    }()
+
+    /// 서버 전송용 시간 포매터. `HH:mm`, 로컬 타임존 기준.
+    static let serverTime: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = .current
+        return formatter
+    }()
+
     static func pickflowDisplayTime(from time: String) -> String {
         guard let minutes = minutesFromMidnight(from: time) else {
             return time

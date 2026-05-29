@@ -13,6 +13,7 @@ extension InfoPlist {
         "FirebaseAppDelegateProxyEnabled": .boolean(false),
         "FirebaseMessagingAutoInitEnabled": .boolean(true),
         "KAKAO_NATIVE_APP_KEY": .string("$(KAKAO_NATIVE_APP_KEY)"),
+        "KAKAO_REST_API_KEY": .string("$(KAKAO_REST_API_KEY)"),
         "NSLocationWhenInUseUsageDescription": .string("사용자의 현재 위치를 기반으로 정확한 포토스팟 정보를 제공하기 위해 위치 권한이 필요합니다."),
         "NSPhotoLibraryUsageDescription": .string("보관함 커버 이미지를 설정하기 위해 사진 접근 권한이 필요합니다."),
         "CFBundleURLTypes": .array([

@@ -4,6 +4,7 @@ import Foundation
 enum SpotEndpoint: APIEndpoint {
     case list(page: Int?, theme: String?, latitude: Double?, longitude: Double?)
     case detail(spotId: Int64)
+    case register
 
     var baseURL: String { APIBaseURL.current }
 
@@ -11,10 +12,16 @@ enum SpotEndpoint: APIEndpoint {
         switch self {
         case .list: "/v1/spots"
         case let .detail(spotId): "/v1/spots/\(spotId)"
+        case .register: "/v1/users/me/my-spots"
         }
     }
 
-    var method: HTTPMethod { .get }
+    var method: HTTPMethod {
+        switch self {
+        case .list, .detail: .get
+        case .register: .post
+        }
+    }
 
     var parameters: Parameters? {
         switch self {
@@ -25,7 +32,7 @@ enum SpotEndpoint: APIEndpoint {
             if let latitude { p["latitude"] = latitude }
             if let longitude { p["longitude"] = longitude }
             return p.isEmpty ? nil : p
-        case .detail:
+        case .detail, .register:
             return nil
         }
     }

@@ -4,4 +4,5 @@ import Foundation
 struct MySpot: Codable, Sendable, Identifiable, Equatable {
     let id: Int64
     let coordinate: Coordinate
+    let imageUrl: String
 }
