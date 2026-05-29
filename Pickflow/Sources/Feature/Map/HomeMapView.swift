@@ -417,7 +417,7 @@ extension HomeMapView {
     }
 
     fileprivate enum Padding {
-        static let containerTop: CGFloat = 16
+        static let containerTop: CGFloat = 12
         static let containerHorizontal: CGFloat = 16
         static let containerBottom: CGFloat = 24
     }
