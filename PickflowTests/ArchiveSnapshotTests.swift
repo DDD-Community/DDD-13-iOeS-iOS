@@ -297,7 +297,7 @@ final class ArchiveSnapshotTests: XCTestCase {
             theme: i.isMultiple(of: 2) ? .reflection : .sunset,
             thumbnailUrl: nil,
             distanceKm: Double(i) * 0.8,
-            isBookmarked: true
+            isBookmarked: false
         )
     }
 }

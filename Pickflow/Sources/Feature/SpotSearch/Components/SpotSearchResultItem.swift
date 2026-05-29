@@ -15,22 +15,22 @@ struct SpotSearchResultItem: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
                         .pretendard(.body(.large(.bold)))
-                        .foregroundStyle(UIAsset.Colors.gray0.color)
+                        .foregroundStyle(.gray0)
                         .multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
 
                     Text(address.fullAddress)
                         .pretendard(.body(.small()))
-                        .foregroundStyle(UIAsset.Colors.gray30.color)
+                        .foregroundStyle(.gray30)
                         .multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
                 if let distanceText {
                     Text(distanceText)
-                        .pretendard(.label(.medium))
+                    .pretendard(.body(.small(.bold)))
                         .tracking(0.2)
-                        .foregroundStyle(UIAsset.Colors.gray10.color)
+                        .foregroundStyle(.gray0)
                         .lineLimit(1)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)

@@ -14,7 +14,7 @@ struct SpotRegistrationDraft: Sendable {
     let photoData: Data
     let address: Address
     let spotName: String
-    let category: PhotoCategory?
+    let theme: SpotTheme?
     let capturedAt: Date
     let comment: String?
 }
@@ -23,11 +23,6 @@ struct SpotId: Hashable, Sendable, Identifiable {
     let rawValue: String
 
     var id: String { rawValue }
-}
-
-enum PhotoCategory: String, CaseIterable, Sendable, Hashable {
-    case sunset
-    case reflection
 }
 
 @MainActor

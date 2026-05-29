@@ -5,11 +5,14 @@ import UIKit
 struct SpotSearchView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: SpotSearchViewModel
+    @State private var pushedAddress: Address?
+    private let onSelectAddress: (Address) -> Void
 
     init(
         viewModel: SpotSearchViewModel,
         onSelectAddress: @escaping (Address) -> Void
     ) {
+        self.onSelectAddress = onSelectAddress
         viewModel.onSelectAddress = onSelectAddress
         _viewModel = StateObject(wrappedValue: viewModel)
     }
@@ -41,6 +44,18 @@ struct SpotSearchView: View {
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
+        .navigationDestination(item: $pushedAddress) { address in
+            SpotLocationDetailView(
+                viewModel: SpotLocationDetailViewModel(
+                    originalAddress: address,
+                    addressService: getAddressService(),
+                    locationService: getLocationService()
+                ),
+                onConfirm: { confirmed in
+                    onSelectAddress(confirmed)
+                }
+            )
+        }
     }
 
     private var headerView: some View {
@@ -95,8 +110,7 @@ struct SpotSearchView: View {
                             address: address,
                             distanceText: viewModel.distanceText(for: address)
                         ) {
-                            viewModel.selectAddress(address)
-                            dismiss()
+                            pushedAddress = address
                         }
                         .padding(.vertical, 24)
 

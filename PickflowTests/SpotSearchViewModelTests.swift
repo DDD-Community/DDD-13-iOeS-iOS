@@ -98,4 +98,28 @@ final class SpotSearchViewModelTests: XCTestCase {
 
         XCTAssertNil(viewModel.distanceText(for: .fixture()))
     }
+
+    func test_distanceText_위치권한이거부면_nil을반환한다() async {
+        locationService.status = .denied
+        viewModel.searchQuery = "한강공원"
+        await viewModel.search()
+
+        XCTAssertNil(viewModel.distanceText(for: .fixture()))
+    }
+
+    func test_distanceText_위치권한이미결정이면_nil을반환한다() async {
+        locationService.status = .notDetermined
+        viewModel.searchQuery = "한강공원"
+        await viewModel.search()
+
+        XCTAssertNil(viewModel.distanceText(for: .fixture()))
+    }
+
+    func test_distanceText_위치권한이제한이면_nil을반환한다() async {
+        locationService.status = .restricted
+        viewModel.searchQuery = "한강공원"
+        await viewModel.search()
+
+        XCTAssertNil(viewModel.distanceText(for: .fixture()))
+    }
 }

@@ -4,8 +4,11 @@ import Foundation
 
 final class MockAddressService: AddressServiceProtocol, @unchecked Sendable {
     var result: Result<[Address], any Error> = .success([.fixture()])
+    var reverseGeocodeResult: Result<Address, any Error> = .failure(TestError.failed)
     private(set) var callCount = 0
     private(set) var queries: [String] = []
+    private(set) var reverseGeocodeCallCount = 0
+    private(set) var reverseGeocodeCoordinates: [Coordinate] = []
 
     func searchAddress(query: String) async throws -> [Address] {
         callCount += 1
@@ -14,12 +17,15 @@ final class MockAddressService: AddressServiceProtocol, @unchecked Sendable {
     }
 
     func reverseGeocode(latitude: Double, longitude: Double) async throws -> Address {
-        throw TestError.failed
+        reverseGeocodeCallCount += 1
+        reverseGeocodeCoordinates.append(Coordinate(latitude: latitude, longitude: longitude))
+        return try reverseGeocodeResult.get()
     }
 }
 
 final class SpotSearchMockLocationService: LocationServiceProtocol, @unchecked Sendable {
     var result: Result<Coordinate, any Error> = .success(Coordinate(latitude: 37.5209, longitude: 126.9833))
+    var status: CLAuthorizationStatus = .authorizedWhenInUse
     var lastKnownLocation: Coordinate? {
         try? result.get()
     }
@@ -27,7 +33,7 @@ final class SpotSearchMockLocationService: LocationServiceProtocol, @unchecked S
     func requestAuthorization() {}
 
     func authorizationStatus() -> CLAuthorizationStatus {
-        .authorizedWhenInUse
+        status
     }
 
     func currentLocation() async throws -> Coordinate {

@@ -65,7 +65,7 @@ private struct SpotPhotoPlaceholder: View {
                     .foregroundStyle(Color.spotPlaceholderText)
             }
 
-            Text("등록할 스팟의 사진을\n선택해 주세요.")
+            Text("스팟의 분위기가\n잘 담긴 사진을 올려주세요.")
                 .pretendard(.body(.medium(.bold)))
                 .foregroundStyle(Color.spotPlaceholderText)
                 .multilineTextAlignment(.center)
