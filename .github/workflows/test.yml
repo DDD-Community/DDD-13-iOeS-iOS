@@ -53,8 +53,11 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Pick the available iPhone simulator with the highest iOS runtime so we
-          # don't break when Xcode bumps default device names / runtimes.
+          # Pick an available @3x iPhone simulator with the highest iOS runtime.
+          # The committed snapshot references were recorded at displayScale 3, and
+          # the snapshot layouts are .fixed(...), so only the display scale matters
+          # (not the device screen size). iPhone SE is @2x, so it is excluded to
+          # keep rendering deterministic regardless of Xcode device/runtime bumps.
           DEVICE_ID=$(xcrun simctl list devices available --json | python3 -c '
           import json, sys
 
@@ -75,16 +78,20 @@ jobs:
               if "iOS" not in runtime:
                   continue
               for device in devices:
-                  if device.get("isAvailable") and device["name"].startswith("iPhone"):
-                      candidates.append((runtime_key(runtime), device["udid"], device["name"]))
+                  name = device["name"]
+                  # Exclude iPhone SE (the only @2x modern iPhone) so we always
+                  # render at @3x to match the recorded references.
+                  if device.get("isAvailable") and name.startswith("iPhone") and "SE" not in name:
+                      candidates.append((runtime_key(runtime), name, device["udid"]))
 
           if not candidates:
-              sys.exit("No available iOS iPhone simulator found")
+              sys.exit("No available @3x iOS iPhone simulator found")
 
-          candidates.sort(key=lambda c: c[0])
+          # Sort by (runtime, name) for a deterministic pick across runs.
+          candidates.sort(key=lambda c: (c[0], c[1]))
           best = candidates[-1]
-          print(best[1])
-          sys.stderr.write(f"Selected simulator: {best[2]} (iOS {best[0][0]}.{best[0][1]})\n")
+          print(best[2])
+          sys.stderr.write(f"Selected simulator: {best[1]} (iOS {best[0][0]}.{best[0][1]})\n")
           ')
 
           echo "device_id=$DEVICE_ID" >> "$GITHUB_OUTPUT"
