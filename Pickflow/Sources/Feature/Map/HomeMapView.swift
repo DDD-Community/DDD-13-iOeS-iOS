@@ -98,7 +98,7 @@ struct HomeMapView: View {
                                 .padding(.trailing, Padding.containerHorizontal)
                                 // PICKFLOW row 높이(~38pt) + 헤더 padding 합 → 정렬 버튼 아래로 떠오름
                                 .offset(y: Padding.containerTop + 38 + 4)
-                                .transition(.opacity.combined(with: .move(edge: .top)))
+                                .transition(.opacity)
                             }
                         }
                     Spacer()
@@ -144,6 +144,10 @@ struct HomeMapView: View {
                     },
                     onSpotTap: { spotId in
                         clusteringViewModel.spotMarkerTapped(spotId)
+                        if let coord = spotCoordinate(for: spotId) {
+                            // 시트 medium(=화면 하단 55%) 에 가리지 않도록 마커를 상단 30% 위치로 정렬.
+                            cameraMoveRequest = CameraMoveRequest(coordinate: coord, pivotY: 0.3)
+                        }
                         presentSpotDetail(spotId: spotId)
                     },
                     onMapBackgroundTap: {
@@ -273,6 +277,16 @@ struct HomeMapView: View {
     private func presentSpotDetail(spotId: Int64) {
         selectedSpotVM = makeSpotDetailViewModel(spotId: spotId)
         isSpotDetailSheetPresented = true
+    }
+
+    private func spotCoordinate(for spotId: Int64) -> Coordinate? {
+        if let spot = clusteringViewModel.state.spots.first(where: { $0.id == spotId }) {
+            return spot.coordinate
+        }
+        if let spot = clusteringViewModel.mySpots.first(where: { $0.id == spotId }) {
+            return spot.coordinate
+        }
+        return nil
     }
 
     private func makeSpotDetailViewModel(spotId: Int64) -> SpotDetailViewModel {
@@ -431,7 +445,7 @@ extension HomeMapView {
     }
 
     fileprivate enum Padding {
-        static let containerTop: CGFloat = 16
+        static let containerTop: CGFloat = 12
         static let containerHorizontal: CGFloat = 16
         static let containerBottom: CGFloat = 24
     }

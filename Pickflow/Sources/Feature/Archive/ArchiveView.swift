@@ -169,7 +169,7 @@ struct ArchiveView: View {
                 ))
             }
         }
-        .fullScreenCover(isPresented: $showRegistration) {
+        .navigationDestination(isPresented: $showRegistration) {
             SpotRegistrationAssembly.make { _ in showRegistration = false }
         }
         .fullScreenCover(isPresented: $showCoverPicker) {
