@@ -157,6 +157,7 @@ final class SpotDetailViewModelTests: XCTestCase {
         await loadDetail()
 
         viewModel.openNaverMapsRoute()
+        await waitForNaverMapsOpen()
 
         XCTAssertEqual(externalAppLauncher.openedURLs.first?.scheme, "nmap")
     }
@@ -167,6 +168,7 @@ final class SpotDetailViewModelTests: XCTestCase {
         await loadDetail()
 
         viewModel.openNaverMapsRoute()
+        await waitForNaverMapsOpen()
 
         XCTAssertEqual(externalAppLauncher.openedURLs.first?.absoluteString, "https://apps.apple.com/kr/app/id311867728")
     }
@@ -252,6 +254,12 @@ final class SpotDetailViewModelTests: XCTestCase {
     private func loadDetail() async {
         viewModel.updateDetent(.large)
         for _ in 0..<100 where viewModel.detailState == .idle || viewModel.detailState == .loading {
+            await Task.yield()
+        }
+    }
+
+    private func waitForNaverMapsOpen() async {
+        for _ in 0..<50 where externalAppLauncher.openedURLs.isEmpty {
             await Task.yield()
         }
     }
