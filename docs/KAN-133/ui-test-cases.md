@@ -10,9 +10,11 @@
 
 | case id | 컴포넌트 | 상태/입력 조건 | 테마 | 언어 / DynamicType | Light/Dark | 디바이스 | 기대 시각 결과 | 스냅샷 파일명 |
 |---|---|---|---|---|---|---|---|---|
-| notice-list-loaded-light | NoticeListView | loaded(3건: 긴제목/[공지]/단문) | — | ko_KR / .large | Light | 393×852 | 네비바 "공지사항"+뒤로가기, 항목 3개 각 제목(gray0)+날짜 2026.05.09(gray40), 항목 사이 gray90 구분선 | notice-list-loaded-light.png |
+| notice-list-loaded-light | NoticeListView | loaded(3건: 긴제목/[공지]/단문, content 있음) | — | ko_KR / .large | Light | 393×852 | 네비바 "공지사항"+뒤로가기, 항목 3개 각 제목(gray0)+본문 미리보기 1줄(gray30, 말줄임)+날짜 2026.05.09(gray40), 항목 사이 gray90 구분선 | notice-list-loaded-light.png |
 | notice-list-loaded-dark | NoticeListView | loaded(3건) | — | ko_KR / .large | Dark | 393×852 | 위와 동일 | notice-list-loaded-dark.png |
-| notice-list-loaded-a11y | NoticeListView | loaded(3건) | — | ko_KR / .accessibilityExtraLarge | Light | 393×852 | 제목/날짜 폰트 확대, 제목 2줄 말줄임 유지, 레이아웃 깨짐 없음 | notice-list-loaded-a11y.png |
+| notice-list-loaded-a11y | NoticeListView | loaded(3건) | — | ko_KR / .accessibilityExtraLarge | Light | 393×852 | 제목/미리보기/날짜 폰트 확대, 제목 2줄·미리보기 1줄 말줄임 유지, 레이아웃 깨짐 없음 | notice-list-loaded-a11y.png |
+| notice-list-no-preview-light | NoticeRowView | loaded(content nil 2건) | — | ko_KR / .large | Light | 393×852 | content 없으면 미리보기 줄 생략, 제목+날짜만 | notice-list-no-preview-light.png |
+| notice-list-no-preview-dark | NoticeRowView | loaded(content nil) | — | ko_KR / .large | Dark | 393×852 | 위와 동일 | notice-list-no-preview-dark.png |
 | notice-list-longtitle-light | NoticeRowView | loaded(제목 3줄 분량 1건) | — | ko_KR / .large | Light | 393×852 | 제목이 2줄에서 말줄임(…), 3번째 줄 미노출, 날짜 정상 | notice-list-longtitle-light.png |
 | notice-list-longtitle-dark | NoticeRowView | loaded(긴제목 1건) | — | ko_KR / .large | Dark | 393×852 | 위와 동일 | notice-list-longtitle-dark.png |
 | notice-list-empty-light | NoticeListView | empty | — | ko_KR / .large | Light | 393×852 | 네비바만, 중앙에 "등록된 공지사항이 없어요" 안내(gray40), 항목 없음 | notice-list-empty-light.png |

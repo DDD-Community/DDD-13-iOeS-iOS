@@ -72,7 +72,7 @@
 
 | UI 동작 | Endpoint | 비고 |
 |---|---|---|
-| 리스트 진입 / 다음 페이지 | `GET /v1/bbs/posts?masterId=1&page={page}` | 응답 `data: { items[], page, hasNext }` |
+| 리스트 진입 / 다음 페이지 | `GET /v1/bbs/posts?masterId=1&page={page}` | 응답 `data: { items[], page, hasNext }`. **⚠️ items에 본문 미리보기용 `content`(또는 summary) 필드가 추가로 내려와야 목록 미리보기 1줄이 채워짐 — 현재 샘플엔 없음(백엔드 합의 필요).** 없으면 미리보기 줄은 생략됨 |
 | 항목 탭 → 상세 | `GET /v1/bbs/posts/{postId}?masterId=1` | 응답 `data: { masterId, postId, title, createdAt, content }` |
 
 **목록 응답**
@@ -133,6 +133,7 @@ import Foundation
 struct NoticeListItem: Decodable, Sendable, Identifiable {
     let postId: Int64
     let title: String
+    let content: String?         // 목록 미리보기 1줄용. 목록 API가 줄 때만 채워짐(없으면 미리보기 생략)
     let createdAt: String        // "2026-05-09"
     let pinned: Bool
     var id: Int64 { postId }
@@ -255,7 +256,8 @@ final class NoticeDetailViewModel: ObservableObject {
 
 **리스트 (1084:5706)**
 - 배경 `gray95`(#131416). 컨텐츠 좌우 패딩 16
-- 항목 셀: 상하 패딩 24, 내부 `VStack(spacing: 8)` — 제목(`.body(.large())`, `gray0`, `lineLimit(2)`) / 날짜(`.body(.small())`, `gray40`)
+- 항목 셀: 상하 패딩 24, 내부 `VStack(spacing: 8)` — 제목(`.body(.large())`, `gray0`, `lineLimit(2)`) / **본문 미리보기 1줄**(`.body(.small())`, `gray30`, `lineLimit(1)` 말줄임, `content` 있을 때만) / 날짜(`.body(.small())`, `gray40`)
+- **본문 미리보기**(스펙 추가): 제목 아래 본문 1줄 고정 노출(말줄임), 전체 공지 동일 적용. `content`가 nil/빈 문자열이면 줄 자체를 그리지 않음(하위 호환)
 - 셀 하단 구분선: `gray90` 1pt bottom border
 - 무한 스크롤: 마지막 셀 `onAppear` 또는 `loadNextPageIfNeeded`
 - 다음 페이지 로딩 시 하단 `ProgressView`

@@ -21,12 +21,13 @@ final class DemoNoticeService: NoticeServiceProtocol, Sendable {
             postId: 1,
             title: "[공지] 픽플로우 개인정보처리방침 개정 안내드립니다. 픽플로우 개인정보처리방침 개정 안내드립니다.",
             createdAt: "2026-05-09",
-            pinned: true
+            pinned: true,
+            content: "개인정보처리방침이 2026년 5월 9일자로 개정됩니다. 변경 사항을 확인해 주세요."
         ),
-        NoticeListItem(postId: 2, title: "[공지] 픽플로우 개인정보처리방침 개정 안내드립니다.", createdAt: "2026-05-08", pinned: true),
-        NoticeListItem(postId: 3, title: "6/16 시스템 정기 점검 안내", createdAt: "2026-05-02", pinned: false),
-        NoticeListItem(postId: 4, title: "신규 기능 '노을 알림' 출시 안내", createdAt: "2026-04-28", pinned: false),
-        NoticeListItem(postId: 5, title: "이용약관 개정 안내 (2026.04)", createdAt: "2026-04-15", pinned: false),
+        NoticeListItem(postId: 2, title: "[공지] 픽플로우 개인정보처리방침 개정 안내드립니다.", createdAt: "2026-05-08", pinned: true, content: "수집 항목 및 보유 기간 일부가 변경되었습니다. 자세한 내용은 본문을 확인해 주세요."),
+        NoticeListItem(postId: 3, title: "6/16 시스템 정기 점검 안내", createdAt: "2026-05-02", pinned: false, content: "6월 16일 02:00 ~ 04:00 동안 서비스 이용이 일시 중단됩니다."),
+        NoticeListItem(postId: 4, title: "신규 기능 '노을 알림' 출시 안내", createdAt: "2026-04-28", pinned: false, content: "원하는 스팟의 일몰 시간에 맞춰 알림을 받아보세요."),
+        NoticeListItem(postId: 5, title: "이용약관 개정 안내 (2026.04)", createdAt: "2026-04-15", pinned: false, content: "이용약관 제12조, 제15조가 개정되었습니다."),
     ]
 
     func fetchNotices(masterId _: Int64, page: Int) async throws -> NoticePage {
