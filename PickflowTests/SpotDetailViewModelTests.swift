@@ -266,17 +266,6 @@ final class SpotDetailViewModelTests: XCTestCase {
 
     private func waitForShareSheet() async {
         for _ in 0..<20 where shareSheetPresenter.presentedItems.isEmpty {
-          await Task.yield()
-        }
-    }
-    private func waitForNaverMapsOpen() async {
-        for _ in 0..<50 where externalAppLauncher.openedURLs.isEmpty {
-            await Task.yield()
-        }
-    }
-
-    private func waitForShareIntent() async {
-        for _ in 0..<20 where shareIntentService.deviceIds.isEmpty {
             await Task.yield()
         }
     }
