@@ -5,7 +5,6 @@ import XCTest
 final class SpotDetailViewModelTests: XCTestCase {
     private var spotService: MockSpotService!
     private var bookmarkService: MockBookmarkService!
-    private var shareIntentService: MockShareIntentService!
     private var locationService: MockLocationService!
     private var externalAppLauncher: MockExternalAppLauncher!
     private var shareSheetPresenter: MockShareSheetPresenter!
@@ -17,7 +16,6 @@ final class SpotDetailViewModelTests: XCTestCase {
         try await super.setUp()
         spotService = MockSpotService()
         bookmarkService = MockBookmarkService()
-        shareIntentService = MockShareIntentService()
         locationService = MockLocationService()
         externalAppLauncher = MockExternalAppLauncher()
         shareSheetPresenter = MockShareSheetPresenter()
@@ -34,7 +32,6 @@ final class SpotDetailViewModelTests: XCTestCase {
         shareSheetPresenter = nil
         externalAppLauncher = nil
         locationService = nil
-        shareIntentService = nil
         bookmarkService = nil
         spotService = nil
         try await super.tearDown()
@@ -174,25 +171,22 @@ final class SpotDetailViewModelTests: XCTestCase {
         XCTAssertEqual(externalAppLauncher.openedURLs.first?.absoluteString, "https://apps.apple.com/kr/app/id311867728")
     }
 
-    func test_share_share_intents가호출되고_shareSheet가표시된다() async throws {
+    func test_share_shareSheet가표시되고URL이포함된다() async throws {
         await viewModel.onAppear()
         await loadDetail()
 
         viewModel.share()
-        await waitForShareIntent()
+        await waitForShareSheet()
 
-        XCTAssertEqual(shareIntentService.deviceIds, ["device-1"])
         XCTAssertEqual(shareSheetPresenter.presentedItems.count, 1)
-        XCTAssertTrue(shareSheetPresenter.presentedItems[0][0].contains("https://pickflow.app/spot/1"))
+        XCTAssertTrue(shareSheetPresenter.presentedItems[0][0].contains("https://pickflow-api.us/"))
     }
 
-    func test_share_share_intents_API실패시에도_shareSheet는표시된다() async throws {
-        shareIntentService.error = TestError.failed
+    func test_share_detail미로드시에도_shareSheet는표시된다() async throws {
         await viewModel.onAppear()
-        await loadDetail()
 
         viewModel.share()
-        await waitForShareIntent()
+        await waitForShareSheet()
 
         XCTAssertEqual(shareSheetPresenter.presentedItems.count, 1)
     }
@@ -244,7 +238,6 @@ final class SpotDetailViewModelTests: XCTestCase {
             spotId: 1,
             spotService: spotService,
             bookmarkService: bookmarkService,
-            shareIntentService: shareIntentService,
             locationService: locationService,
             externalAppLauncher: externalAppLauncher,
             shareSheetPresenter: shareSheetPresenter,
@@ -263,8 +256,8 @@ final class SpotDetailViewModelTests: XCTestCase {
         }
     }
 
-    private func waitForShareIntent() async {
-        for _ in 0..<20 where shareIntentService.deviceIds.isEmpty {
+    private func waitForShareSheet() async {
+        for _ in 0..<20 where shareSheetPresenter.presentedItems.isEmpty {
             await Task.yield()
         }
     }
