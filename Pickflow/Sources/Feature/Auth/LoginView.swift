@@ -24,7 +24,7 @@ struct LoginView: View {
                 bottomCTA
             }
             .padding(.horizontal, 16)
-            .padding(.top, 8)
+            .padding(.top, 12)
             .padding(.bottom, 66)
         }
         .preferredColorScheme(.dark)

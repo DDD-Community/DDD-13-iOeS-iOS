@@ -13,7 +13,7 @@ struct SpotShellRootView: View {
                 }
                 .transition(.opacity)
             case .sheetLarge, .fullCover:
-                SpotDetailView(viewModel: viewModel)
+                SpotDetailView(viewModel: viewModel, onShellDismiss: onDismiss)
                     .transition(.opacity)
             }
         }

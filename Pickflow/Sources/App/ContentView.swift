@@ -3,6 +3,7 @@ import UIKit
 
 /// 앱 런치 시 첫 뷰. 실질 라우팅은 `AppRootView`에서 수행한다.
 struct ContentView: View {
+    @EnvironmentObject private var deepLinkRouter: DeepLinkRouter
     @State private var selectedTab: Tab
     @State private var isExploreAddPlacePresented = false
     @State private var isExploreSpotDetailPresented = false
@@ -79,11 +80,16 @@ struct ContentView: View {
             }
         }
         .animation(.easeInOut(duration: 0.25), value: isTabBarVisible)
+        .onChange(of: deepLinkRouter.pendingSpotId) { _, spotId in
+            guard spotId != nil else { return }
+            selectedTab = .explore
+        }
     }
 }
 
 #Preview {
     ContentView()
+        .environmentObject(DeepLinkRouter())
 }
 
 private enum ContentRoute: Hashable {

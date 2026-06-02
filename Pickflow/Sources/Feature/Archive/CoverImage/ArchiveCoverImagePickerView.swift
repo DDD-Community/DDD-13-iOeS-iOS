@@ -65,21 +65,21 @@ final class ArchiveCoverImagePickerViewModel: ObservableObject {
         return items
     }
 
-    private func loadFullData(for asset: PHAsset) async -> Data? {
-        await withCheckedContinuation { continuation in
-            let opts = PHImageRequestOptions()
-            opts.deliveryMode = .highQualityFormat
+    private nonisolated func loadFullData(for asset: PHAsset) async -> Data? {
+        guard let resource = PHAssetResource.assetResources(for: asset)
+            .first(where: { $0.type == .photo }) else { return nil }
+        return await withCheckedContinuation { continuation in
+            var accumulated = Data()
+            let opts = PHAssetResourceRequestOptions()
             opts.isNetworkAccessAllowed = true
-            opts.isSynchronous = false
-            var resumed = false
-            PHImageManager.default().requestImageDataAndOrientation(
-                for: asset, options: opts
-            ) { data, _, _, info in
-                guard !resumed,
-                      (info?[PHImageResultIsDegradedKey] as? Bool) != true else { return }
-                resumed = true
-                continuation.resume(returning: data)
-            }
+            PHAssetResourceManager.default().requestData(
+                for: resource,
+                options: opts,
+                dataReceivedHandler: { accumulated.append($0) },
+                completionHandler: { error in
+                    continuation.resume(returning: error == nil ? accumulated : nil)
+                }
+            )
         }
     }
 }

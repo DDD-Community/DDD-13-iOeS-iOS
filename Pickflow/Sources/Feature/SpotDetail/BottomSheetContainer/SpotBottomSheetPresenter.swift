@@ -106,15 +106,21 @@ private struct SpotBottomSheetPresenter<SheetContent: View>: UIViewControllerRep
                 }
 
                 shell = vc
-                host.present(vc, animated: true) { [weak self, weak viewModel] in
+                host.present(vc, animated: true) { [weak self, weak viewModel, weak vc] in
                     let pc = self?.delegate.presentationController
-                    vc.spotPresentationController = pc
+                    vc?.spotPresentationController = pc
                     pc?.onPhaseChange = { newPhase in
                         guard let vm = viewModel else { return }
                         switch newPhase {
                         case .sheetMedium: vm.updateDetent(.medium)
                         case .sheetLarge:  vm.updateDetent(.large)
                         case .fullCover:   vm.promoteToFullCover()
+                        }
+                    }
+                    pc?.onDimTap = { [weak vc, weak self] in
+                        vc?.dismiss(animated: true) {
+                            self?.shell = nil
+                            self?.dismissBinding?.wrappedValue = false
                         }
                     }
                 }

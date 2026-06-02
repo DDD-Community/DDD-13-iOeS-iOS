@@ -55,8 +55,10 @@ let project = Project(
             settings: .settings(
                 base: [
                     "SWIFT_STRICT_CONCURRENCY": "complete",
-                    "CODE_SIGN_STYLE": "Automatic",
+                    "CODE_SIGN_STYLE": "Manual",
                     "DEVELOPMENT_TEAM": "4DUZKVXU2R",
+                    "CODE_SIGN_IDENTITY": "Apple Distribution",
+                    "PROVISIONING_PROFILE_SPECIFIER": "$(PROVISIONING_PROFILE_SPECIFIER)",
                     "OTHER_LDFLAGS": .array(["$(inherited)", "-ObjC"]),
                     "DEBUG_INFORMATION_FORMAT": "dwarf-with-dsym",
                 ]

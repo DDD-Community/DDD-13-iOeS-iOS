@@ -1,0 +1,130 @@
+name: Unit Tests
+
+on:
+  pull_request:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  unit-tests:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Setup mise and Tuist
+        uses: jdx/mise-action@v4
+        with:
+          mise_toml: |
+            [tools]
+            tuist = "4.174.2"
+
+      - name: Restore local config files
+        env:
+          COMMON_XCCONFIG: ${{ secrets.COMMON_XCCONFIG }}
+          GOOGLE_SERVICE_INFO_PLIST_B64: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_B64 }}
+        run: |
+          set -euo pipefail
+
+          test -n "$COMMON_XCCONFIG"
+          test -n "$GOOGLE_SERVICE_INFO_PLIST_B64"
+
+          mkdir -p Configs
+
+          printf '%s\n' "$COMMON_XCCONFIG" > Configs/Common.xcconfig
+
+          printf '%s' "$GOOGLE_SERVICE_INFO_PLIST_B64" | base64 --decode > Configs/GoogleService-Info.plist || \
+          printf '%s' "$GOOGLE_SERVICE_INFO_PLIST_B64" | base64 -D > Configs/GoogleService-Info.plist
+
+      - name: Generate project
+        run: |
+          tuist install
+          tuist generate --no-open
+
+      - name: Select iOS Simulator
+        id: simulator
+        run: |
+          set -euo pipefail
+
+          # Pick an available @3x iPhone simulator with the highest iOS runtime.
+          # The committed snapshot references were recorded at displayScale 3, and
+          # the snapshot layouts are .fixed(...), so only the display scale matters
+          # (not the device screen size). iPhone SE is @2x, so it is excluded to
+          # keep rendering deterministic regardless of Xcode device/runtime bumps.
+          DEVICE_ID=$(xcrun simctl list devices available --json | python3 -c '
+          import json, sys
+
+          data = json.load(sys.stdin)["devices"]
+
+          def runtime_key(runtime):
+              # e.g. "com.apple.CoreSimulator.SimRuntime.iOS-26-0" -> (26, 0)
+              parts = runtime.rsplit("iOS-", 1)
+              if len(parts) != 2:
+                  return (0, 0)
+              nums = [int(n) for n in parts[1].split("-") if n.isdigit()]
+              while len(nums) < 2:
+                  nums.append(0)
+              return tuple(nums[:2])
+
+          candidates = []
+          for runtime, devices in data.items():
+              if "iOS" not in runtime:
+                  continue
+              for device in devices:
+                  name = device["name"]
+                  # Exclude iPhone SE (the only @2x modern iPhone) so we always
+                  # render at @3x to match the recorded references.
+                  if device.get("isAvailable") and name.startswith("iPhone") and "SE" not in name:
+                      candidates.append((runtime_key(runtime), name, device["udid"]))
+
+          if not candidates:
+              sys.exit("No available @3x iOS iPhone simulator found")
+
+          # Sort by (runtime, name) for a deterministic pick across runs.
+          candidates.sort(key=lambda c: (c[0], c[1]))
+          best = candidates[-1]
+          print(best[2])
+          sys.stderr.write(f"Selected simulator: {best[1]} (iOS {best[0][0]}.{best[0][1]})\n")
+          ')
+
+          echo "device_id=$DEVICE_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Run unit tests
+        run: |
+          set -euo pipefail
+
+          # Snapshot (*SnapshotTests) reference images are recorded on developers'
+          # machines and don't match the CI runner's rendering (different iOS
+          # point release → sub-pixel font/AA diffs), so they are excluded here and
+          # kept for local verification only. CI runs the deterministic logic/unit
+          # tests as a stable, meaningful signal.
+          xcodebuild test \
+            -workspace Pickflow.xcworkspace \
+            -scheme Pickflow \
+            -configuration Debug \
+            -destination "id=${{ steps.simulator.outputs.device_id }}" \
+            -resultBundlePath TestResults.xcresult \
+            -skip-testing:PickflowTests/ArchiveSnapshotTests \
+            -skip-testing:PickflowTests/LoginViewSnapshotTests \
+            -skip-testing:PickflowTests/MapClusteringSnapshotTests \
+            -skip-testing:PickflowTests/MyProfileSnapshotTests \
+            -skip-testing:PickflowTests/OnboardingSnapshotTests \
+            -skip-testing:PickflowTests/SpotDetailBottomSheetSnapshotTests \
+            -skip-testing:PickflowTests/SpotDetailSnapshotTests \
+            -skip-testing:PickflowTests/SpotListSnapshotTests \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults.xcresult
+          retention-days: 7
