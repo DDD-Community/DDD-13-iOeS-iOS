@@ -6,7 +6,9 @@ struct ArchiveSignedOutContent: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer()
+          header
+          
+          Spacer()
 
             VStack(spacing: 32) {
                 centerContent
@@ -16,9 +18,21 @@ struct ArchiveSignedOutContent: View {
             Spacer()
         }
         .padding(.horizontal, 16)
+        .padding(.top, 12)
         .padding(.bottom, 24)
     }
 
+    // MARK: - Header
+    
+    private var header: some View {
+        HStack {
+            PickflowWorkMarkLogo()
+            
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+    }
+    
     private var centerContent: some View {
         VStack(spacing: 12) {
             Text("보관함 이용을 위해\n로그인이 필요해요")

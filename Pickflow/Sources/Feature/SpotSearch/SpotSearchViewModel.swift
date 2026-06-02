@@ -56,6 +56,10 @@ final class SpotSearchViewModel: ObservableObject {
     }
 
     func distanceText(for address: Address) -> String? {
+        let status = locationService.authorizationStatus()
+        guard status == .authorizedWhenInUse || status == .authorizedAlways else {
+            return nil
+        }
         guard let currentCoordinate,
               let destination = address.coordinate else {
             return nil

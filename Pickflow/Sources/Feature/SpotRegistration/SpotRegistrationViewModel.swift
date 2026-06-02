@@ -7,7 +7,7 @@ final class SpotRegistrationViewModel: ObservableObject {
     @Published var selectedAddressName: String?
     @Published var selectedDistanceText: String = SpotRegistrationCopy.mockDistanceText
     @Published var spotName: String = ""
-    @Published var category: PhotoCategory?
+    @Published var theme: SpotTheme?
     @Published var capturedDate: Date?
     @Published var capturedTime: Date?
     @Published var comment: String = ""
@@ -26,7 +26,7 @@ final class SpotRegistrationViewModel: ObservableObject {
     var isRegisterEnabled: Bool {
         photoData != nil
             && !spotName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && selectedAddress != nil
+            && selectedAddress?.coordinate != nil
             && capturedDate != nil
             && capturedTime != nil
             && !isSubmitting
@@ -44,10 +44,6 @@ final class SpotRegistrationViewModel: ObservableObject {
         photoData = data
     }
 
-    func applyMockAddressSelection() {
-        applyAddressSelection(.mockSpotRegistrationAddress)
-    }
-
     func applyAddressSelection(_ address: Address, distanceText: String? = nil) {
         selectedAddress = address
         selectedAddressName = address.name ?? address.fullAddress
@@ -62,8 +58,8 @@ final class SpotRegistrationViewModel: ObservableObject {
         comment = String(value.prefix(50))
     }
 
-    func toggleCategory(_ newCategory: PhotoCategory) {
-        category = category == newCategory ? nil : newCategory
+    func toggleTheme(_ newTheme: SpotTheme) {
+        theme = theme == newTheme ? nil : newTheme
     }
 
     func setCapturedDate(_ date: Date) {
@@ -99,7 +95,7 @@ final class SpotRegistrationViewModel: ObservableObject {
             photoData: photoData,
             address: address,
             spotName: trimmedName,
-            category: category,
+            theme: theme,
             capturedAt: capturedAt,
             comment: trimmedComment.isEmpty ? nil : trimmedComment
         )

@@ -60,6 +60,12 @@ final class SpotDetailBottomSheetSnapshotTests: XCTestCase {
         assertSnapshot(of: view, as: .image(traits: Self.dark))
     }
 
+    func test_sheetContent_zeroBookmark_dark() {
+        let zeroBookmark = SpotPreviewResponse.fixture(bookmarkCount: 0)
+        let view = sheetContent(preview: zeroBookmark, isBookmarked: false, expanded: false)
+        assertSnapshot(of: view, as: .image(traits: Self.dark))
+    }
+
     func test_sheetContent_dynamicTypeAXL_dark() {
         let view = sheetContent(preview: defaultPreview, isBookmarked: false, expanded: false)
             .environment(\.dynamicTypeSize, .accessibility3)

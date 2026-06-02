@@ -27,9 +27,15 @@ platform :ios do
       scheme: "Pickflow",
       configuration: "Release",
       export_method: "app-store",
+      export_options: {
+        signingStyle: "manual",
+        provisioningProfiles: {
+          "com.pickflow" => ENV["PROVISIONING_PROFILE_SPECIFIER"]
+        }
+      },
       output_directory: "build",
       output_name: "Pickflow.ipa",
-      xcargs: "-allowProvisioningUpdates -authenticationKeyPath #{key_path} -authenticationKeyID #{ENV["ASC_API_KEY_ID"]} -authenticationKeyIssuerID #{ENV["ASC_ISSUER_ID"]}"
+      xcargs: "-authenticationKeyPath #{key_path} -authenticationKeyID #{ENV["ASC_API_KEY_ID"]} -authenticationKeyIssuerID #{ENV["ASC_ISSUER_ID"]}"
     )
 
     pilot(

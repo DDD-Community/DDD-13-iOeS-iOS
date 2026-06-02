@@ -18,7 +18,7 @@ struct MyProfileSignedOutContent: View {
             Spacer()
         }
         .padding(.horizontal, 16)
-        .padding(.top, 8)
+        .padding(.top, 12)
         .padding(.bottom, 66)
     }
 
@@ -26,11 +26,7 @@ struct MyProfileSignedOutContent: View {
 
     private var header: some View {
         HStack {
-            Image("pickflow_wordmark")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 140, height: 32, alignment: .leading)
-                .accessibilityLabel("PICKFLOW")
+            PickflowWorkMarkLogo()
 
             Spacer()
         }

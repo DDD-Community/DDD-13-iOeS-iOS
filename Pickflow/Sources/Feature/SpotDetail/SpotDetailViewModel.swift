@@ -28,7 +28,6 @@ final class SpotDetailViewModel: ObservableObject {
     private let spotId: Int64
     private let spotService: SpotServiceProtocol
     private let bookmarkService: BookmarkServiceProtocol
-    private let shareIntentService: ShareIntentServiceProtocol
     private let locationService: LocationServiceProtocol
     private let externalAppLauncher: ExternalAppLauncherProtocol
     private let shareSheetPresenter: ShareSheetPresenterProtocol
@@ -43,7 +42,6 @@ final class SpotDetailViewModel: ObservableObject {
         spotId: Int64,
         spotService: SpotServiceProtocol,
         bookmarkService: BookmarkServiceProtocol,
-        shareIntentService: ShareIntentServiceProtocol,
         locationService: LocationServiceProtocol,
         externalAppLauncher: ExternalAppLauncherProtocol,
         shareSheetPresenter: ShareSheetPresenterProtocol,
@@ -55,7 +53,6 @@ final class SpotDetailViewModel: ObservableObject {
         self.spotId = spotId
         self.spotService = spotService
         self.bookmarkService = bookmarkService
-        self.shareIntentService = shareIntentService
         self.locationService = locationService
         self.externalAppLauncher = externalAppLauncher
         self.shareSheetPresenter = shareSheetPresenter
@@ -167,16 +164,21 @@ final class SpotDetailViewModel: ObservableObject {
     }
 
     func share() {
-        guard case let .loaded(spot) = detailState else { return }
+        Task { await shareFlow() }
+    }
+
+    private func shareFlow() async {
+        loadDetailIfNeeded()
+        await detailLoadTask?.value
 
         analyticsLogger.log(SpotDetailAnalyticsEvent.shareButtonTap)
 
-        let text = "\(spot.name) - \(spot.comment)\nhttps://pickflow.app/spot/\(spot.id)"
-        let deviceId = deviceIdProvider()
-        Task {
-            try? await shareIntentService.recordIntent(deviceId: deviceId)
+        let url = "https://pickflow-api.us/\(SpotIDCoder.encodeSpot(spotId))"
+        if case let .loaded(spot) = detailState {
+            shareSheetPresenter.present(items: ["\(spot.name) - \(spot.comment)\n\(url)"])
+        } else {
+            shareSheetPresenter.present(items: [url])
         }
-        shareSheetPresenter.present(items: [text])
     }
     
     func reportInvalidInfo() {

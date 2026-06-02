@@ -41,7 +41,7 @@ struct MapListToggle: View {
             ZStack {
                 if selectedMode == mode {
                     Capsule()
-                        .fill(selectedMode == mode ? .gray5 : .gray95)
+                        .fill(.gray5)
                         .matchedGeometryEffect(id: "pickflow.segment.indicator", in: indicatorWE)
                 }
 
@@ -49,8 +49,13 @@ struct MapListToggle: View {
                     .pretendard(.body(.medium(.bold)))
                     .foregroundStyle(selectedMode == mode ? .gray95 : .gray40)
                     .padding(.vertical, 6)
-                    .padding(.horizontal, 20)
             }
+            .frame(maxWidth: .infinity)
         }
     }
+}
+
+#Preview {
+  @Previewable @State var selectedMode: MapListMode = .map
+  MapListToggle(selectedMode: $selectedMode)
 }

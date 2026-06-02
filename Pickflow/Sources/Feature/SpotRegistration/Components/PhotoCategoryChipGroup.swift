@@ -1,12 +1,12 @@
 import SwiftUI
 
-struct PhotoCategoryChipGroup: View {
-    @Binding var selectedCategory: PhotoCategory?
+struct SpotThemeChipGroup: View {
+    @Binding var selectedCategory: SpotTheme?
 
     var body: some View {
         LabeledSection(title: "사진 카테고리") {
             HStack(spacing: 12) {
-                ForEach(PhotoCategory.allCases, id: \.self) { category in
+                ForEach(SpotTheme.allCases, id: \.self) { category in
                     Button {
                         selectedCategory = selectedCategory == category ? nil : category
                     } label: {

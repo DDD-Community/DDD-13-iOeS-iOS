@@ -23,11 +23,6 @@ struct ClusterPinView: View {
     }
 
     static func diameter(forCount count: Int) -> CGFloat {
-        switch count {
-        case ..<10: return 44
-        case ..<50: return 54
-        case ..<100: return 64
-        default: return 74
-        }
+        count < 16 ? 60 : 100   // M(60×60): 2–15, L(100×100): 16+
     }
 }
