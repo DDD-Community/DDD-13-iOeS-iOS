@@ -33,6 +33,7 @@ final class AppContainer {
         container.register(ArchiveServiceProtocol.self) { ArchiveService(networkManager: networkManager) }
         container.register(ClusteringServiceProtocol.self) { ClusteringService(networkManager: networkManager) }
         container.register(BookmarkServiceProtocol.self) { BookmarkService(networkManager: networkManager) }
+        container.register(NoticeServiceProtocol.self) { NoticeService(networkManager: networkManager) }
         container.register(ShareIntentServiceProtocol.self) { ShareIntentService(networkManager: networkManager) }
         container.register(LocationServiceProtocol.self, scope: .container) { LocationService() }
         container.register(ExternalAppLauncherProtocol.self, scope: .container) { ExternalAppLauncher() }

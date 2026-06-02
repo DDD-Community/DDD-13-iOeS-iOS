@@ -27,6 +27,21 @@ extension DateFormatter {
         return formatter
     }()
 
+    /// 공지사항 표시용 날짜 포매터. `yyyy.MM.dd`.
+    static let noticeDate: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy.MM.dd"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = .current
+        return formatter
+    }()
+
+    /// 서버 날짜 문자열("yyyy-MM-dd")을 공지사항 표시 문자열("yyyy.MM.dd")로 변환. 파싱 실패 시 원문 반환.
+    static func noticeDisplayDate(from raw: String) -> String {
+        guard let date = serverDate.date(from: raw) else { return raw }
+        return noticeDate.string(from: date)
+    }
+
     static func pickflowDisplayTime(from time: String) -> String {
         guard let minutes = minutesFromMidnight(from: time) else {
             return time

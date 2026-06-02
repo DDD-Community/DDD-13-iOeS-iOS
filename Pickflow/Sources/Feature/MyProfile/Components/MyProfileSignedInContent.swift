@@ -5,6 +5,7 @@ struct MyProfileSignedInContent: View {
     let user: User
     var cachedProfileImage: UIImage?
     var onAccountManagementTap: () -> Void = {}
+    var onNoticeTap: () -> Void = {}
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -125,7 +126,7 @@ struct MyProfileSignedInContent: View {
         VStack(spacing: 0) {
             iconMenuCell(icon: "questionmark.circle", title: "고객센터 및 1:1 문의", action: {})
             iconMenuCell(icon: "bell", title: "알림 설정", action: {})
-            iconMenuCell(icon: "info.circle", title: "공지사항", action: {})
+            iconMenuCell(icon: "info.circle", title: "공지사항", action: onNoticeTap)
 
             Divider()
                 .background(.gray80)

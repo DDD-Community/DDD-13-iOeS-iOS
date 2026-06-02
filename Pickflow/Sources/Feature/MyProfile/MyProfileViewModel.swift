@@ -13,6 +13,7 @@ final class MyProfileViewModel: ObservableObject {
     @Published private(set) var state: LoadState = .loading
     @Published private(set) var cachedProfileImage: UIImage?
     @Published var isNavigatingToAccountManagement = false
+    @Published var isNavigatingToNotice = false
     @Published private(set) var isLoginLoading = false
     @Published private(set) var loginError: String?
 
@@ -82,6 +83,10 @@ final class MyProfileViewModel: ObservableObject {
 
     func navigateToAccountManagement() {
         isNavigatingToAccountManagement = true
+    }
+
+    func navigateToNotice() {
+        isNavigatingToNotice = true
     }
 
     func handleSignedOut() {
