@@ -14,6 +14,7 @@ final class SpotPresentationController: UIPresentationController {
     }
 
     var onPhaseChange: ((SpotPresentationPhase) -> Void)?
+    var onDimTap: (() -> Void)?
 
     private(set) var isInteracting = false
 
@@ -50,6 +51,8 @@ final class SpotPresentationController: UIPresentationController {
         container.addSubview(dimmingView)
         dimmingView.frame = container.bounds
         dimmingView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        let tap = UITapGestureRecognizer(target: self, action: #selector(handleDimTap))
+        dimmingView.addGestureRecognizer(tap)
 
         presented.layer.cornerRadius = 20
         presented.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
@@ -118,6 +121,10 @@ final class SpotPresentationController: UIPresentationController {
     func settleToCurrentPhase() {
         isInteracting = false
         animateLayout()
+    }
+
+    @objc private func handleDimTap() {
+        onDimTap?()
     }
 
     private func animateLayout() {

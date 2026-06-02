@@ -33,7 +33,10 @@ final class ArchiveService: ArchiveServiceProtocol, Sendable {
         let envelope: APIEnvelope<ArchiveInfo> = try await networkManager.upload(
             endpoint: ArchiveEndpoint.uploadImage
         ) { form in
-            form.append(data, withName: "archiveImage", fileName: "archive.jpg", mimeType: "image/jpeg")
+            let isPNG = data.prefix(4) == Data([0x89, 0x50, 0x4E, 0x47])
+            let fileName = isPNG ? "archive.png" : "archive.jpg"
+            let mimeType = isPNG ? "image/png" : "image/jpeg"
+            form.append(data, withName: "archiveImage", fileName: fileName, mimeType: mimeType)
         }
         return envelope.data
     }

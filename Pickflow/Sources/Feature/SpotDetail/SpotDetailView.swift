@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SpotDetailView: View {
     @StateObject var viewModel: SpotDetailViewModel
+    var onShellDismiss: (() -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
     @State private var isReportSheetPresented = false
     @State private var isLoginViewPresented = false
@@ -27,7 +28,11 @@ struct SpotDetailView: View {
         }
         .onChange(of: viewModel.dismissRequested) { _, isRequested in
             if isRequested {
-                dismiss()
+                if let onShellDismiss {
+                    onShellDismiss()
+                } else {
+                    dismiss()
+                }
             }
         }
         .sheet(isPresented: $isReportSheetPresented) {

@@ -73,11 +73,16 @@ final class MapClusteringViewModelTests: XCTestCase {
         let viewportC = Viewport.fixture(topLeft: Coordinate(latitude: 3, longitude: 3))
         let viewportD = Viewport.fixture(topLeft: Coordinate(latitude: 4, longitude: 4))
 
-        async let a: Void = debouncedVM.viewportChanged(viewportA)
-        async let b: Void = debouncedVM.viewportChanged(viewportB)
-        async let c: Void = debouncedVM.viewportChanged(viewportC)
-        async let d: Void = debouncedVM.viewportChanged(viewportD)
-        _ = await (a, b, c, d)
+        // async let 은 actor 진입 순서를 보장하지 않아 마지막 생존자가 D가 아닐 수 있다(flaky).
+        // 디바운스 윈도(30ms)보다 훨씬 짧은 간격으로 등록 순서를 A→B→C→D 로 고정한다.
+        let viewports = [viewportA, viewportB, viewportC, viewportD]
+        let tasks = viewports.enumerated().map { index, viewport in
+            Task {
+                try? await Task.sleep(for: .milliseconds(index * 2))
+                await debouncedVM.viewportChanged(viewport)
+            }
+        }
+        for task in tasks { await task.value }
 
         XCTAssertEqual(clusteringService.requests.count, 1)
         XCTAssertEqual(clusteringService.requests.first?.viewport, viewportD)

@@ -1,5 +1,5 @@
 {
-  "originHash" : "6bc1cc80e2d6ee112b8a6fdb67b947f9b61570abeae4a72c3cceea504396b145",
+  "originHash" : "83e4fed81b16a910c38e9f7a3c7d8cb0996448df8efed6761874c336241d5c73",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -152,6 +152,15 @@
       "state" : {
         "revision" : "d527147b0bf31260166a7063e3ed854a03f8239c",
         "version" : "3.23.2"
+      }
+    },
+    {
+      "identity" : "sqids-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/sqids/sqids-swift.git",
+      "state" : {
+        "revision" : "37d593afb2c9d2807117f1f4acbf1f699bc2f59a",
+        "version" : "0.1.2"
       }
     },
     {

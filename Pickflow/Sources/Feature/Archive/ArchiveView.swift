@@ -162,7 +162,6 @@ struct ArchiveView: View {
                     spotId: spotId,
                     spotService: getSpotService(),
                     bookmarkService: getBookmarkService(),
-                    shareIntentService: getShareIntentService(),
                     locationService: getLocationService(),
                     externalAppLauncher: getExternalAppLauncher(),
                     shareSheetPresenter: getShareSheetPresenter(),
@@ -170,7 +169,7 @@ struct ArchiveView: View {
                 ))
             }
         }
-        .fullScreenCover(isPresented: $showRegistration) {
+        .navigationDestination(isPresented: $showRegistration) {
             SpotRegistrationAssembly.make { _ in showRegistration = false }
         }
         .fullScreenCover(isPresented: $showCoverPicker) {

@@ -10,11 +10,15 @@ struct CameraMoveRequest: Equatable {
     let id: UUID
     let coordinate: Coordinate
     let zoom: Double?
+    /// 카메라 pivot Y (0=상단, 1=하단). nil 이면 화면 중앙(0.5).
+    /// 바텀시트로 가려지지 않도록 마커를 위쪽에 띄우고 싶을 때 0.3 정도 권장.
+    let pivotY: CGFloat?
 
-    init(coordinate: Coordinate, zoom: Double? = nil) {
+    init(coordinate: Coordinate, zoom: Double? = nil, pivotY: CGFloat? = nil) {
         self.id = UUID()
         self.coordinate = coordinate
         self.zoom = zoom
+        self.pivotY = pivotY
     }
 }
 
@@ -161,6 +165,9 @@ final class NaverMapViewController: UIViewController, @preconcurrency NMFMapView
         let position = NMFCameraPosition(latlng, zoom: request.zoom ?? mapView.zoomLevel)
         let update = NMFCameraUpdate(position: position)
         update.animation = .easeOut
+        if let pivotY = request.pivotY {
+            update.pivot = CGPoint(x: 0.5, y: pivotY)
+        }
         mapView.moveCamera(update)
     }
 
