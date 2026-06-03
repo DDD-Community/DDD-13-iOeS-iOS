@@ -17,37 +17,22 @@ struct PickflowApp: App {
 
     var body: some Scene {
         WindowGroup {
-            #if DEBUG
-            if NoticeDemoFlag.isOn {
-                NavigationStack {
-                    NoticeListView(viewModel: NoticeListViewModel(noticeService: getNoticeService()))
+            AppRootView(
+                authService: getAuthService(),
+                socialLoginService: getSocialLoginService(),
+                locationService: getLocationService(),
+                onboardingCompletionStore: getOnboardingCompletionStore()
+            )
+            .apiErrorAlert(apiErrorHandler)
+            .environmentObject(deepLinkRouter)
+            .ignoresSafeArea(.keyboard, edges: .bottom)
+            .onOpenURL { url in
+                if AuthApi.isKakaoTalkLoginUrl(url) {
+                    _ = AuthController.handleOpenUrl(url: url)
+                    return
                 }
-            } else {
-                appRoot
+                handleUniversalLink(url)
             }
-            #else
-            appRoot
-            #endif
-        }
-    }
-
-    @ViewBuilder
-    private var appRoot: some View {
-        AppRootView(
-            authService: getAuthService(),
-            socialLoginService: getSocialLoginService(),
-            locationService: getLocationService(),
-            onboardingCompletionStore: getOnboardingCompletionStore()
-        )
-        .apiErrorAlert(apiErrorHandler)
-        .environmentObject(deepLinkRouter)
-        .ignoresSafeArea(.keyboard, edges: .bottom)
-        .onOpenURL { url in
-            if AuthApi.isKakaoTalkLoginUrl(url) {
-                _ = AuthController.handleOpenUrl(url: url)
-                return
-            }
-            handleUniversalLink(url)
         }
     }
 
