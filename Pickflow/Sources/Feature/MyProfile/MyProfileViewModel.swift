@@ -61,6 +61,8 @@ final class MyProfileViewModel: ObservableObject {
         do {
             try await socialLoginService.signInWithKakao()
             await onAppear()
+        } catch let e as APIError {
+            e.post()
         } catch {
             loginError = error.localizedDescription
         }
@@ -74,6 +76,8 @@ final class MyProfileViewModel: ObservableObject {
         do {
             try await socialLoginService.signInWithApple()
             await onAppear()
+        } catch let e as APIError {
+            e.post()
         } catch {
             loginError = error.localizedDescription
         }
@@ -127,6 +131,9 @@ final class MyProfileViewModel: ObservableObject {
             let user = try await userService.fetchCurrentUser()
             state = .signedIn(user)
             await cacheProfileImageIfNeeded(urlString: user.profileImageUrl)
+        } catch let e as APIError {
+            state = .failed(e.message)
+            e.post()
         } catch {
             state = .failed(error.localizedDescription)
         }

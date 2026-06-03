@@ -48,6 +48,8 @@ final class AccountManagementViewModel: ObservableObject {
             let loaded = try await userService.fetchCurrentUser()
             user = loaded
             nicknameDraft = loaded.nickname
+        } catch let e as APIError {
+            e.post()
         } catch {
             loadError = error.localizedDescription
         }
@@ -68,6 +70,9 @@ final class AccountManagementViewModel: ObservableObject {
             draftProfileImageData = nil
             saveState = .saved
             NotificationCenter.default.post(name: .userProfileDidUpdate, object: nil)
+        } catch let e as APIError {
+            saveState = .idle
+            e.post()
         } catch {
             saveState = .failed(error.localizedDescription)
         }
@@ -87,6 +92,9 @@ final class AccountManagementViewModel: ObservableObject {
             try await authService.signOut()
             logoutState = .done
             NotificationCenter.default.post(name: .userDidSignOut, object: nil)
+        } catch let e as APIError {
+            logoutState = .idle
+            e.post()
         } catch {
             logoutState = .failed(error.localizedDescription)
         }

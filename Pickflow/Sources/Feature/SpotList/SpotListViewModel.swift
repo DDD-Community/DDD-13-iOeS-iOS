@@ -103,6 +103,8 @@ final class SpotListViewModel: ObservableObject {
             let merged = items + response.spots
             seedBookmarkStates(response.spots)
             state = .loaded(items: merged, hasNext: response.hasNext)
+        } catch let e as APIError {
+            e.post()
         } catch {
             toast = "다음 페이지를 불러오지 못했어요."
         }
@@ -127,6 +129,9 @@ final class SpotListViewModel: ObservableObject {
         } catch BookmarkError.alreadyBookmarked {
             bookmarkStates[spotId] = true
             NotificationCenter.default.post(name: .spotBookmarkDidChange, object: nil)
+        } catch let e as APIError {
+            bookmarkStates[spotId] = wasBookmarked
+            e.post()
         } catch {
             bookmarkStates[spotId] = wasBookmarked
             toast = "북마크 변경에 실패했어요."
@@ -188,6 +193,9 @@ final class SpotListViewModel: ObservableObject {
                 seedBookmarkStates(response.spots)
                 state = .loaded(items: response.spots, hasNext: response.hasNext)
             }
+        } catch let e as APIError {
+            state = .failed(e.message)
+            e.post()
         } catch {
             state = .failed(error.localizedDescription)
         }
