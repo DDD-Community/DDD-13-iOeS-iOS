@@ -6,6 +6,7 @@ import KakaoSDKCommon
 @main
 struct PickflowApp: App {
     private let container = AppContainer.shared
+    @StateObject private var apiErrorHandler = APIErrorHandler()
     @StateObject private var deepLinkRouter = DeepLinkRouter()
 
     init() {
@@ -38,6 +39,7 @@ struct PickflowApp: App {
             locationService: getLocationService(),
             onboardingCompletionStore: getOnboardingCompletionStore()
         )
+        .apiErrorAlert(apiErrorHandler)
         .environmentObject(deepLinkRouter)
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .onOpenURL { url in

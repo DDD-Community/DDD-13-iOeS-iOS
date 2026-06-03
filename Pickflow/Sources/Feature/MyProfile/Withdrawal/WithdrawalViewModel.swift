@@ -52,6 +52,9 @@ final class WithdrawalViewModel: ObservableObject {
             try await authService.signOut()
             step = .done
             NotificationCenter.default.post(name: .userDidWithdraw, object: nil)
+        } catch let e as APIError {
+            step = .input
+            e.post()
         } catch {
             step = .failed(error.localizedDescription)
         }

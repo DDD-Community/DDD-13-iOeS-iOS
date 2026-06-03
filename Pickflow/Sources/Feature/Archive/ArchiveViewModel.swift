@@ -84,6 +84,8 @@ final class ArchiveViewModel: ObservableObject {
         do {
             try await socialLoginService.signInWithKakao()
             await onAppear()
+        } catch let e as APIError {
+            e.post()
         } catch {
             loginError = error.localizedDescription
         }
@@ -97,6 +99,8 @@ final class ArchiveViewModel: ObservableObject {
         do {
             try await socialLoginService.signInWithApple()
             await onAppear()
+        } catch let e as APIError {
+            e.post()
         } catch {
             loginError = error.localizedDescription
         }
@@ -119,6 +123,9 @@ final class ArchiveViewModel: ObservableObject {
         do {
             let info = try await archiveService.renameArchive(trimmed)
             archiveName = info.archiveName
+        } catch let e as APIError {
+            archiveName = previous
+            e.post()
         } catch {
             archiveName = previous
             showToast("이름 변경에 실패했어요.")
@@ -134,6 +141,9 @@ final class ArchiveViewModel: ObservableObject {
                 archiveImageURL = URL(string: urlString)
             }
             showToast("커버 이미지가 변경되었습니다.")
+        } catch let e as APIError {
+            coverImageData = nil
+            e.post()
         } catch {
             coverImageData = nil
             showToast("이미지 업로드에 실패했어요.")
@@ -167,6 +177,8 @@ final class ArchiveViewModel: ObservableObject {
             currentPage = response.page
             self.hasNext = response.hasNext
             state = .loaded(items: items + response.spots, hasNext: response.hasNext)
+        } catch let e as APIError {
+            e.post()
         } catch {
             toast = "다음 페이지를 불러오지 못했어요."
         }
@@ -183,6 +195,11 @@ final class ArchiveViewModel: ObservableObject {
         do {
             try await bookmarkService.deleteBookmark(spotId: spotId)
             NotificationCenter.default.post(name: .spotBookmarkDidChange, object: nil)
+        } catch let e as APIError {
+            var restored = items
+            restored.insert(removedItem, at: min(removedIndex, restored.count))
+            state = .loaded(items: restored, hasNext: hasNext)
+            e.post()
         } catch {
             var restored = items
             restored.insert(removedItem, at: min(removedIndex, restored.count))
@@ -237,6 +254,9 @@ final class ArchiveViewModel: ObservableObject {
             state = response.spots.isEmpty
                 ? .empty
                 : .loaded(items: response.spots, hasNext: response.hasNext)
+        } catch let e as APIError {
+            state = .failed(e.message)
+            e.post()
         } catch {
             state = .failed(error.localizedDescription)
         }

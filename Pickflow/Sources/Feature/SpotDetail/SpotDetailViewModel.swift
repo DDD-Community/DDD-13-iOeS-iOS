@@ -75,6 +75,9 @@ final class SpotDetailViewModel: ObservableObject {
             )
             previewState = .loaded(preview)
             isBookmarked = preview.isBookmarked
+        } catch let e as APIError {
+            previewState = .failed(e.message)
+            e.post()
         } catch {
             previewState = .failed(error.localizedDescription)
         }
@@ -106,6 +109,9 @@ final class SpotDetailViewModel: ObservableObject {
             )
             isBookmarked = spot.isBookmarked
             detailState = .loaded(spot)
+        } catch let e as APIError {
+            detailState = .failed(e.message)
+            e.post()
         } catch {
             detailState = .failed(error.localizedDescription)
         }
@@ -130,6 +136,9 @@ final class SpotDetailViewModel: ObservableObject {
         } catch BookmarkError.alreadyBookmarked {
             isBookmarked = true
             NotificationCenter.default.post(name: .spotBookmarkDidChange, object: nil)
+        } catch let e as APIError {
+            isBookmarked = previousValue
+            e.post()
         } catch {
             isBookmarked = previousValue
             toast = "북마크 변경에 실패했어요."
@@ -178,6 +187,8 @@ final class SpotDetailViewModel: ObservableObject {
             do {
                 try await spotService.reportSpot(id: spotId, type: .etc, content: "")
                 showToast("제보가 접수되었습니다.")
+            } catch let e as APIError {
+                e.post()
             } catch {
                 showToast("제보 접수에 실패했어요.")
             }
