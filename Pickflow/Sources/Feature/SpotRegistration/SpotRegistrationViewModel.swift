@@ -27,6 +27,7 @@ final class SpotRegistrationViewModel: ObservableObject {
         photoData != nil
             && !spotName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             && selectedAddress?.coordinate != nil
+            && theme != nil
             && capturedDate != nil
             && capturedTime != nil
             && !isSubmitting
