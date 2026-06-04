@@ -32,6 +32,11 @@ final class ArchiveMockService: ArchiveServiceProtocol, Sendable {
         return SpotListPage(spots: slice, page: page, hasNext: end < Self.allItems.count)
     }
 
+    func fetchMySpots(page: Int, latitude: Double?, longitude: Double?) async throws -> MySpotListPage {
+        try await Task.sleep(for: .milliseconds(400))
+        return MySpotListPage(spots: [], page: page, hasNext: false)
+    }
+
     private static let allItems: [SpotListItem] = [
         SpotListItem(spotId: 1, name: "한강 노을길", theme: .sunset, thumbnailUrl: nil, distanceKm: 0.4, isBookmarked: false),
         SpotListItem(spotId: 2, name: "잠실 윤슬", theme: .reflection, thumbnailUrl: nil, distanceKm: 1.2, isBookmarked: false),

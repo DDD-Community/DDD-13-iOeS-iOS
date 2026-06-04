@@ -97,6 +97,10 @@ final class ArchiveDebugService: ArchiveServiceProtocol, Sendable {
     func fetchSavedSpots(page: Int, latitude: Double?, longitude: Double?) async throws -> SpotListPage {
         SpotListPage(spots: Self.sampleItems, page: page, hasNext: false)
     }
+
+    func fetchMySpots(page: Int, latitude: Double?, longitude: Double?) async throws -> MySpotListPage {
+        MySpotListPage(spots: [], page: page, hasNext: false)
+    }
 }
 
 final class ArchiveDebugBookmarkService: BookmarkServiceProtocol, Sendable {
