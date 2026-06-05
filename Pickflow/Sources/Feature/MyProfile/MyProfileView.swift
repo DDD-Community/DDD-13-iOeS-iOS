@@ -23,7 +23,8 @@ struct MyProfileView: View {
                 MyProfileSignedInContent(
                     user: user,
                     cachedProfileImage: viewModel.cachedProfileImage,
-                    onAccountManagementTap: { viewModel.navigateToAccountManagement() }
+                    onAccountManagementTap: { viewModel.navigateToAccountManagement() },
+                    onTermsAndPolicyTap: { viewModel.navigateToTermsAndPolicy() }
                 )
 
             case let .failed(message):
@@ -69,6 +70,9 @@ struct MyProfileView: View {
                 },
                 onSaved: {}
             )
+        }
+        .navigationDestination(isPresented: $viewModel.isNavigatingToTermsAndPolicy) {
+            TermsAndPolicyView(url: viewModel.termsAndPolicyURL)
         }
     }
 }

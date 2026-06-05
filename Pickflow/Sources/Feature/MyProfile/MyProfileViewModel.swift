@@ -13,8 +13,12 @@ final class MyProfileViewModel: ObservableObject {
     @Published private(set) var state: LoadState = .loading
     @Published private(set) var cachedProfileImage: UIImage?
     @Published var isNavigatingToAccountManagement = false
+    @Published var isNavigatingToTermsAndPolicy = false
     @Published private(set) var isLoginLoading = false
     @Published private(set) var loginError: String?
+
+    // TODO: [KAN-134] 약관 및 정책 실제 URL로 교체 (현재 TBD)
+    let termsAndPolicyURL = URL(string: "https://www.pickflow.app/terms")!
 
     let userService: UserServiceProtocol
     let authService: AuthServiceProtocol
@@ -86,6 +90,10 @@ final class MyProfileViewModel: ObservableObject {
 
     func navigateToAccountManagement() {
         isNavigatingToAccountManagement = true
+    }
+
+    func navigateToTermsAndPolicy() {
+        isNavigatingToTermsAndPolicy = true
     }
 
     func handleSignedOut() {

@@ -5,6 +5,7 @@ struct MyProfileSignedInContent: View {
     let user: User
     var cachedProfileImage: UIImage?
     var onAccountManagementTap: () -> Void = {}
+    var onTermsAndPolicyTap: () -> Void = {}
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -131,7 +132,7 @@ struct MyProfileSignedInContent: View {
                 .background(.gray80)
                 .padding(.vertical, 8)
 
-            plainMenuCell(title: "약관 및 정책", action: {})
+            plainMenuCell(title: "약관 및 정책", action: onTermsAndPolicyTap)
 
             HStack {
                 Text("앱 버전")
