@@ -32,9 +32,10 @@ extension NoticeListItem {
         title: String = "공지 제목",
         createdAt: String = "2026-05-09",
         pinned: Bool = false,
-        content: String? = nil
+        content: String? = nil,
+        readYn: Bool? = nil
     ) -> NoticeListItem {
-        NoticeListItem(postId: postId, title: title, createdAt: createdAt, pinned: pinned, content: content)
+        NoticeListItem(postId: postId, title: title, createdAt: createdAt, pinned: pinned, content: content, readYn: readYn)
     }
 }
 

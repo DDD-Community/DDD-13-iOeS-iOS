@@ -8,15 +8,21 @@ struct NoticeListItem: Decodable, Sendable, Identifiable, Equatable {
     let content: String?
     let createdAt: String        // "2026-05-09"
     let pinned: Bool
+    /// 읽음 여부. 서버가 내려줄 때만 채워지며, 없으면 안읽음(강조)으로 표시한다.
+    let readYn: Bool?
 
     var id: Int64 { postId }
 
-    init(postId: Int64, title: String, createdAt: String, pinned: Bool, content: String? = nil) {
+    /// 읽음 상태(서버 값이 없으면 안읽음으로 간주).
+    var isRead: Bool { readYn == true }
+
+    init(postId: Int64, title: String, createdAt: String, pinned: Bool, content: String? = nil, readYn: Bool? = nil) {
         self.postId = postId
         self.title = title
         self.content = content
         self.createdAt = createdAt
         self.pinned = pinned
+        self.readYn = readYn
     }
 }
 

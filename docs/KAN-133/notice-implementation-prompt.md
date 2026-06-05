@@ -136,6 +136,7 @@ struct NoticeListItem: Decodable, Sendable, Identifiable {
     let content: String?         // 목록 미리보기 1줄용. 목록 API가 줄 때만 채워짐(없으면 미리보기 생략)
     let createdAt: String        // "2026-05-09"
     let pinned: Bool
+    let readYn: Bool?            // 읽음 여부. 서버가 줄 때만 채워짐(없으면 안읽음=강조). var isRead { readYn == true }
     var id: Int64 { postId }
 }
 
@@ -254,10 +255,14 @@ final class NoticeDetailViewModel: ObservableObject {
 
 ## 8. 화면별 정밀 사양
 
-**리스트 (1084:5706)**
+**리스트 (개정 시안 1703:20237)** — 행 레이아웃 변경됨
 - 배경 `gray95`(#131416). 컨텐츠 좌우 패딩 16
-- 항목 셀: 상하 패딩 24, 내부 `VStack(spacing: 8)` — 제목(`.body(.large())`, `gray0`, `lineLimit(2)`) / **본문 미리보기 1줄**(`.body(.small())`, `gray30`, `lineLimit(1)` 말줄임, `content` 있을 때만) / 날짜(`.body(.small())`, `gray40`)
-- **본문 미리보기**(스펙 추가): 제목 아래 본문 1줄 고정 노출(말줄임), 전체 공지 동일 적용. `content`가 nil/빈 문자열이면 줄 자체를 그리지 않음(하위 호환)
+- 항목 셀 구조(`VStack(spacing: 12)`, top 20 / bottom 28):
+  1. **날짜 칩**: `gray90` 배경, `cornerRadius 4`, padding h8/v4, `.body(.small())` 텍스트
+  2. `VStack(spacing: 4)`:
+     - **제목**: `.body(.large(.bold))`(SemiBold 17), `lineLimit(1)` 말줄임
+     - **본문 미리보기**: `.body(.small())`, `lineLimit(1)` 말줄임, `content` 있을 때만(nil/빈 문자열이면 줄 생략)
+- **읽음/안읽음 색상**: `item.isRead`(=`readYn == true`)면 날짜칩·제목·미리보기 전부 `gray40` 디밍 / 안읽음이면 전부 `gray0` 강조
 - 셀 하단 구분선: `gray90` 1pt bottom border
 - 무한 스크롤: 마지막 셀 `onAppear` 또는 `loadNextPageIfNeeded`
 - 다음 페이지 로딩 시 하단 `ProgressView`

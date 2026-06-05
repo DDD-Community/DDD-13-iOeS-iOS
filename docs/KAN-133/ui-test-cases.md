@@ -10,7 +10,7 @@
 
 | case id | 컴포넌트 | 상태/입력 조건 | 테마 | 언어 / DynamicType | Light/Dark | 디바이스 | 기대 시각 결과 | 스냅샷 파일명 |
 |---|---|---|---|---|---|---|---|---|
-| notice-list-loaded-light | NoticeListView | loaded(3건: 긴제목/[공지]/단문, content 있음) | — | ko_KR / .large | Light | 393×852 | 네비바 "공지사항"+뒤로가기, 항목 3개 각 제목(gray0)+본문 미리보기 1줄(gray30, 말줄임)+날짜 2026.05.09(gray40), 항목 사이 gray90 구분선 | notice-list-loaded-light.png |
+| notice-list-loaded-light | NoticeListView | loaded(3건: 1번 안읽음/2·3번 읽음, content 있음) | — | ko_KR / .large | Light | 393×852 | 각 행: 날짜칩(gray90 배경, 상단) → 제목(SemiBold 1줄 말줄임) → 미리보기 1줄. 1번 안읽음=전체 gray0 강조, 2·3번 읽음=전체 gray40 디밍, 행 사이 gray90 구분선 | notice-list-loaded-light.png |
 | notice-list-loaded-dark | NoticeListView | loaded(3건) | — | ko_KR / .large | Dark | 393×852 | 위와 동일 | notice-list-loaded-dark.png |
 | notice-list-loaded-a11y | NoticeListView | loaded(3건) | — | ko_KR / .accessibilityExtraLarge | Light | 393×852 | 제목/미리보기/날짜 폰트 확대, 제목 2줄·미리보기 1줄 말줄임 유지, 레이아웃 깨짐 없음 | notice-list-loaded-a11y.png |
 | notice-list-no-preview-light | NoticeRowView | loaded(content nil 2건) | — | ko_KR / .large | Light | 393×852 | content 없으면 미리보기 줄 생략, 제목+날짜만 | notice-list-no-preview-light.png |
