@@ -22,9 +22,18 @@ final class ArchiveViewModel: ObservableObject {
         case failed(String)
     }
 
+    enum MySpotsLoadState: Equatable {
+        case loading
+        case loaded(items: [MySpotListItem], hasNext: Bool)
+        case empty
+        case failed(String)
+    }
+
     @Published private(set) var state: LoadState = .loading
+    @Published private(set) var mySpotsState: MySpotsLoadState = .loading
     @Published private(set) var selectedTab: ArchiveTab = .savedSpots
     @Published private(set) var isLoadingNextPage: Bool = false
+    @Published private(set) var isLoadingNextMySpotsPage: Bool = false
     @Published private(set) var isLoginLoading: Bool = false
     @Published private(set) var loginError: String?
     @Published private(set) var archiveImageURL: URL?
@@ -40,6 +49,8 @@ final class ArchiveViewModel: ObservableObject {
 
     private var currentPage: Int = 0
     private var hasNext: Bool = false
+    private var mySpotsCurrentPage: Int = 0
+    private var mySpotsHasNext: Bool = false
     private var currentCoordinate: Coordinate?
 
     init(
@@ -67,12 +78,14 @@ final class ArchiveViewModel: ObservableObject {
         await withTaskGroup(of: Void.self) { group in
             group.addTask { await self.fetchArchiveInfo() }
             group.addTask { await self.fetchArchive() }
+            group.addTask { await self.fetchMySpots() }
         }
         // 위치 없이 로드했다면, 위치 들어오는 즉시 거리 포함해 재조회
         if !hadLocation {
             if let coord = try? await locationService.currentLocation() {
                 currentCoordinate = coord
                 await fetchArchive()
+                await fetchMySpots()
             }
         }
     }
@@ -259,6 +272,51 @@ final class ArchiveViewModel: ObservableObject {
             e.post()
         } catch {
             state = .failed(error.localizedDescription)
+        }
+    }
+
+    private func fetchMySpots() async {
+        mySpotsState = .loading
+        mySpotsCurrentPage = 0
+        mySpotsHasNext = false
+
+        do {
+            let response = try await archiveService.fetchMySpots(
+                page: 0,
+                latitude: currentCoordinate?.latitude,
+                longitude: currentCoordinate?.longitude
+            )
+            mySpotsCurrentPage = response.page
+            mySpotsHasNext = response.hasNext
+            mySpotsState = response.spots.isEmpty
+                ? .empty
+                : .loaded(items: response.spots, hasNext: response.hasNext)
+        } catch {
+            mySpotsState = .failed(error.localizedDescription)
+        }
+    }
+
+    func loadNextMySpotsPageIfNeeded(currentItem: MySpotListItem) async {
+        guard case let .loaded(items, hasNext) = mySpotsState, hasNext, !isLoadingNextMySpotsPage else { return }
+        let triggerIndex = max(0, items.count - 3)
+        guard let index = items.firstIndex(where: { $0.id == currentItem.id }),
+              index >= triggerIndex else { return }
+
+        isLoadingNextMySpotsPage = true
+        defer { isLoadingNextMySpotsPage = false }
+
+        let nextPage = mySpotsCurrentPage + 1
+        do {
+            let response = try await archiveService.fetchMySpots(
+                page: nextPage,
+                latitude: currentCoordinate?.latitude,
+                longitude: currentCoordinate?.longitude
+            )
+            mySpotsCurrentPage = response.page
+            mySpotsHasNext = response.hasNext
+            mySpotsState = .loaded(items: items + response.spots, hasNext: response.hasNext)
+        } catch {
+            toast = "다음 페이지를 불러오지 못했어요."
         }
     }
 }

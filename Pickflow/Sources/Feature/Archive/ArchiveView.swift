@@ -277,7 +277,31 @@ struct ArchiveView: View {
     private var tabContent: some View {
         switch viewModel.selectedTab {
         case .savedSpots: savedSpotsContent
-        case .mySpots: ArchiveMySpotPlaceholder(onRegisterTap: { showRegistration = true })
+        case .mySpots: mySpotsContent
+        }
+    }
+
+    @ViewBuilder
+    private var mySpotsContent: some View {
+        switch viewModel.mySpotsState {
+        case .loading:
+            SpotListLoadingView().padding(.top, 16)
+        case let .loaded(items, _):
+            MasonryTwoColumn(
+                items: items,
+                onAppearItem: { item in Task { await viewModel.loadNextMySpotsPageIfNeeded(currentItem: item) } }
+            ) { item in
+                MySpotListCell(
+                    item: item,
+                    onCellTap: { selectedSpotId = item.spotId }
+                )
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 16)
+        case .empty:
+            ArchiveMySpotPlaceholder(onRegisterTap: { showRegistration = true })
+        case let .failed(message):
+            SpotListFailedView(message: message) { Task { await viewModel.onAppear() } }
         }
     }
 
