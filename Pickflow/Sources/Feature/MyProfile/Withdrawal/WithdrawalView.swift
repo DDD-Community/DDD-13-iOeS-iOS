@@ -148,21 +148,21 @@ struct WithdrawalView: View {
                 .pretendard(.heading(.small))
                 .foregroundStyle(.gray0)
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text("계정을 삭제하면 저장한 스팟과 기록이 모두 삭제됩니다.")
-                    .pretendard(.body(.medium()))
-                    .foregroundStyle(.gray0)
-
-                (Text("삭제된 정보는 복구할 수 없으니 ")
-                    .foregroundColor(UIAsset.Colors.sunsetOrange.color)
-                + Text("신중하게 결정해주세요.")
-                    .foregroundColor(UIAsset.Colors.gray0.color))
+            (Text("탈퇴할 경우 서비스에서 저장한 스팟 및 활동 기록을\n더 이상 확인할 수 없습니다. 계정 정보와 기록은 ")
+                .foregroundColor(UIAsset.Colors.gray0.color)
+            + Text("일정 기간(1년) 보관 후 파기")
+                .foregroundColor(UIAsset.Colors.sunsetOrange.color)
+            + Text("되며, 이후에는 ")
+                .foregroundColor(UIAsset.Colors.gray0.color)
+            + Text("복구가 불가능")
+                .foregroundColor(UIAsset.Colors.sunsetOrange.color)
+            + Text("하니 신중하게 결정해주세요.")
+                .foregroundColor(UIAsset.Colors.gray0.color))
                 .pretendard(.body(.medium()))
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(16)
-            .background(.gray80)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+                .padding(16)
+                .background(.gray80)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
     }
 
