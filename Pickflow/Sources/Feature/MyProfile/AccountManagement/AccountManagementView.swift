@@ -10,6 +10,9 @@ struct AccountManagementView: View {
 
     @State private var isShowingWithdrawal = false
     @State private var photosPickerItem: PhotosPickerItem?
+    @State private var isShowingImageSourceDialog = false
+    @State private var isShowingPhotosPicker = false
+    @State private var isShowingCamera = false
 
     var body: some View {
         ZStack {
@@ -72,6 +75,20 @@ struct AccountManagementView: View {
                     viewModel.setDraftProfileImage(data)
                 }
             }
+        }
+        .confirmationDialog("프로필 사진", isPresented: $isShowingImageSourceDialog, titleVisibility: .hidden) {
+            if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                Button("카메라 촬영") { isShowingCamera = true }
+            }
+            Button("앨범에서 선택") { isShowingPhotosPicker = true }
+            Button("취소", role: .cancel) {}
+        }
+        .photosPicker(isPresented: $isShowingPhotosPicker, selection: $photosPickerItem, matching: .images)
+        .fullScreenCover(isPresented: $isShowingCamera) {
+            CameraPicker { data in
+                viewModel.setDraftProfileImage(data)
+            }
+            .ignoresSafeArea()
         }
         .navigationDestination(isPresented: $isShowingWithdrawal) {
             WithdrawalView(
@@ -153,7 +170,9 @@ struct AccountManagementView: View {
     // MARK: - Profile Image
 
     private var profileImageSection: some View {
-        PhotosPicker(selection: $photosPickerItem, matching: .images) {
+        Button {
+            isShowingImageSourceDialog = true
+        } label: {
             ZStack(alignment: .bottomTrailing) {
                 profileImageView
                     .frame(width: 96, height: 96)
