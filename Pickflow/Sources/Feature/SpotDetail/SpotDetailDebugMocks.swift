@@ -96,7 +96,7 @@ final class DebugSpotService: SpotServiceProtocol, Sendable {
         SpotId(rawValue: "debug-spot-id")
     }
 
-    func reportSpot(id _: Int64, type _: SpotReportType, content _: String) async throws {}
+    func reportSpot(id _: Int64, content _: String) async throws {}
 }
 
 final class DebugMySpotService: SpotServiceProtocol, Sendable {
@@ -112,7 +112,7 @@ final class DebugMySpotService: SpotServiceProtocol, Sendable {
         SpotId(rawValue: "debug-spot-id")
     }
 
-    func reportSpot(id _: Int64, type _: SpotReportType, content _: String) async throws {}
+    func reportSpot(id _: Int64, content _: String) async throws {}
 }
 
 final class DebugBookmarkService: BookmarkServiceProtocol, Sendable {

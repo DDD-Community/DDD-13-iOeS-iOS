@@ -181,11 +181,11 @@ final class SpotDetailViewModel: ObservableObject {
         }
     }
     
-    func reportInvalidInfo() {
+    func reportInvalidInfo(content: String) {
         guard case .loaded = detailState else { return }
         Task {
             do {
-                try await spotService.reportSpot(id: spotId, type: .etc, content: "")
+                try await spotService.reportSpot(id: spotId, content: content)
                 showToast("제보가 접수되었습니다.")
             } catch let e as APIError {
                 e.post()
