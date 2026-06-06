@@ -17,8 +17,6 @@ final class MyProfileViewModel: ObservableObject {
     @Published private(set) var isLoginLoading = false
     @Published private(set) var loginError: String?
 
-    let termsAndPolicyURL = URL(string: "https://cubic-print-1cb.notion.site/abe90976df958360b53001e6ee774eb3")!
-
     let userService: UserServiceProtocol
     let authService: AuthServiceProtocol
     private let socialLoginService: SocialLoginServiceProtocol

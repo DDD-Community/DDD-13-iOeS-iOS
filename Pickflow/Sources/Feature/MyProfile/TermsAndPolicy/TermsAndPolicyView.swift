@@ -3,6 +3,7 @@ import SwiftUI
 struct TermsAndPolicyView: View {
     @Environment(\.dismiss) private var dismiss
 
+    let title: String
     let url: URL
     @State private var isLoading = true
 
@@ -30,7 +31,7 @@ struct TermsAndPolicyView: View {
 
     private var customHeader: some View {
         ZStack {
-            Text("약관 및 정책")
+            Text(title)
                 .pretendard(.heading(.small))
                 .foregroundStyle(.gray0)
 

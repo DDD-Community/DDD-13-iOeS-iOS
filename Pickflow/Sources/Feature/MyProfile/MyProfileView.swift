@@ -72,7 +72,7 @@ struct MyProfileView: View {
             )
         }
         .navigationDestination(isPresented: $viewModel.isNavigatingToTermsAndPolicy) {
-            TermsAndPolicyView(url: viewModel.termsAndPolicyURL)
+            TermsAndPolicyListView()
         }
     }
 }
