@@ -6,7 +6,12 @@ final class MockArchiveService: ArchiveServiceProtocol, @unchecked Sendable {
         .success(SpotListPage(spots: [], page: 0, hasNext: false))
     }
 
+    var mySpotsResponder: @Sendable (Int) -> Result<MySpotListPage, any Error> = { _ in
+        .success(MySpotListPage(spots: [], page: 0, hasNext: false))
+    }
+
     private(set) var requestedPages: [Int] = []
+    private(set) var requestedMySpotPages: [Int] = []
 
     var archiveInfo = ArchiveInfo(archiveName: "테스트 아카이브", archiveImageUrl: nil)
 
@@ -17,6 +22,11 @@ final class MockArchiveService: ArchiveServiceProtocol, @unchecked Sendable {
     func fetchSavedSpots(page: Int, latitude _: Double?, longitude _: Double?) async throws -> SpotListPage {
         requestedPages.append(page)
         return try responder(page).get()
+    }
+
+    func fetchMySpots(page: Int, latitude _: Double?, longitude _: Double?) async throws -> MySpotListPage {
+        requestedMySpotPages.append(page)
+        return try mySpotsResponder(page).get()
     }
 
     func renameArchive(_: String) async throws -> ArchiveInfo {

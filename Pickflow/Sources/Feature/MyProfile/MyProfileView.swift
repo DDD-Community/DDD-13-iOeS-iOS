@@ -24,6 +24,7 @@ struct MyProfileView: View {
                     user: user,
                     cachedProfileImage: viewModel.cachedProfileImage,
                     onAccountManagementTap: { viewModel.navigateToAccountManagement() },
+                    onNoticeTap: { viewModel.navigateToNotice() },
                     onTermsAndPolicyTap: { viewModel.navigateToTermsAndPolicy() }
                 )
 
@@ -70,6 +71,9 @@ struct MyProfileView: View {
                 },
                 onSaved: {}
             )
+        }
+        .navigationDestination(isPresented: $viewModel.isNavigatingToNotice) {
+            NoticeListView(viewModel: NoticeListViewModel(noticeService: getNoticeService()))
         }
         .navigationDestination(isPresented: $viewModel.isNavigatingToTermsAndPolicy) {
             TermsAndPolicyListView()

@@ -23,6 +23,7 @@ final class AppContainer {
         let networkManager: NetworkManagerProtocol = container.resolve(NetworkManagerProtocol.self)!
 
         container.register(UserServiceProtocol.self) { UserService(networkManager: networkManager) }
+        container.register(AppVersionServiceProtocol.self) { AppVersionService(networkManager: networkManager) }
         container.register(AuthServiceProtocol.self) { AuthService(networkManager: networkManager, tokenStore: tokenStore) }
         container.register(KakaoAuthProviderProtocol.self, scope: .container) { KakaoAuthProvider() }
         container.register(AppleAuthProviderProtocol.self, scope: .container) { AppleAuthProvider() }
@@ -33,6 +34,7 @@ final class AppContainer {
         container.register(ArchiveServiceProtocol.self) { ArchiveService(networkManager: networkManager) }
         container.register(ClusteringServiceProtocol.self) { ClusteringService(networkManager: networkManager) }
         container.register(BookmarkServiceProtocol.self) { BookmarkService(networkManager: networkManager) }
+        container.register(NoticeServiceProtocol.self) { NoticeService(networkManager: networkManager) }
         container.register(ShareIntentServiceProtocol.self) { ShareIntentService(networkManager: networkManager) }
         container.register(LocationServiceProtocol.self, scope: .container) { LocationService() }
         container.register(ExternalAppLauncherProtocol.self, scope: .container) { ExternalAppLauncher() }

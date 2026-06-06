@@ -17,12 +17,14 @@ struct PickflowApp: App {
 
     var body: some Scene {
         WindowGroup {
-            AppRootView(
-                authService: getAuthService(),
-                socialLoginService: getSocialLoginService(),
-                locationService: getLocationService(),
-                onboardingCompletionStore: getOnboardingCompletionStore()
-            )
+            ForceUpdateGate(viewModel: ForceUpdateViewModel(service: getAppVersionService())) {
+                AppRootView(
+                    authService: getAuthService(),
+                    socialLoginService: getSocialLoginService(),
+                    locationService: getLocationService(),
+                    onboardingCompletionStore: getOnboardingCompletionStore()
+                )
+            }
             .apiErrorAlert(apiErrorHandler)
             .environmentObject(deepLinkRouter)
             .ignoresSafeArea(.keyboard, edges: .bottom)
