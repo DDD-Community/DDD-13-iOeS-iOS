@@ -251,8 +251,8 @@ struct WithdrawalView: View {
                 ZStack {
                     RoundedRectangle(cornerRadius: 4, style: .continuous)
                         .stroke(
-                            viewModel.didAgreeToTerms ? UIAsset.Colors.sunsetOrange.color : UIAsset.Colors.gray50.color,
-                            lineWidth: 1.5
+                            viewModel.didAgreeToTerms ? UIAsset.Colors.sunsetOrange.color : UIAsset.Colors.gray0.color,
+                            lineWidth: 1
                         )
                         .frame(width: 22, height: 22)
 
@@ -269,7 +269,7 @@ struct WithdrawalView: View {
 
                 Text("안내사항을 모두 확인하였으며 이에 동의합니다.")
                     .pretendard(.body(.medium()))
-                    .foregroundStyle(.gray20)
+                    .foregroundStyle(.gray0)
                     .fixedSize(horizontal: false, vertical: true)
 
                 Spacer()
