@@ -9,6 +9,7 @@ final class LoginViewModel: ObservableObject {
 
     struct WithdrawnAccountInfo {
         let restoreToken: String
+        let message: String?
         let credential: ProviderCredential
     }
 
@@ -35,8 +36,8 @@ final class LoginViewModel: ObservableObject {
         do {
             try await socialLoginService.signInWithKakao()
             didSignInSucceed = true
-        } catch AuthError.withdrawalRestoreRequired(let restoreToken, let credential) {
-            withdrawnAccountInfo = WithdrawnAccountInfo(restoreToken: restoreToken, credential: credential)
+        } catch AuthError.withdrawalRestoreRequired(let restoreToken, let message, let credential) {
+            withdrawnAccountInfo = WithdrawnAccountInfo(restoreToken: restoreToken, message: message, credential: credential)
         } catch let e as APIError {
             e.post()
         } catch {
@@ -54,8 +55,8 @@ final class LoginViewModel: ObservableObject {
         do {
             try await socialLoginService.signInWithApple()
             didSignInSucceed = true
-        } catch AuthError.withdrawalRestoreRequired(let restoreToken, let credential) {
-            withdrawnAccountInfo = WithdrawnAccountInfo(restoreToken: restoreToken, credential: credential)
+        } catch AuthError.withdrawalRestoreRequired(let restoreToken, let message, let credential) {
+            withdrawnAccountInfo = WithdrawnAccountInfo(restoreToken: restoreToken, message: message, credential: credential)
         } catch let e as APIError {
             e.post()
         } catch {

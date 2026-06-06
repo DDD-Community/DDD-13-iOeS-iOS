@@ -42,14 +42,19 @@ struct WithdrawalView: View {
                     Spacer()
                 }
             }
-        }
-        .navigationBarHidden(true)
-        .onChange(of: viewModel.step) { _, newStep in
-            if case .done = newStep {
-                onWithdrawn()
-                dismiss()
+
+            if case .done = viewModel.step {
+                WithdrawalCompleteDialog(
+                    onConfirm: {
+                        onWithdrawn()
+                        dismiss()
+                    }
+                )
+                .transition(.opacity)
             }
         }
+        .navigationBarHidden(true)
+        .animation(.easeInOut(duration: 0.25), value: viewModel.step)
     }
 
     // MARK: - Custom Header

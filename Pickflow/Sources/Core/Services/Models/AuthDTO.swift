@@ -53,6 +53,7 @@ enum SocialProvider: String, Codable, Sendable {
 
 struct LoginFailureResponse: Decodable, Sendable {
     let code: String
+    let message: String?
     let data: WithdrawalRestoreData?
 }
 
@@ -77,7 +78,7 @@ enum AuthError: LocalizedError {
     case forbidden
     case validation
     case external
-    case withdrawalRestoreRequired(restoreToken: String, credential: ProviderCredential)
+    case withdrawalRestoreRequired(restoreToken: String, message: String?, credential: ProviderCredential)
     case unknown(Error)
 
     var errorDescription: String? {
