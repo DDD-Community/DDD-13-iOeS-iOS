@@ -243,6 +243,22 @@ struct AccountManagementView: View {
                 .padding(.vertical, 14)
                 .background(.gray80)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(UIAsset.Colors.sunsetOrange.color, lineWidth: 1)
+                        .opacity(viewModel.nicknameValidationError != nil ? 1 : 0)
+                )
+                .onChange(of: viewModel.nicknameDraft) { _, newValue in
+                    if newValue.count > AccountManagementViewModel.nicknameMaxLength {
+                        viewModel.nicknameDraft = String(newValue.prefix(AccountManagementViewModel.nicknameMaxLength))
+                    }
+                }
+
+            if let error = viewModel.nicknameValidationError {
+                Text(error)
+                    .pretendard(.body(.small()))
+                    .foregroundStyle(.sunsetOrange)
+            }
         }
     }
 
