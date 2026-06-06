@@ -11,15 +11,13 @@ struct TermsPolicyDocument: Identifiable, Hashable {
             title: "서비스 이용약관",
             url: URL(string: "https://cubic-print-1cb.notion.site/abe90976df958360b53001e6ee774eb3")!
         ),
-        // TODO: [KAN-134] 위치정보 서비스 이용약관 실제 URL로 교체 (현재 TBD)
         TermsPolicyDocument(
             title: "위치정보 서비스 이용약관",
-            url: URL(string: "https://cubic-print-1cb.notion.site/abe90976df958360b53001e6ee774eb3")!
+            url: URL(string: "https://cubic-print-1cb.notion.site/36390976df9580289cc9ebcba9ed7ffd")!
         ),
-        // TODO: [KAN-134] 개인정보처리방침 실제 URL로 교체 (현재 TBD)
         TermsPolicyDocument(
             title: "개인정보처리방침",
-            url: URL(string: "https://cubic-print-1cb.notion.site/abe90976df958360b53001e6ee774eb3")!
+            url: URL(string: "https://cubic-print-1cb.notion.site/07a90976df958319b6d1013e089c5ee6?pvs=74")!
         ),
     ]
 }
