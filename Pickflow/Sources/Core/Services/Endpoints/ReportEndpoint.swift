@@ -8,5 +8,5 @@ struct ReportEndpoint: APIEndpoint {
     var baseURL: String { APIBaseURL.current }
     var path: String { "/v1/spots/\(spotId)/reports" }
     var method: HTTPMethod { .post }
-    var parameters: Parameters? { ["content": content] }
+    var parameters: Parameters? { ["reasonType": "OTHERS", "content": content] }
 }
