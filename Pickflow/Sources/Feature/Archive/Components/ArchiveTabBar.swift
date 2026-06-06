@@ -20,7 +20,7 @@ struct ArchiveTabBar: View {
         } label: {
             VStack(spacing: 0) {
                 Text(tab.title)
-                    .pretendard(isSelected ? .body(.medium(.bold)) : .body(.medium()))
+                    .pretendard(.body(.large(.bold)))
                     .foregroundStyle(isSelected ? .gray0 : .gray50)
                     .padding(.vertical, 12)
                     .frame(maxWidth: .infinity)

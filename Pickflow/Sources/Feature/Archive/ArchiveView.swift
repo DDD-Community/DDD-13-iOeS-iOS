@@ -176,7 +176,8 @@ struct ArchiveView: View {
             ArchiveCoverImagePickerView(
                 archiveName: viewModel.archiveName,
                 currentImageData: viewModel.coverImageData,
-                onSelect: { data in Task { await viewModel.updateCoverImage(data) } }
+                onSelect: { data in Task { await viewModel.updateCoverImage(data) } },
+                onClose: { showCoverPicker = false }
             )
         }
         .overlay {
@@ -248,7 +249,11 @@ struct ArchiveView: View {
                     Image(systemName: "ellipsis")
                         .font(.system(size: 20, weight: .medium))
                         .foregroundStyle(.white)
-                        .padding(12)
+                        .frame(width: 36, height: 36)
+                        .background(Circle().fill(Color.black.opacity(0.4)))
+                        .padding(.trailing, 12)
+                        .padding(.vertical, 4)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             }

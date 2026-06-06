@@ -52,6 +52,7 @@ final class ArchiveViewModel: ObservableObject {
     private var mySpotsCurrentPage: Int = 0
     private var mySpotsHasNext: Bool = false
     private var currentCoordinate: Coordinate?
+    nonisolated(unsafe) private var notificationObservers: [NSObjectProtocol] = []
 
     init(
         archiveService: ArchiveServiceProtocol,
@@ -65,6 +66,30 @@ final class ArchiveViewModel: ObservableObject {
         self.authService = authService
         self.socialLoginService = socialLoginService
         self.locationService = locationService
+        setupNotificationObservers()
+    }
+
+    deinit {
+        notificationObservers.forEach { NotificationCenter.default.removeObserver($0) }
+    }
+
+    private func setupNotificationObservers() {
+        // 스팟 상세 등 다른 화면에서 북마크가 변경되면 저장된 스팟 목록을 다시 불러온다.
+        let observer = NotificationCenter.default.addObserver(
+            forName: .spotBookmarkDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            // 보관함 화면 자체에서 해제한 경우는 이미 반영됐으므로 중복 재조회 방지
+            let isSelfPost = (notification.object as AnyObject?) === self
+            Task { @MainActor [weak self] in
+                guard let self, !isSelfPost else { return }
+                guard self.state != .signedOut else { return }
+                await self.fetchArchiveInfo()
+                await self.fetchArchive()
+            }
+        }
+        notificationObservers = [observer]
     }
 
     func onAppear() async {
@@ -207,7 +232,7 @@ final class ArchiveViewModel: ObservableObject {
 
         do {
             try await bookmarkService.deleteBookmark(spotId: spotId)
-            NotificationCenter.default.post(name: .spotBookmarkDidChange, object: nil)
+            NotificationCenter.default.post(name: .spotBookmarkDidChange, object: self)
         } catch let e as APIError {
             var restored = items
             restored.insert(removedItem, at: min(removedIndex, restored.count))
