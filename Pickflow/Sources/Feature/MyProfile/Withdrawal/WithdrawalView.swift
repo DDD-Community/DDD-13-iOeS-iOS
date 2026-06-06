@@ -89,7 +89,7 @@ struct WithdrawalView: View {
     private var inputBody: some View {
         VStack(spacing: 0) {
             ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 28) {
+                VStack(alignment: .leading, spacing: 48) {
                     cautionSection
                     reasonSection
                 }
@@ -132,8 +132,8 @@ struct WithdrawalView: View {
     // MARK: - Reason Section
 
     private var reasonSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text("어떤 점이 아쉬우셨나요?")
                     .pretendard(.heading(.small))
                     .foregroundStyle(.gray0)
