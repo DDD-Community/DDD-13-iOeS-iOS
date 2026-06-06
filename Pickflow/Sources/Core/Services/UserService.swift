@@ -28,6 +28,12 @@ final class UserService: UserServiceProtocol, Sendable {
         return try await fetchCurrentUser()
     }
 
+    func submitWithdrawalReason(reasonType: String, content: String?) async throws {
+        let _: EmptyResponse = try await networkManager.request(
+            endpoint: UserEndpoint.withdrawalReason(reasonType: reasonType, content: content)
+        )
+    }
+
     func deleteAccount() async throws {
         let _: EmptyResponse = try await networkManager.request(endpoint: UserEndpoint.deleteAccount)
     }

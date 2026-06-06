@@ -6,6 +6,7 @@ enum UserEndpoint: APIEndpoint {
     case deleteAccount
     case updateProfile(nickname: String?)
     case savedSpots(page: Int?, latitude: Double?, longitude: Double?)
+    case withdrawalReason(reasonType: String, content: String?)
 
     var baseURL: String { APIBaseURL.current }
 
@@ -13,6 +14,7 @@ enum UserEndpoint: APIEndpoint {
         switch self {
         case .me, .deleteAccount, .updateProfile: "/v1/users/me"
         case .savedSpots: "/v1/users/me/saved-spots"
+        case .withdrawalReason: "/v1/users/me/withdrawal-reason"
         }
     }
 
@@ -22,10 +24,16 @@ enum UserEndpoint: APIEndpoint {
         case .deleteAccount: .delete
         case .updateProfile: .patch
         case .savedSpots: .get
+        case .withdrawalReason: .post
         }
     }
 
-    var encoding: any ParameterEncoding { URLEncoding.queryString }
+    var encoding: any ParameterEncoding {
+        switch self {
+        case .withdrawalReason: JSONEncoding.default
+        default: URLEncoding.queryString
+        }
+    }
 
     var parameters: Parameters? {
         switch self {
@@ -33,6 +41,10 @@ enum UserEndpoint: APIEndpoint {
             return nil
         case .deleteAccount:
             return nil
+        case let .withdrawalReason(reasonType, content):
+            var p: Parameters = ["reasonType": reasonType]
+            if let content { p["content"] = content }
+            return p
         case let .updateProfile(nickname):
             var p: Parameters = [:]
             if let nickname { p["nickname"] = nickname }
