@@ -74,7 +74,7 @@ struct TermsAndPolicyListView: View {
 
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.gray50)
+                    .foregroundStyle(.gray0)
             }
             .padding(.vertical, 16)
             .contentShape(Rectangle())
