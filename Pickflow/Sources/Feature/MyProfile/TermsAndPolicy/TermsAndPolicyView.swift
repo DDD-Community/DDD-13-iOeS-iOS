@@ -7,6 +7,11 @@ struct TermsAndPolicyView: View {
     let url: URL
     @State private var isLoading = true
 
+    // Notion 공개 페이지는 모바일 UA에서 임베드 PDF를 파일 블록으로만 노출하므로
+    // 데스크탑 UA로 요청해 본문(PDF)이 인라인으로 렌더링되도록 한다.
+    private let desktopUserAgent =
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
+
     var body: some View {
         ZStack {
             UIAsset.Colors.gray95.color.ignoresSafeArea()
@@ -15,7 +20,7 @@ struct TermsAndPolicyView: View {
                 customHeader
 
                 ZStack {
-                    WebView(url: url, isLoading: $isLoading)
+                    WebView(url: url, isLoading: $isLoading, customUserAgent: desktopUserAgent)
 
                     if isLoading {
                         ProgressView()
