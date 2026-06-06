@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 import UIKit
 
@@ -8,6 +9,8 @@ struct ContentView: View {
     @State private var isExploreAddPlacePresented = false
     @State private var isExploreSpotDetailPresented = false
     @State private var savedPath = NavigationPath()
+    // 회원탈퇴 완료 화면은 마이 탭의 하단 탭바가 보이는 상태로 노출되어야 한다.
+    @State private var isWithdrawalComplete = false
     @StateObject private var clusteringViewModel: MapClusteringViewModel
     @StateObject private var myProfileViewModel: MyProfileViewModel
     @StateObject private var archiveViewModel: ArchiveViewModel
@@ -46,7 +49,7 @@ struct ContentView: View {
         switch selectedTab {
         case .explore: !isExploreAddPlacePresented && !isExploreSpotDetailPresented
         case .saved: savedPath.isEmpty
-        case .my: !myProfileViewModel.isNavigatingToAccountManagement
+        case .my: !myProfileViewModel.isNavigatingToAccountManagement || isWithdrawalComplete
         }
     }
 
@@ -94,6 +97,10 @@ struct ContentView: View {
         .onChange(of: deepLinkRouter.pendingSpotId) { _, spotId in
             guard spotId != nil else { return }
             selectedTab = .explore
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .userDidWithdraw)) { _ in
+            // 탈퇴 완료 화면(WithdrawalView .done)이 뜨는 동안 마이 탭 하단 탭바를 노출한다.
+            isWithdrawalComplete = true
         }
     }
 }
