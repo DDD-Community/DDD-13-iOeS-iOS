@@ -78,9 +78,9 @@ final class SpotService: SpotServiceProtocol, Sendable {
         return SpotId(rawValue: String(envelope.data.spotId))
     }
 
-    func reportSpot(id: Int64, type: SpotReportType, content: String) async throws {
+    func reportSpot(id: Int64, content: String) async throws {
         let _: EmptyResponse = try await networkManager.request(
-            endpoint: ReportEndpoint(spotId: id, type: type, content: content)
+            endpoint: ReportEndpoint(spotId: id, content: content)
         )
     }
 }

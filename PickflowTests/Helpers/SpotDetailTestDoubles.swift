@@ -17,7 +17,6 @@ final class MockSpotService: SpotServiceProtocol, @unchecked Sendable {
     private(set) var previewRequests: [(id: Int64, latitude: Double?, longitude: Double?)] = []
     private(set) var registerDrafts: [SpotRegistrationDraft] = []
     private(set) var reportedSpotIds: [Int64] = []
-    private(set) var reportedTypes: [SpotReportType] = []
     private(set) var reportedContents: [String] = []
 
     func fetchSpotDetail(id: Int64, latitude: Double?, longitude: Double?) async throws -> SpotDetail {
@@ -35,9 +34,8 @@ final class MockSpotService: SpotServiceProtocol, @unchecked Sendable {
         return try registerSpotResult.get()
     }
 
-    func reportSpot(id: Int64, type: SpotReportType, content: String) async throws {
+    func reportSpot(id: Int64, content: String) async throws {
         reportedSpotIds.append(id)
-        reportedTypes.append(type)
         reportedContents.append(content)
         if let reportError { throw reportError }
     }

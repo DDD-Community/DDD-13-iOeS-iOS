@@ -240,5 +240,5 @@ private struct SpotRegistrationPreviewService: SpotServiceProtocol {
         SpotId(rawValue: "preview-spot-id")
     }
 
-    func reportSpot(id: Int64, type: SpotReportType, content: String) async throws {}
+    func reportSpot(id: Int64, content: String) async throws {}
 }
