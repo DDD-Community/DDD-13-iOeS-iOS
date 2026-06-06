@@ -112,7 +112,18 @@ final class WithdrawalViewModelTests: XCTestCase {
         XCTAssertEqual(authService.signOutCallCount, 1)
     }
 
-    func test_submitWithdrawal_기타선택_텍스트포함_otherFeedback이전달된다() async throws {
+    func test_submitWithdrawal_일반사유선택_사유등록API는호출하지않는다() async throws {
+        viewModel.selectReason(.rarelyUsed)
+        viewModel.toggleAgreement()
+
+        await viewModel.submitWithdrawal()
+
+        XCTAssertEqual(viewModel.step, .done)
+        XCTAssertTrue(userService.withdrawalReasonCalls.isEmpty)
+        XCTAssertEqual(userService.deleteCallCount, 1)
+    }
+
+    func test_submitWithdrawal_기타선택_텍스트포함_OTHERS와content가전달된다() async throws {
         viewModel.selectReason(.other)
         viewModel.toggleAgreement()
         viewModel.otherFeedback = "개선 의견이에요"
@@ -121,6 +132,25 @@ final class WithdrawalViewModelTests: XCTestCase {
 
         XCTAssertEqual(viewModel.step, .done)
         XCTAssertEqual(userService.deleteCallCount, 1)
+        XCTAssertEqual(userService.withdrawalReasonCalls.count, 1)
+        XCTAssertEqual(userService.withdrawalReasonCalls.first?.reasonType, "OTHERS")
+        XCTAssertEqual(userService.withdrawalReasonCalls.first?.content, "개선 의견이에요")
+    }
+
+    func test_submitWithdrawal_기타선택_사유전송실패_deleteAccount호출안되고signOut도안된다() async throws {
+        userService.withdrawalReasonError = TestError.failed
+        viewModel.selectReason(.other)
+        viewModel.toggleAgreement()
+        viewModel.otherFeedback = "개선 의견이에요"
+
+        await viewModel.submitWithdrawal()
+
+        guard case .failed = viewModel.step else {
+            return XCTFail("Expected .failed step")
+        }
+        XCTAssertEqual(userService.withdrawalReasonCalls.count, 1)
+        XCTAssertEqual(userService.deleteCallCount, 0)
+        XCTAssertEqual(authService.signOutCallCount, 0)
     }
 
     func test_submitWithdrawal_API실패_step이failed로전환된다() async throws {

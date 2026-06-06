@@ -5,10 +5,12 @@ final class MockUserService: UserServiceProtocol, @unchecked Sendable {
     var fetchResult: Result<User, any Error> = .success(.fixture())
     var updateResult: Result<User, any Error> = .success(.fixture())
     var deleteError: (any Error)?
+    var withdrawalReasonError: (any Error)?
 
     private(set) var fetchCallCount = 0
     private(set) var updateCalls: [(nickname: String?, profileImageData: Data?)] = []
     private(set) var deleteCallCount: Int = 0
+    private(set) var withdrawalReasonCalls: [(reasonType: String, content: String?)] = []
 
     func fetchCurrentUser() async throws -> User {
         fetchCallCount += 1
@@ -18,6 +20,11 @@ final class MockUserService: UserServiceProtocol, @unchecked Sendable {
     func updateProfile(nickname: String?, profileImageData: Data?) async throws -> User {
         updateCalls.append((nickname, profileImageData))
         return try updateResult.get()
+    }
+
+    func submitWithdrawalReason(reasonType: String, content: String?) async throws {
+        withdrawalReasonCalls.append((reasonType, content))
+        if let withdrawalReasonError { throw withdrawalReasonError }
     }
 
     func deleteAccount() async throws {
