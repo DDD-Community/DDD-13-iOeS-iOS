@@ -24,7 +24,8 @@ struct MyProfileView: View {
                     user: user,
                     cachedProfileImage: viewModel.cachedProfileImage,
                     onAccountManagementTap: { viewModel.navigateToAccountManagement() },
-                    onNoticeTap: { viewModel.navigateToNotice() }
+                    onNoticeTap: { viewModel.navigateToNotice() },
+                    onTermsAndPolicyTap: { viewModel.navigateToTermsAndPolicy() }
                 )
 
             case let .failed(message):
@@ -73,6 +74,9 @@ struct MyProfileView: View {
         }
         .navigationDestination(isPresented: $viewModel.isNavigatingToNotice) {
             NoticeListView(viewModel: NoticeListViewModel(noticeService: getNoticeService()))
+        }
+        .navigationDestination(isPresented: $viewModel.isNavigatingToTermsAndPolicy) {
+            TermsAndPolicyListView()
         }
     }
 }

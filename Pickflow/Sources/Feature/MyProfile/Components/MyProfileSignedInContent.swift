@@ -2,10 +2,15 @@ import SwiftUI
 import UIKit
 
 struct MyProfileSignedInContent: View {
+    @Environment(\.openURL) private var openURL
+
     let user: User
     var cachedProfileImage: UIImage?
     var onAccountManagementTap: () -> Void = {}
     var onNoticeTap: () -> Void = {}
+    var onTermsAndPolicyTap: () -> Void = {}
+
+    private let supportEmail = "pickflow.help@gmail.com"
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -124,15 +129,16 @@ struct MyProfileSignedInContent: View {
 
     private var menuSection: some View {
         VStack(spacing: 0) {
-            iconMenuCell(icon: "questionmark.circle", title: "고객센터 및 1:1 문의", action: {})
-            iconMenuCell(icon: "bell", title: "알림 설정", action: {})
+            iconMenuCell(icon: "questionmark.circle", title: "고객센터 및 1:1 문의", action: composeSupportEmail)
+            // 알림 설정 화면 미정으로 임시 숨김. 화면 정의되면 노출 예정.
+            // iconMenuCell(icon: "bell", title: "알림 설정", action: {})
             iconMenuCell(icon: "info.circle", title: "공지사항", action: onNoticeTap)
 
             Divider()
                 .background(.gray80)
                 .padding(.vertical, 8)
 
-            plainMenuCell(title: "약관 및 정책", action: {})
+            plainMenuCell(title: "약관 및 정책", action: onTermsAndPolicyTap)
 
             HStack {
                 Text("앱 버전")
@@ -164,7 +170,7 @@ struct MyProfileSignedInContent: View {
 
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.gray50)
+                    .foregroundStyle(.gray0)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 18)
@@ -182,7 +188,7 @@ struct MyProfileSignedInContent: View {
                 Spacer()
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.gray50)
+                    .foregroundStyle(.gray0)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 18)
@@ -194,6 +200,14 @@ struct MyProfileSignedInContent: View {
     private var appVersion: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
         return "v\(version)"
+    }
+
+    // 고객센터 및 1:1 문의: 기본 메일 앱으로 문의 메일 작성 화면을 띄운다.
+    private func composeSupportEmail() {
+        let subject = "[Pickflow] 1:1 문의"
+            .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        guard let url = URL(string: "mailto:\(supportEmail)?subject=\(subject)") else { return }
+        openURL(url)
     }
 }
 
