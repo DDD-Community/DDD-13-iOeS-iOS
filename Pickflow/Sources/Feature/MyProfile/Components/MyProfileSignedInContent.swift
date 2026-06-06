@@ -165,7 +165,7 @@ struct MyProfileSignedInContent: View {
 
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.gray50)
+                    .foregroundStyle(.gray0)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 18)
@@ -183,7 +183,7 @@ struct MyProfileSignedInContent: View {
                 Spacer()
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.gray50)
+                    .foregroundStyle(.gray0)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 18)
