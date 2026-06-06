@@ -24,7 +24,7 @@ struct WithdrawalView: View {
                     Spacer()
 
                 case .done:
-                    EmptyView()
+                    doneBody
 
                 case let .failed(message):
                     Spacer()
@@ -42,19 +42,52 @@ struct WithdrawalView: View {
                     Spacer()
                 }
             }
-
-            if case .done = viewModel.step {
-                WithdrawalCompleteDialog(
-                    onConfirm: {
-                        onWithdrawn()
-                        dismiss()
-                    }
-                )
-                .transition(.opacity)
-            }
         }
         .navigationBarHidden(true)
         .animation(.easeInOut(duration: 0.25), value: viewModel.step)
+    }
+
+    /// 탈퇴 완료 후 로그인 화면으로 빠져나간다.
+    private func completeAndExit() {
+        onWithdrawn()
+        dismiss()
+    }
+
+    // MARK: - Done Body
+
+    private var doneBody: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            VStack(spacing: 8) {
+                Text("탈퇴가 완료되었어요.")
+                    .pretendard(.heading(.medium))
+                    .foregroundStyle(.gray30)
+
+                Text("이용해 주셔서 감사합니다.")
+                    .pretendard(.body(.large()))
+                    .foregroundStyle(.gray50)
+            }
+            .multilineTextAlignment(.center)
+
+            Spacer().frame(height: 56)
+
+            Button {
+                completeAndExit()
+            } label: {
+                Text("로그인 화면으로 이동")
+                    .pretendard(.body(.large(.bold)))
+                    .foregroundStyle(.gray0)
+                    .frame(maxWidth: .infinity, minHeight: 56)
+                    .background(.sunsetOrange)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 20)
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     // MARK: - Custom Header
@@ -62,7 +95,11 @@ struct WithdrawalView: View {
     private var customHeader: some View {
         HStack {
             Button {
-                dismiss()
+                if case .done = viewModel.step {
+                    completeAndExit()
+                } else {
+                    dismiss()
+                }
             } label: {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 17, weight: .semibold))
