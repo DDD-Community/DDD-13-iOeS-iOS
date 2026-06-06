@@ -162,16 +162,31 @@ struct WithdrawalView: View {
                 )
                 .pretendard(.body(.medium()))
                 .foregroundStyle(.gray0)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
-                .background(.gray80)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .padding(16)
+                .frame(height: 300)
+                .background(.gray95)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                .lineLimit(3...)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(UIAsset.Colors.gray50.color, lineWidth: 1)
+                )
+                .overlay(alignment: .bottomTrailing) {
+                    HStack(spacing: 0) {
+                        Text("\(viewModel.otherFeedback.count)")
+                            .foregroundStyle(.gray0)
+                        Text("/200")
+                            .foregroundStyle(.gray50)
+                    }
+                    .pretendard(.label(.medium))
+                    .padding([.trailing, .bottom], 16)
+                }
                 .onChange(of: viewModel.otherFeedback) { _, newValue in
                     if newValue.count > 200 {
                         viewModel.otherFeedback = String(newValue.prefix(200))
                     }
                 }
+                .padding(.top, 24)
             }
         }
     }
