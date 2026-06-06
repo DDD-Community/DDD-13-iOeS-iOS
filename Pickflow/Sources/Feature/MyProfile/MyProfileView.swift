@@ -3,6 +3,8 @@ import SwiftUI
 struct MyProfileView: View {
     @StateObject var viewModel: MyProfileViewModel
     var onSignedOut: () -> Void = {}
+    var onNavigateToSavedSpots: () -> Void = {}
+    var onNavigateToRecordedSpots: () -> Void = {}
 
     var body: some View {
         ZStack {
@@ -23,6 +25,9 @@ struct MyProfileView: View {
                 MyProfileSignedInContent(
                     user: user,
                     cachedProfileImage: viewModel.cachedProfileImage,
+                    onProfileImageTap: { viewModel.navigateToAccountManagement() },
+                    onSavedSpotsTap: onNavigateToSavedSpots,
+                    onRecordedSpotsTap: onNavigateToRecordedSpots,
                     onAccountManagementTap: { viewModel.navigateToAccountManagement() },
                     onNoticeTap: { viewModel.navigateToNotice() },
                     onTermsAndPolicyTap: { viewModel.navigateToTermsAndPolicy() }

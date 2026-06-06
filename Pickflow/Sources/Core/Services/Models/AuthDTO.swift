@@ -47,6 +47,14 @@ struct AppleUserInfo: Sendable {
 enum SocialProvider: String, Codable, Sendable {
     case kakao = "KAKAO"
     case apple = "APPLE"
+
+    /// 연결된 소셜 표기용 한글 이름.
+    var displayName: String {
+        switch self {
+        case .kakao: "카카오"
+        case .apple: "애플"
+        }
+    }
 }
 
 // MARK: - Withdrawal Restore (U007)

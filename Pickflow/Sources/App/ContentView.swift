@@ -68,7 +68,18 @@ struct ContentView: View {
                 }
             case .my:
                 NavigationStack {
-                    MyProfileView(viewModel: myProfileViewModel, onSignedOut: onSignedOut)
+                    MyProfileView(
+                        viewModel: myProfileViewModel,
+                        onSignedOut: onSignedOut,
+                        onNavigateToSavedSpots: {
+                            archiveViewModel.tabChanged(.savedSpots)
+                            selectedTab = .saved
+                        },
+                        onNavigateToRecordedSpots: {
+                            archiveViewModel.tabChanged(.mySpots)
+                            selectedTab = .saved
+                        }
+                    )
                 }
             }
         }

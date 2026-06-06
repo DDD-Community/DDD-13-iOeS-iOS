@@ -11,6 +11,7 @@ struct User: Codable, Equatable, Sendable {
     let profileImageUrl: String?
     let savedSpotCount: Int
     let recordedSpotCount: Int
+    let provider: SocialProvider?
 }
 
 extension User {
@@ -18,13 +19,15 @@ extension User {
         nickname: String = "capybara123",
         profileImageUrl: String? = nil,
         savedSpotCount: Int = 0,
-        recordedSpotCount: Int = 0
+        recordedSpotCount: Int = 0,
+        provider: SocialProvider? = .kakao
     ) -> User {
         User(
             nickname: nickname,
             profileImageUrl: profileImageUrl,
             savedSpotCount: savedSpotCount,
-            recordedSpotCount: recordedSpotCount
+            recordedSpotCount: recordedSpotCount,
+            provider: provider
         )
     }
 }

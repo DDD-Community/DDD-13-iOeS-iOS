@@ -249,7 +249,10 @@ struct AccountManagementView: View {
         }
     }
 
-    private var socialProviderLabel: String { "—" }
+    private var socialProviderLabel: String {
+        guard let provider = viewModel.user?.provider else { return "—" }
+        return "\(provider.displayName) 계정 연결됨"
+    }
 
     // MARK: - Account Actions
 

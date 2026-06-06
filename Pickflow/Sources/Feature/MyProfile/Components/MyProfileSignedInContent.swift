@@ -6,11 +6,17 @@ struct MyProfileSignedInContent: View {
 
     let user: User
     var cachedProfileImage: UIImage?
+    var onProfileImageTap: () -> Void = {}
+    var onSavedSpotsTap: () -> Void = {}
+    var onRecordedSpotsTap: () -> Void = {}
     var onAccountManagementTap: () -> Void = {}
     var onNoticeTap: () -> Void = {}
     var onTermsAndPolicyTap: () -> Void = {}
 
     private let supportEmail = "pickflow.help@gmail.com"
+
+    // 연결된 소셜 인디케이터 색상 (#FFA100)
+    private let connectedProviderColor = Color(red: 1.0, green: 161.0 / 255.0, blue: 0.0)
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -41,13 +47,29 @@ struct MyProfileSignedInContent: View {
 
     private var profileHeader: some View {
         HStack(spacing: 16) {
-            profileImage
-                .frame(width: 68, height: 68)
+            Button(action: onProfileImageTap) {
+                profileImage
+                    .frame(width: 68, height: 68)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("프로필 이미지, 계정 관리로 이동")
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(user.nickname)
                     .pretendard(.heading(.small))
                     .foregroundStyle(.gray0)
+
+                if let provider = user.provider {
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(connectedProviderColor)
+                            .frame(width: 6, height: 6)
+
+                        Text("\(provider.displayName) 계정 연결됨")
+                            .pretendard(.body(.small()))
+                            .foregroundStyle(connectedProviderColor)
+                    }
+                }
             }
 
             Spacer()
@@ -62,9 +84,8 @@ struct MyProfileSignedInContent: View {
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("계정 관리")
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(user.nickname)
     }
 
     @ViewBuilder
@@ -104,32 +125,37 @@ struct MyProfileSignedInContent: View {
 
     private var statsCards: some View {
         HStack(spacing: 12) {
-            statCard(title: "저장한 스팟", count: user.savedSpotCount)
-            statCard(title: "기록한 스팟", count: user.recordedSpotCount)
+            statCard(title: "저장한 스팟", count: user.savedSpotCount, action: onSavedSpotsTap)
+            statCard(title: "기록한 스팟", count: user.recordedSpotCount, action: onRecordedSpotsTap)
         }
     }
 
-    private func statCard(title: String, count: Int) -> some View {
-        VStack(spacing: 8) {
-            Text(title)
-                .pretendard(.body(.small()))
-                .foregroundStyle(.gray0)
+    private func statCard(title: String, count: Int, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Text(title)
+                    .pretendard(.body(.small()))
+                    .foregroundStyle(.gray0)
 
-            Text("\(count)")
-                .pretendard(.display(.medium))
-                .foregroundStyle(.gray0)
+                Text("\(count)")
+                    .pretendard(.display(.medium))
+                    .foregroundStyle(.gray0)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 16)
+            .background(.gray90)
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .contentShape(Rectangle())
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
-        .background(.gray90)
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .buttonStyle(.plain)
     }
 
     // MARK: - Menu
 
     private var menuSection: some View {
         VStack(spacing: 0) {
-            iconMenuCell(icon: "questionmark.circle", title: "고객센터 및 1:1 문의", action: composeSupportEmail)
+            // 고객센터 및 1:1 문의: MVP 범위 제외로 임시 숨김. 범위 포함되면 노출 예정.
+            // iconMenuCell(icon: "questionmark.circle", title: "고객센터 및 1:1 문의", action: composeSupportEmail)
             // 알림 설정 화면 미정으로 임시 숨김. 화면 정의되면 노출 예정.
             // iconMenuCell(icon: "bell", title: "알림 설정", action: {})
             iconMenuCell(icon: "info.circle", title: "공지사항", action: onNoticeTap)
