@@ -150,9 +150,10 @@ struct WithdrawalView: View {
                 onSelect: { viewModel.selectReason($0) }
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .stroke(UIAsset.Colors.gray60.color, lineWidth: 1)
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .stroke(UIAsset.Colors.gray50.color, lineWidth: 1)
             )
+            .padding(.top, 12)
 
             if viewModel.selectedReason == .other {
                 TextField(
