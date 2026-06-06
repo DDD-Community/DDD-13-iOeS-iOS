@@ -161,6 +161,7 @@ final class ArchiveViewModel: ObservableObject {
         do {
             let info = try await archiveService.renameArchive(trimmed)
             archiveName = info.archiveName
+            showToast("보관함 이름이 변경되었습니다.")
         } catch let e as APIError {
             archiveName = previous
             e.post()
