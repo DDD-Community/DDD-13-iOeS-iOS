@@ -84,5 +84,10 @@ struct MyProfileView: View {
         .navigationDestination(isPresented: $viewModel.isNavigatingToTermsAndPolicy) {
             TermsAndPolicyListView(documents: viewModel.termsPolicies)
         }
+        .restoreAccountPrompt(
+            info: viewModel.withdrawnAccountInfo,
+            onCancel: { viewModel.cancelRestore() },
+            onConfirm: { Task { await viewModel.confirmRestore() } }
+        )
     }
 }
