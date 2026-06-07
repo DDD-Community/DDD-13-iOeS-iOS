@@ -29,7 +29,8 @@ struct ContentView: View {
         _myProfileViewModel = StateObject(wrappedValue: myProfileViewModel ?? MyProfileViewModel(
             userService: getUserService(),
             authService: getAuthService(),
-            socialLoginService: getSocialLoginService()
+            socialLoginService: getSocialLoginService(),
+            appVersionService: getAppVersionService()
         ))
       
         _clusteringViewModel = StateObject(wrappedValue: clusteringViewModel ?? MapClusteringViewModel(

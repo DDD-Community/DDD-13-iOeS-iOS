@@ -28,6 +28,7 @@ struct MyProfileView: View {
                     onProfileImageTap: { viewModel.navigateToAccountManagement() },
                     onSavedSpotsTap: onNavigateToSavedSpots,
                     onRecordedSpotsTap: onNavigateToRecordedSpots,
+                    supportEmail: viewModel.supportEmail,
                     onAccountManagementTap: { viewModel.navigateToAccountManagement() },
                     onNoticeTap: { viewModel.navigateToNotice() },
                     onTermsAndPolicyTap: { viewModel.navigateToTermsAndPolicy() }
@@ -81,7 +82,7 @@ struct MyProfileView: View {
             NoticeListView(viewModel: NoticeListViewModel(noticeService: getNoticeService()))
         }
         .navigationDestination(isPresented: $viewModel.isNavigatingToTermsAndPolicy) {
-            TermsAndPolicyListView()
+            TermsAndPolicyListView(documents: viewModel.termsPolicies)
         }
     }
 }

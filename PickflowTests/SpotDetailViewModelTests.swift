@@ -203,10 +203,11 @@ final class SpotDetailViewModelTests: XCTestCase {
         await viewModel.onAppear()
         await loadDetail()
 
-        viewModel.reportInvalidInfo()
+        viewModel.reportInvalidInfo(content: "실제 위치가 지도와 달라요")
         await waitForReport()
 
         XCTAssertEqual(spotService.reportedSpotIds, [1])
+        XCTAssertEqual(spotService.reportedContents, ["실제 위치가 지도와 달라요"])
         XCTAssertEqual(viewModel.toast, "제보가 접수되었습니다.")
     }
 
@@ -215,14 +216,14 @@ final class SpotDetailViewModelTests: XCTestCase {
         await viewModel.onAppear()
         await loadDetail()
 
-        viewModel.reportInvalidInfo()
+        viewModel.reportInvalidInfo(content: "내용")
         await waitForReport()
 
         XCTAssertEqual(viewModel.toast, "제보 접수에 실패했어요.")
     }
 
     func test_reportInvalidInfo_loaded상태가아니면_API를호출하지않는다() {
-        viewModel.reportInvalidInfo()
+        viewModel.reportInvalidInfo(content: "내용")
 
         XCTAssertTrue(spotService.reportedSpotIds.isEmpty)
     }

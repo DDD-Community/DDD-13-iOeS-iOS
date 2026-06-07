@@ -9,11 +9,10 @@ struct MyProfileSignedInContent: View {
     var onProfileImageTap: () -> Void = {}
     var onSavedSpotsTap: () -> Void = {}
     var onRecordedSpotsTap: () -> Void = {}
+    var supportEmail: String?
     var onAccountManagementTap: () -> Void = {}
     var onNoticeTap: () -> Void = {}
     var onTermsAndPolicyTap: () -> Void = {}
-
-    private let supportEmail = "pickflow.help@gmail.com"
 
     // 연결된 소셜 인디케이터 색상 (#FFA100)
     private let connectedProviderColor = Color(red: 1.0, green: 161.0 / 255.0, blue: 0.0)
@@ -230,6 +229,7 @@ struct MyProfileSignedInContent: View {
 
     // 고객센터 및 1:1 문의: 기본 메일 앱으로 문의 메일 작성 화면을 띄운다.
     private func composeSupportEmail() {
+        guard let supportEmail, !supportEmail.isEmpty else { return }
         let subject = "[Pickflow] 1:1 문의"
             .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         guard let url = URL(string: "mailto:\(supportEmail)?subject=\(subject)") else { return }

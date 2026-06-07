@@ -3,12 +3,8 @@ import SwiftUI
 struct TermsAndPolicyListView: View {
     @Environment(\.dismiss) private var dismiss
 
-    let documents: [TermsPolicyDocument]
-    @State private var selectedDocument: TermsPolicyDocument?
-
-    init(documents: [TermsPolicyDocument] = TermsPolicyDocument.all) {
-        self.documents = documents
-    }
+    let documents: [TermsPolicy]
+    @State private var selectedDocument: TermsPolicy?
 
     var body: some View {
         ZStack {
@@ -30,7 +26,9 @@ struct TermsAndPolicyListView: View {
         }
         .navigationBarHidden(true)
         .navigationDestination(item: $selectedDocument) { document in
-            TermsAndPolicyView(title: document.title, url: document.url)
+            if let url = document.documentURL {
+                TermsAndPolicyView(title: document.title, url: url)
+            }
         }
     }
 
@@ -61,7 +59,7 @@ struct TermsAndPolicyListView: View {
 
     // MARK: - Row
 
-    private func documentRow(_ document: TermsPolicyDocument) -> some View {
+    private func documentRow(_ document: TermsPolicy) -> some View {
         Button {
             selectedDocument = document
         } label: {
