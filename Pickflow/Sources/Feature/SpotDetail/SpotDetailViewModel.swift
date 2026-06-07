@@ -117,8 +117,13 @@ final class SpotDetailViewModel: ObservableObject {
         }
     }
 
+    /// 로그인(회원) 여부. 회원 전용 기능 진입 전 게이팅에 사용한다.
+    var isLoggedIn: Bool {
+        (try? tokenStore.load()) != nil
+    }
+
     func toggleBookmark() async {
-        guard (try? tokenStore.load()) != nil else {
+        guard isLoggedIn else {
             isLoginRequired = true
             return
         }

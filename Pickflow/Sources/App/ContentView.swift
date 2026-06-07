@@ -50,7 +50,13 @@ struct ContentView: View {
         switch selectedTab {
         case .explore: !isExploreAddPlacePresented && !isExploreSpotDetailPresented
         case .saved: savedPath.isEmpty
-        case .my: !myProfileViewModel.isNavigatingToAccountManagement || isWithdrawalComplete
+        case .my:
+            // 계정 관리·공지사항·약관 등 마이 하위 상세 화면에서는 탭바를 숨긴다.
+            // (탭바가 떠 있으면 상세 컨텐츠가 탭바 뒤로 가려 잘림)
+            isWithdrawalComplete
+                || (!myProfileViewModel.isNavigatingToAccountManagement
+                    && !myProfileViewModel.isNavigatingToNotice
+                    && !myProfileViewModel.isNavigatingToTermsAndPolicy)
         }
     }
 

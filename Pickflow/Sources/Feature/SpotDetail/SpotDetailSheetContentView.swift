@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct SpotDetailSheetContentView: View {
     let preview: SpotPreviewResponse
@@ -8,6 +9,7 @@ struct SpotDetailSheetContentView: View {
     let onBookmark: () -> Void
     @State private var isAddressExpanded: Bool
     @State private var isPhotoFullScreenPresented: Bool = false
+    @State private var copyToast: String?
 
     init(
         preview: SpotPreviewResponse,
@@ -83,6 +85,25 @@ struct SpotDetailSheetContentView: View {
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 24)
+        .overlay(alignment: .bottom) {
+            if let copyToast {
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(.gray95)
+                    Text(copyToast)
+                        .pretendard(.body(.medium(.bold)))
+                        .foregroundStyle(.gray95)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 14)
+                .background(.gray0)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .shadow(color: .black.opacity(0.12), radius: 12, x: 0, y: 4)
+                .padding(.bottom, 90)
+                .transition(.opacity.combined(with: .scale(scale: 0.95)))
+            }
+        }
     }
 
     private var themeAndBookmarkRow: some View {
@@ -143,6 +164,15 @@ struct SpotDetailSheetContentView: View {
         return String(format: "%.1fkm", distance)
     }
 
+    private func copyAddress(_ value: String) {
+        UIPasteboard.general.string = value
+        withAnimation(.easeInOut(duration: 0.2)) { copyToast = "주소가 복사되었습니다." }
+        Task {
+            try? await Task.sleep(for: .seconds(2))
+            withAnimation(.easeInOut(duration: 0.2)) { copyToast = nil }
+        }
+    }
+
     private var addressBox: some View {
         VStack(alignment: .leading, spacing: 6) {
             addressLine(label: "도로명", value: preview.addressRoad)
@@ -167,9 +197,15 @@ struct SpotDetailSheetContentView: View {
                 Text(value)
                     .pretendard(.body(.small(.regular)))
                     .foregroundStyle(.gray0)
-                Text("복사")
-                    .pretendard(.body(.small(.bold)))
-                    .foregroundStyle(.sunsetOrange)
+                Button {
+                    copyAddress(value)
+                } label: {
+                    Text("복사")
+                        .pretendard(.body(.small(.bold)))
+                        .foregroundStyle(.sunsetOrange)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
             } else {
                 Text("-")
                     .pretendard(.body(.small(.regular)))
