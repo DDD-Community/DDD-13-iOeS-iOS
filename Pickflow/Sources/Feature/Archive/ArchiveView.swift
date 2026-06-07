@@ -191,6 +191,11 @@ struct ArchiveView: View {
                 .animation(.easeInOut(duration: 0.2), value: showRenameDialog)
             }
         }
+        .restoreAccountPrompt(
+            info: viewModel.withdrawnAccountInfo,
+            onCancel: { viewModel.cancelRestore() },
+            onConfirm: { Task { await viewModel.confirmRestore() } }
+        )
     }
 
     @ViewBuilder

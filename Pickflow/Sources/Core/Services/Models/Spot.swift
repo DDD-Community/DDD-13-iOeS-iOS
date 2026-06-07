@@ -124,12 +124,6 @@ enum CongestionLevel: String, Codable, Sendable, Equatable, CaseIterable {
     }
 }
 
-enum SpotReportType: String, Codable, Sendable {
-    case locationError = "LOCATION_ERROR"
-    case wrongName = "WRONG_NAME"
-    case etc = "ETC"
-}
-
 struct EmptyResponse: Decodable, Sendable, Equatable {}
 
 enum BookmarkError: Error, Sendable, Equatable {

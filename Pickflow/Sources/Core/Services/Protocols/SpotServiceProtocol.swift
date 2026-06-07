@@ -7,7 +7,7 @@ protocol SpotServiceProtocol: Sendable {
     /// - TODO(BE-API): 요청/응답 스키마 확정 시 draft를 실제 DTO로 매핑한다.
     /// - TODO(BE-API): 이미지 업로드 방식(multipart vs presigned URL)을 반영한다.
     func registerSpot(draft: SpotRegistrationDraft) async throws -> SpotId
-    func reportSpot(id: Int64, type: SpotReportType, content: String) async throws
+    func reportSpot(id: Int64, content: String) async throws
 }
 
 struct SpotRegistrationDraft: Sendable {

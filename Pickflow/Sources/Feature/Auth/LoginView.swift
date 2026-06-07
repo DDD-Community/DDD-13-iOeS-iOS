@@ -48,20 +48,11 @@ struct LoginView: View {
         } message: { message in
             Text(message)
         }
-        .alert(
-            "재가입 안내",
-            isPresented: restoreAlertBinding,
-            presenting: viewModel.withdrawnAccountInfo
-        ) { _ in
-            Button("확인") {
-                Task { await viewModel.confirmRestoreTapped() }
-            }
-            Button("취소", role: .cancel) {
-                viewModel.cancelRestoreTapped()
-            }
-        } message: { _ in
-            Text("탈퇴 이력이 있습니다\n재가입하시겠습니까?")
-        }
+        .restoreAccountPrompt(
+            info: viewModel.withdrawnAccountInfo,
+            onCancel: { viewModel.cancelRestoreTapped() },
+            onConfirm: { Task { await viewModel.confirmRestoreTapped() } }
+        )
     }
 
     // MARK: - Background
@@ -181,13 +172,6 @@ struct LoginView: View {
     private var errorAlertBinding: Binding<Bool> {
         Binding(
             get: { viewModel.errorMessage != nil },
-            set: { _ in }
-        )
-    }
-
-    private var restoreAlertBinding: Binding<Bool> {
-        Binding(
-            get: { viewModel.withdrawnAccountInfo != nil },
             set: { _ in }
         )
     }

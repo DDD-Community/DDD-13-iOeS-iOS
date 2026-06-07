@@ -47,12 +47,21 @@ struct AppleUserInfo: Sendable {
 enum SocialProvider: String, Codable, Sendable {
     case kakao = "KAKAO"
     case apple = "APPLE"
+
+    /// 연결된 소셜 표기용 한글 이름.
+    var displayName: String {
+        switch self {
+        case .kakao: "카카오"
+        case .apple: "애플"
+        }
+    }
 }
 
 // MARK: - Withdrawal Restore (U007)
 
 struct LoginFailureResponse: Decodable, Sendable {
     let code: String
+    let message: String?
     let data: WithdrawalRestoreData?
 }
 
@@ -77,7 +86,7 @@ enum AuthError: LocalizedError {
     case forbidden
     case validation
     case external
-    case withdrawalRestoreRequired(restoreToken: String, credential: ProviderCredential)
+    case withdrawalRestoreRequired(restoreToken: String, message: String?, credential: ProviderCredential)
     case unknown(Error)
 
     var errorDescription: String? {

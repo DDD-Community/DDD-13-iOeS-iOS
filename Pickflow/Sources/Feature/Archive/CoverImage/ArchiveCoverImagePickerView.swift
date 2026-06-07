@@ -37,9 +37,9 @@ final class ArchiveCoverImagePickerViewModel: ObservableObject {
         Task { selectedImageData = await loadFullData(for: asset) }
     }
 
-    func selectCaptured(_ image: UIImage) {
+    func selectCaptured(_ data: Data) {
         selectedAsset = nil
-        selectedImageData = image.jpegData(compressionQuality: 0.9)
+        selectedImageData = data
     }
 
     private func loadAssets(for album: CoverAlbum) async {
@@ -114,7 +114,7 @@ struct ArchiveCoverImagePickerView: View {
         .background(UIAsset.Colors.gray95.swiftUIColor.ignoresSafeArea())
         .task { await vm.requestAndLoad() }
         .fullScreenCover(isPresented: $showCamera) {
-            CameraPicker { image in vm.selectCaptured(image) }
+            CameraPicker { data in vm.selectCaptured(data) }
                 .ignoresSafeArea()
         }
     }
@@ -260,47 +260,11 @@ struct ArchiveCoverImagePickerView: View {
                 }
             }
             .contentShape(Rectangle())
-            .onTapGesture { showCamera = true }
-    }
-}
-
-// MARK: - Camera picker
-
-struct CameraPicker: UIViewControllerRepresentable {
-    @Environment(\.dismiss) private var dismiss
-    let onCapture: (UIImage) -> Void
-
-    func makeUIViewController(context: Context) -> UIImagePickerController {
-        let picker = UIImagePickerController()
-        picker.sourceType = UIImagePickerController.isSourceTypeAvailable(.camera)
-            ? .camera
-            : .photoLibrary
-        picker.delegate = context.coordinator
-        return picker
-    }
-
-    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
-
-    func makeCoordinator() -> Coordinator { Coordinator(self) }
-
-    final class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-        let parent: CameraPicker
-
-        init(_ parent: CameraPicker) { self.parent = parent }
-
-        func imagePickerController(
-            _ picker: UIImagePickerController,
-            didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
-        ) {
-            if let image = info[.originalImage] as? UIImage {
-                parent.onCapture(image)
+            .onTapGesture {
+                // 카메라 사용 가능 환경(실기기)에서만 촬영 화면을 띄운다. (시뮬레이터 크래시 방지)
+                guard UIImagePickerController.isSourceTypeAvailable(.camera) else { return }
+                showCamera = true
             }
-            parent.dismiss()
-        }
-
-        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-            parent.dismiss()
-        }
     }
 }
 

@@ -38,8 +38,8 @@ struct SpotDetailView: View {
         .sheet(isPresented: $isReportSheetPresented) {
             ReportSheet(
                 onDismiss: { isReportSheetPresented = false },
-                onSubmit: { _ in
-                    viewModel.reportInvalidInfo()
+                onSubmit: { content in
+                    viewModel.reportInvalidInfo(content: content)
                     isReportSheetPresented = false
                 }
             )
@@ -78,7 +78,8 @@ struct SpotDetailView: View {
         .fullScreenCover(isPresented: $isLoginViewPresented) {
             LoginView(
                 viewModel: LoginViewModel(socialLoginService: getSocialLoginService()),
-                onSignInSucceeded: { isLoginViewPresented = false }
+                onSignInSucceeded: { isLoginViewPresented = false },
+                isClosable: true
             )
         }
         .sheet(isPresented: $isOpenSpotSheetPresented) {

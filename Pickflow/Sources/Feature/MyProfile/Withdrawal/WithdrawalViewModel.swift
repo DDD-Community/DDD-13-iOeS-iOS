@@ -45,9 +45,14 @@ final class WithdrawalViewModel: ObservableObject {
     }
 
     func submitWithdrawal() async {
-        guard canSubmit else { return }
+        guard canSubmit, let reason = selectedReason else { return }
         step = .processing
         do {
+            // 탈퇴 사유 등록 API는 '기타(OTHERS)'일 때만 호출한다.
+            if reason == .other {
+                let content = otherFeedback.trimmingCharacters(in: .whitespacesAndNewlines)
+                try await userService.submitWithdrawalReason(reasonType: "OTHERS", content: content)
+            }
             try await userService.deleteAccount()
             try await authService.signOut()
             step = .done

@@ -18,8 +18,8 @@ struct WithdrawalReasonDropdown: View {
                 reasonList
             }
         }
-        .background(.gray90)
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .background(.gray95)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 
     // MARK: - Header
@@ -30,14 +30,14 @@ struct WithdrawalReasonDropdown: View {
                 Text(selectedReason?.displayText ?? "탈퇴 사유를 선택해주세요")
                     .pretendard(.body(.medium()))
                     .foregroundStyle(
-                        selectedReason != nil ? UIAsset.Colors.gray0.color : UIAsset.Colors.gray50.color
+                        selectedReason != nil ? UIAsset.Colors.gray0.color : UIAsset.Colors.gray20.color
                     )
 
                 Spacer()
 
                 Image(systemName: isOpen ? "chevron.up" : "chevron.down")
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.gray40)
+                    .foregroundStyle(.gray20)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 14)

@@ -12,4 +12,8 @@ struct AppVersionPolicy: Decodable, Sendable, Equatable {
     let forceUpdate: Bool
     /// 앱스토어 이동 URL.
     let storeUrl: String
+    /// 고객센터 1:1 문의 이메일. 서버가 내려줄 때만 채워진다(미반영 시 클라이언트 기본값 사용).
+    let supportEmail: String?
+    /// 약관/정책 문서 목록. 서버가 내려줄 때만 채워진다(미반영 시 클라이언트 기본값 사용).
+    let termsPolicies: [TermsPolicy]?
 }

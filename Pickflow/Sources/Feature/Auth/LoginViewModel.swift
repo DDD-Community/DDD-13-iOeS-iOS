@@ -7,11 +7,6 @@ final class LoginViewModel: ObservableObject {
         case apple
     }
 
-    struct WithdrawnAccountInfo {
-        let restoreToken: String
-        let credential: ProviderCredential
-    }
-
     @Published private(set) var isLoading = false
     @Published private(set) var activeLoginProvider: ActiveLoginProvider?
     @Published private(set) var errorMessage: String?
@@ -35,12 +30,8 @@ final class LoginViewModel: ObservableObject {
         do {
             try await socialLoginService.signInWithKakao()
             didSignInSucceed = true
-        } catch AuthError.withdrawalRestoreRequired(let restoreToken, let credential) {
-            withdrawnAccountInfo = WithdrawnAccountInfo(restoreToken: restoreToken, credential: credential)
-        } catch let e as APIError {
-            e.post()
         } catch {
-            errorMessage = error.localizedDescription
+            handleSignInError(error)
         }
         isLoading = false
         activeLoginProvider = nil
@@ -54,15 +45,22 @@ final class LoginViewModel: ObservableObject {
         do {
             try await socialLoginService.signInWithApple()
             didSignInSucceed = true
-        } catch AuthError.withdrawalRestoreRequired(let restoreToken, let credential) {
-            withdrawnAccountInfo = WithdrawnAccountInfo(restoreToken: restoreToken, credential: credential)
-        } catch let e as APIError {
-            e.post()
         } catch {
-            errorMessage = error.localizedDescription
+            handleSignInError(error)
         }
         isLoading = false
         activeLoginProvider = nil
+    }
+
+    /// 로그인 에러를 처리한다. 재가입 필요면 안내 팝업 상태를 설정한다.
+    private func handleSignInError(_ error: Error) {
+        if let info = RestoreAccountFlow.info(from: error) {
+            withdrawnAccountInfo = info
+        } else if let e = error as? APIError {
+            e.post()
+        } else {
+            errorMessage = error.localizedDescription
+        }
     }
 
     func confirmRestoreTapped() async {
@@ -72,8 +70,7 @@ final class LoginViewModel: ObservableObject {
         activeLoginProvider = info.credential.isSocialKakao ? .kakao : .apple
         errorMessage = nil
         do {
-            try await socialLoginService.restoreAccount(restoreToken: info.restoreToken)
-            try await socialLoginService.retrySignIn(with: info.credential)
+            try await RestoreAccountFlow.restore(info, using: socialLoginService)
             didSignInSucceed = true
         } catch let e as APIError {
             e.post()
