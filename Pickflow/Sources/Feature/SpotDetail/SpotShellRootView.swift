@@ -5,15 +5,26 @@ struct SpotShellRootView: View {
     var onDismiss: () -> Void = {}
     @State private var isLoginViewPresented = false
     @State private var pendingLogin = false
+    // 미디엄 시트는 화면 하단 일부만 차지하므로 풀스크린 커버(clear 배경)로 띄워 화면 중앙에 배치한다.
+    // 단, 커버 기본 슬라이드업 대신 fade in/out 으로 보이도록 커버 자체 애니메이션은 끄고
+    // 내부 콘텐츠 opacity 로 페이드를 직접 제어한다.
+    @State private var showLoginCover = false
+    @State private var loginContentVisible = false
 
-    // 미디엄 시트는 화면 하단 일부만 차지하므로, 시트 내부 overlay 로는
-    // 팝업이 화면 중앙이 아닌 시트 중앙에 떠버린다.
-    // 풀스크린 커버(clear 배경)로 띄워 화면 전체 기준 중앙에 배치한다.
-    private var loginPromptBinding: Binding<Bool> {
-        Binding(
-            get: { viewModel.isLoginRequired && viewModel.presentationPhase == .sheetMedium },
-            set: { viewModel.isLoginRequired = $0 }
-        )
+    private func presentLoginCover() {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) { showLoginCover = true }
+    }
+
+    private func dismissLoginCover() {
+        guard showLoginCover else { return }
+        withAnimation(.easeInOut(duration: 0.2)) { loginContentVisible = false }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) { showLoginCover = false }
+        }
     }
 
     var body: some View {
@@ -32,7 +43,16 @@ struct SpotShellRootView: View {
         .animation(.easeInOut(duration: 0.2), value: viewModel.presentationPhase)
         // 미디엄 시트에서는 SpotDetailView 의 로그인 유도 오버레이가 없으므로
         // 여기서 직접 띄운다. (large/fullCover 는 SpotDetailView 가 처리해 중복 방지)
-        .fullScreenCover(isPresented: loginPromptBinding, onDismiss: {
+        // isLoginRequired 변화를 fade 커버로 매핑 (커버 전환 애니메이션은 끄고 콘텐츠만 페이드).
+        .onChange(of: viewModel.isLoginRequired) { _, required in
+            if required, viewModel.presentationPhase == .sheetMedium {
+                presentLoginCover()
+            } else if !required {
+                dismissLoginCover()
+            }
+        }
+        .fullScreenCover(isPresented: $showLoginCover, onDismiss: {
+            loginContentVisible = false
             // 팝업 dismiss 가 끝난 뒤 로그인 화면을 띄워 커버 중첩 충돌을 피한다.
             if pendingLogin {
                 pendingLogin = false
@@ -50,6 +70,10 @@ struct SpotShellRootView: View {
                     }
                 )
                 .padding(.horizontal, 32)
+            }
+            .opacity(loginContentVisible ? 1 : 0)
+            .onAppear {
+                withAnimation(.easeInOut(duration: 0.2)) { loginContentVisible = true }
             }
             .presentationBackground(.clear)
         }

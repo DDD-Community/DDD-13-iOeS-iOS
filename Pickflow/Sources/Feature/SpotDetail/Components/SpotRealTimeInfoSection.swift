@@ -3,8 +3,28 @@ import SwiftUI
 struct SpotRealTimeInfoSection: View {
     let spot: SpotDetail
     @State private var isCongestionInfoPresented = false
+    // 풀스크린 커버 기본 슬라이드업 대신 fade in/out 으로 보이도록
+    // 커버 표시 애니메이션은 끄고 내부 콘텐츠 opacity 로 페이드를 제어한다.
+    @State private var showCongestionCover = false
+    @State private var congestionContentVisible = false
 
     private var isMine: Bool { spot.isMySpot }
+
+    private func presentCongestionCover() {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) { showCongestionCover = true }
+    }
+
+    private func dismissCongestionCover() {
+        guard showCongestionCover else { return }
+        withAnimation(.easeInOut(duration: 0.2)) { congestionContentVisible = false }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) { showCongestionCover = false }
+        }
+    }
 
     private var realtimeDescriptionText: AttributedString {
         var str = AttributedString("공공 API를 활용한 실시간 정보를 확인해 보세요")
@@ -55,13 +75,20 @@ struct SpotRealTimeInfoSection: View {
             .background(.gray90)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
-        .fullScreenCover(isPresented: $isCongestionInfoPresented) {
+        .onChange(of: isCongestionInfoPresented) { _, presented in
+            if presented { presentCongestionCover() } else { dismissCongestionCover() }
+        }
+        .fullScreenCover(isPresented: $showCongestionCover, onDismiss: { congestionContentVisible = false }) {
             ZStack {
                 Color.black.opacity(0.5)
                     .ignoresSafeArea()
                     .onTapGesture { isCongestionInfoPresented = false }
                 CongestionInfoPopup { isCongestionInfoPresented = false }
                     .padding(.horizontal, 24)
+            }
+            .opacity(congestionContentVisible ? 1 : 0)
+            .onAppear {
+                withAnimation(.easeInOut(duration: 0.2)) { congestionContentVisible = true }
             }
             .presentationBackground(.clear)
         }
