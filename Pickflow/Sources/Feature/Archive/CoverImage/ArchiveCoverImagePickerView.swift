@@ -37,6 +37,11 @@ final class ArchiveCoverImagePickerViewModel: ObservableObject {
         Task { selectedImageData = await loadFullData(for: asset) }
     }
 
+    func selectCaptured(_ data: Data) {
+        selectedAsset = nil
+        selectedImageData = data
+    }
+
     private func loadAssets(for album: CoverAlbum) async {
         let options = PHFetchOptions()
         options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
@@ -87,12 +92,13 @@ final class ArchiveCoverImagePickerViewModel: ObservableObject {
 // MARK: - Picker View
 
 struct ArchiveCoverImagePickerView: View {
-    @Environment(\.dismiss) private var dismiss
     let archiveName: String
     let currentImageData: Data?
     let onSelect: (Data) -> Void
+    let onClose: () -> Void
 
     @StateObject private var vm = ArchiveCoverImagePickerViewModel()
+    @State private var showCamera = false
 
     private var previewImage: UIImage? {
         if let data = vm.selectedImageData ?? currentImageData { return UIImage(data: data) }
@@ -107,6 +113,10 @@ struct ArchiveCoverImagePickerView: View {
         }
         .background(UIAsset.Colors.gray95.swiftUIColor.ignoresSafeArea())
         .task { await vm.requestAndLoad() }
+        .fullScreenCover(isPresented: $showCamera) {
+            CameraPicker { data in vm.selectCaptured(data) }
+                .ignoresSafeArea()
+        }
     }
 
     // MARK: Nav bar
@@ -114,26 +124,27 @@ struct ArchiveCoverImagePickerView: View {
     private var navBar: some View {
         HStack {
             Button {
-                dismiss()
+                onClose()
             } label: {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(UIAsset.Colors.gray0.swiftUIColor)
                     .padding(.vertical, 12)
                     .padding(.trailing, 8)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
 
             Spacer()
             Text("사진첩")
-                .pretendard(.body(.large(.bold)))
+                .pretendard(.heading(.medium))
                 .foregroundStyle(.gray0)
             Spacer()
 
             Button("등록") {
                 guard let data = vm.selectedImageData else { return }
                 onSelect(data)
-                dismiss()
+                onClose()
             }
             .pretendard(.body(.medium(.bold)))
             .foregroundStyle(vm.selectedImageData != nil
@@ -181,6 +192,9 @@ struct ArchiveCoverImagePickerView: View {
                 .padding(.bottom, 16)
                 .allowsHitTesting(false)
         }
+        .frame(height: 280)
+        .clipped()
+        .allowsHitTesting(false)
     }
 
     // MARK: Photo grid
@@ -223,7 +237,7 @@ struct ArchiveCoverImagePickerView: View {
         } label: {
             HStack(spacing: 4) {
                 Text(vm.selectedAlbum.rawValue)
-                    .pretendard(.body(.medium(.bold)))
+                    .pretendard(.body(.large(.bold)))
                     .foregroundStyle(.gray0)
                 Image(systemName: "chevron.right")
                     .font(.system(size: 13, weight: .medium))
@@ -239,9 +253,17 @@ struct ArchiveCoverImagePickerView: View {
         UIAsset.Colors.gray80.swiftUIColor
             .aspectRatio(1, contentMode: .fit)
             .overlay {
-                Image(systemName: "camera")
-                    .font(.system(size: 24, weight: .regular))
-                    .foregroundStyle(UIAsset.Colors.gray50.swiftUIColor)
+                AssetImage(named: "ic_camera", renderingMode: .original, size: 24) {
+                    Image(systemName: "camera")
+                        .font(.system(size: 24, weight: .regular))
+                        .foregroundStyle(UIAsset.Colors.gray50.swiftUIColor)
+                }
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                // 카메라 사용 가능 환경(실기기)에서만 촬영 화면을 띄운다. (시뮬레이터 크래시 방지)
+                guard UIImagePickerController.isSourceTypeAvailable(.camera) else { return }
+                showCamera = true
             }
     }
 }
@@ -255,21 +277,24 @@ struct ArchivePhotoThumbnailView: View {
     @State private var thumbnail: UIImage?
 
     var body: some View {
-        ZStack {
-            UIAsset.Colors.gray80.swiftUIColor
-            if let img = thumbnail {
-                Image(uiImage: img)
-                    .resizable()
-                    .scaledToFill()
+        UIAsset.Colors.gray80.swiftUIColor
+            .aspectRatio(1, contentMode: .fit)
+            .overlay {
+                if let img = thumbnail {
+                    Image(uiImage: img)
+                        .resizable()
+                        .scaledToFill()
+                }
             }
-            if isSelected {
-                Rectangle()
-                    .strokeBorder(UIAsset.Colors.sunsetOrange.swiftUIColor, lineWidth: 3)
+            .clipped()
+            .overlay {
+                if isSelected {
+                    Rectangle()
+                        .strokeBorder(UIAsset.Colors.sunsetOrange.swiftUIColor, lineWidth: 3)
+                }
             }
-        }
-        .aspectRatio(1, contentMode: .fit)
-        .clipped()
-        .task(id: asset.localIdentifier) { thumbnail = await loadThumbnail() }
+            .contentShape(Rectangle())
+            .task(id: asset.localIdentifier) { thumbnail = await loadThumbnail() }
     }
 
     private func loadThumbnail() async -> UIImage? {
