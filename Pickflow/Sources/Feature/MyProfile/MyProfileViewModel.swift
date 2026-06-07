@@ -17,6 +17,7 @@ final class MyProfileViewModel: ObservableObject {
     @Published var isNavigatingToTermsAndPolicy = false
     @Published private(set) var isLoginLoading = false
     @Published private(set) var loginError: String?
+    @Published private(set) var withdrawnAccountInfo: WithdrawnAccountInfo?
 
     /// 고객센터 1:1 문의 이메일. config API 응답으로 채워지며, 서버가 내려주기 전까지는 `nil`.
     @Published private(set) var supportEmail: String?
@@ -85,10 +86,8 @@ final class MyProfileViewModel: ObservableObject {
         do {
             try await socialLoginService.signInWithKakao()
             await onAppear()
-        } catch let e as APIError {
-            e.post()
         } catch {
-            loginError = error.localizedDescription
+            handleSignInError(error)
         }
         isLoginLoading = false
     }
@@ -100,12 +99,41 @@ final class MyProfileViewModel: ObservableObject {
         do {
             try await socialLoginService.signInWithApple()
             await onAppear()
+        } catch {
+            handleSignInError(error)
+        }
+        isLoginLoading = false
+    }
+
+    /// 로그인 에러 처리. 재가입 필요면 안내 팝업 상태를 설정한다.
+    private func handleSignInError(_ error: Error) {
+        if let info = RestoreAccountFlow.info(from: error) {
+            withdrawnAccountInfo = info
+        } else if let e = error as? APIError {
+            e.post()
+        } else {
+            loginError = error.localizedDescription
+        }
+    }
+
+    func confirmRestore() async {
+        guard let info = withdrawnAccountInfo else { return }
+        withdrawnAccountInfo = nil
+        isLoginLoading = true
+        loginError = nil
+        do {
+            try await RestoreAccountFlow.restore(info, using: socialLoginService)
+            await onAppear()
         } catch let e as APIError {
             e.post()
         } catch {
             loginError = error.localizedDescription
         }
         isLoginLoading = false
+    }
+
+    func cancelRestore() {
+        withdrawnAccountInfo = nil
     }
 
     func navigateToAccountManagement() {

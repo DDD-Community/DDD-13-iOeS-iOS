@@ -24,7 +24,7 @@ struct WithdrawalView: View {
                     Spacer()
 
                 case .done:
-                    EmptyView()
+                    doneBody
 
                 case let .failed(message):
                     Spacer()
@@ -44,12 +44,50 @@ struct WithdrawalView: View {
             }
         }
         .navigationBarHidden(true)
-        .onChange(of: viewModel.step) { _, newStep in
-            if case .done = newStep {
-                onWithdrawn()
-                dismiss()
+        .animation(.easeInOut(duration: 0.25), value: viewModel.step)
+    }
+
+    /// 탈퇴 완료 후 로그인 화면으로 빠져나간다.
+    private func completeAndExit() {
+        onWithdrawn()
+        dismiss()
+    }
+
+    // MARK: - Done Body
+
+    private var doneBody: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            VStack(spacing: 8) {
+                Text("탈퇴가 완료되었어요.")
+                    .pretendard(.heading(.medium))
+                    .foregroundStyle(.gray30)
+
+                Text("이용해 주셔서 감사합니다.")
+                    .pretendard(.body(.large()))
+                    .foregroundStyle(.gray50)
             }
+            .multilineTextAlignment(.center)
+
+            Spacer().frame(height: 56)
+
+            Button {
+                completeAndExit()
+            } label: {
+                Text("로그인 화면으로 이동")
+                    .pretendard(.body(.large(.bold)))
+                    .foregroundStyle(.gray0)
+                    .frame(maxWidth: .infinity, minHeight: 56)
+                    .background(.sunsetOrange)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 20)
+
+            Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     // MARK: - Custom Header
@@ -57,7 +95,11 @@ struct WithdrawalView: View {
     private var customHeader: some View {
         HStack {
             Button {
-                dismiss()
+                if case .done = viewModel.step {
+                    completeAndExit()
+                } else {
+                    dismiss()
+                }
             } label: {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 17, weight: .semibold))
@@ -84,7 +126,7 @@ struct WithdrawalView: View {
     private var inputBody: some View {
         VStack(spacing: 0) {
             ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 28) {
+                VStack(alignment: .leading, spacing: 48) {
                     cautionSection
                     reasonSection
                 }
@@ -106,29 +148,29 @@ struct WithdrawalView: View {
                 .pretendard(.heading(.small))
                 .foregroundStyle(.gray0)
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text("계정을 삭제하면 저장한 스팟과 기록이 모두 삭제됩니다.")
-                    .pretendard(.body(.medium()))
-                    .foregroundStyle(.gray0)
-
-                (Text("삭제된 정보는 복구할 수 없으니 ")
-                    .foregroundColor(UIAsset.Colors.sunsetOrange.color)
-                + Text("신중하게 결정해주세요.")
-                    .foregroundColor(UIAsset.Colors.gray0.color))
+            (Text("탈퇴할 경우 서비스에서 저장한 스팟 및 활동 기록을\n더 이상 확인할 수 없습니다. 계정 정보와 기록은 ")
+                .foregroundColor(UIAsset.Colors.gray0.color)
+            + Text("일정 기간(1년) 보관 후 파기")
+                .foregroundColor(UIAsset.Colors.sunsetOrange.color)
+            + Text("되며, 이후에는 ")
+                .foregroundColor(UIAsset.Colors.gray0.color)
+            + Text("복구가 불가능")
+                .foregroundColor(UIAsset.Colors.sunsetOrange.color)
+            + Text("하니 신중하게 결정해주세요.")
+                .foregroundColor(UIAsset.Colors.gray0.color))
                 .pretendard(.body(.medium()))
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(16)
-            .background(.gray80)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+                .padding(16)
+                .background(.gray80)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
     }
 
     // MARK: - Reason Section
 
     private var reasonSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text("어떤 점이 아쉬우셨나요?")
                     .pretendard(.heading(.small))
                     .foregroundStyle(.gray0)
@@ -145,9 +187,10 @@ struct WithdrawalView: View {
                 onSelect: { viewModel.selectReason($0) }
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .stroke(UIAsset.Colors.gray60.color, lineWidth: 1)
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .stroke(UIAsset.Colors.gray50.color, lineWidth: 1)
             )
+            .padding(.top, 12)
 
             if viewModel.selectedReason == .other {
                 TextField(
@@ -157,16 +200,31 @@ struct WithdrawalView: View {
                 )
                 .pretendard(.body(.medium()))
                 .foregroundStyle(.gray0)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
-                .background(.gray80)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .padding(16)
+                .frame(height: 300)
+                .background(.gray95)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                .lineLimit(3...)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(UIAsset.Colors.gray50.color, lineWidth: 1)
+                )
+                .overlay(alignment: .bottomTrailing) {
+                    HStack(spacing: 0) {
+                        Text("\(viewModel.otherFeedback.count)")
+                            .foregroundStyle(.gray0)
+                        Text("/200")
+                            .foregroundStyle(.gray50)
+                    }
+                    .pretendard(.label(.medium))
+                    .padding([.trailing, .bottom], 16)
+                }
                 .onChange(of: viewModel.otherFeedback) { _, newValue in
                     if newValue.count > 200 {
                         viewModel.otherFeedback = String(newValue.prefix(200))
                     }
                 }
+                .padding(.top, 24)
             }
         }
     }
@@ -193,8 +251,8 @@ struct WithdrawalView: View {
                 ZStack {
                     RoundedRectangle(cornerRadius: 4, style: .continuous)
                         .stroke(
-                            viewModel.didAgreeToTerms ? UIAsset.Colors.sunsetOrange.color : UIAsset.Colors.gray50.color,
-                            lineWidth: 1.5
+                            viewModel.didAgreeToTerms ? UIAsset.Colors.sunsetOrange.color : UIAsset.Colors.gray0.color,
+                            lineWidth: 1
                         )
                         .frame(width: 22, height: 22)
 
@@ -211,7 +269,7 @@ struct WithdrawalView: View {
 
                 Text("안내사항을 모두 확인하였으며 이에 동의합니다.")
                     .pretendard(.body(.medium()))
-                    .foregroundStyle(.gray20)
+                    .foregroundStyle(.gray0)
                     .fixedSize(horizontal: false, vertical: true)
 
                 Spacer()

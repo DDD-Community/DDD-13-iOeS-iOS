@@ -10,6 +10,9 @@ struct AccountManagementView: View {
 
     @State private var isShowingWithdrawal = false
     @State private var photosPickerItem: PhotosPickerItem?
+    @State private var isShowingImageSourceDialog = false
+    @State private var isShowingPhotosPicker = false
+    @State private var isShowingCamera = false
 
     var body: some View {
         ZStack {
@@ -72,6 +75,20 @@ struct AccountManagementView: View {
                     viewModel.setDraftProfileImage(data)
                 }
             }
+        }
+        .confirmationDialog("프로필 사진", isPresented: $isShowingImageSourceDialog, titleVisibility: .hidden) {
+            if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                Button("카메라 촬영") { isShowingCamera = true }
+            }
+            Button("앨범에서 선택") { isShowingPhotosPicker = true }
+            Button("취소", role: .cancel) {}
+        }
+        .photosPicker(isPresented: $isShowingPhotosPicker, selection: $photosPickerItem, matching: .images)
+        .fullScreenCover(isPresented: $isShowingCamera) {
+            CameraPicker { data in
+                viewModel.setDraftProfileImage(data)
+            }
+            .ignoresSafeArea()
         }
         .navigationDestination(isPresented: $isShowingWithdrawal) {
             WithdrawalView(
@@ -153,7 +170,9 @@ struct AccountManagementView: View {
     // MARK: - Profile Image
 
     private var profileImageSection: some View {
-        PhotosPicker(selection: $photosPickerItem, matching: .images) {
+        Button {
+            isShowingImageSourceDialog = true
+        } label: {
             ZStack(alignment: .bottomTrailing) {
                 profileImageView
                     .frame(width: 96, height: 96)
@@ -224,6 +243,22 @@ struct AccountManagementView: View {
                 .padding(.vertical, 14)
                 .background(.gray80)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(UIAsset.Colors.sunsetOrange.color, lineWidth: 1)
+                        .opacity(viewModel.nicknameValidationError != nil ? 1 : 0)
+                )
+                .onChange(of: viewModel.nicknameDraft) { _, newValue in
+                    if newValue.count > AccountManagementViewModel.nicknameMaxLength {
+                        viewModel.nicknameDraft = String(newValue.prefix(AccountManagementViewModel.nicknameMaxLength))
+                    }
+                }
+
+            if let error = viewModel.nicknameValidationError {
+                Text(error)
+                    .pretendard(.body(.small()))
+                    .foregroundStyle(.sunsetOrange)
+            }
         }
     }
 
@@ -249,7 +284,10 @@ struct AccountManagementView: View {
         }
     }
 
-    private var socialProviderLabel: String { "—" }
+    private var socialProviderLabel: String {
+        guard let provider = viewModel.user?.provider else { return "—" }
+        return "\(provider.displayName) 계정 연결됨"
+    }
 
     // MARK: - Account Actions
 

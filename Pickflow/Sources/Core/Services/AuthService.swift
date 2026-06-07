@@ -19,7 +19,7 @@ final class AuthService: AuthServiceProtocol, Sendable {
                failure.code == "U007",
                let restoreToken = failure.data?.restoreToken
             {
-                throw AuthError.withdrawalRestoreRequired(restoreToken: restoreToken, credential: .kakao(accessToken: accessToken))
+                throw AuthError.withdrawalRestoreRequired(restoreToken: restoreToken, message: failure.message, credential: .kakao(accessToken: accessToken))
             }
             let response = try Self.snakeCaseDecoder.decode(ApiResponse<TokenResponse>.self, from: data)
             return response.data
@@ -35,7 +35,7 @@ final class AuthService: AuthServiceProtocol, Sendable {
                failure.code == "U007",
                let restoreToken = failure.data?.restoreToken
             {
-                throw AuthError.withdrawalRestoreRequired(restoreToken: restoreToken, credential: .apple(identityToken: identityToken, user: user))
+                throw AuthError.withdrawalRestoreRequired(restoreToken: restoreToken, message: failure.message, credential: .apple(identityToken: identityToken, user: user))
             }
             let response = try Self.snakeCaseDecoder.decode(ApiResponse<TokenResponse>.self, from: data)
             return response.data
