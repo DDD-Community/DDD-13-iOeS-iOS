@@ -22,32 +22,34 @@ struct SpotRealTimeInfoSection: View {
                 .frame(maxWidth: .infinity, alignment: .center)
                 .multilineTextAlignment(.center)
 
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text("\(spot.sunsetTime.map { DateFormatter.pickflowDisplayTime(from: $0) } ?? "-") 기준 정보입니다.")
                     .pretendard(.body(.small()))
                     .foregroundStyle(.gray50)
                     .frame(maxWidth: .infinity, alignment: .trailing)
-                    .padding(.bottom, 8)
 
-                infoRow(
-                    iconName: "icSunny",
-                    label: "현재 날씨",
-                    value: spot.weatherDisplayName ?? "-",
-                    sub: spot.precipitationProbability.map { "강수확률 \($0)%" } ?? "강수확률 -"
-                )
-                infoRow(
-                    iconName: "icTwilight",
-                    label: "일몰 시간",
-                    value: spot.sunsetTime.map { DateFormatter.pickflowDisplayTime(from: $0) } ?? "-",
-                    sub: "오차 시간"
-                )
-                infoRow(
-                    iconName: "icLocalParking",
-                    label: "주차 관련",
-                    value: isMine ? "-" : (spot.parkingInfo ?? "-"),
-                    sub: nil
-                )
-                congestionRow
+                VStack(alignment: .leading, spacing: 36) {
+                    infoRow(
+                        iconName: "icSunny",
+                        label: "현재 날씨",
+                        value: spot.weatherDisplayName ?? "-",
+                        sub: spot.precipitationProbability.map { "강수확률 \($0)%" } ?? "강수확률 -"
+                    )
+                    infoRow(
+                        iconName: "icTwilight",
+                        label: "일몰 시간",
+                        value: spot.sunsetTime.map { DateFormatter.pickflowDisplayTime(from: $0) } ?? "-",
+                        sub: "오차 시간"
+                    )
+                    infoRow(
+                        iconName: "icLocalParking",
+                        label: "주차 관련",
+                        value: isMine ? "-" : (spot.parkingInfo ?? "-"),
+                        sub: nil,
+                        multiline: true
+                    )
+                    congestionRow
+                }
             }
             .padding(16)
             .background(.gray90)
@@ -67,7 +69,7 @@ struct SpotRealTimeInfoSection: View {
 
     private static let whiteIconNames: Set<String> = ["icSunny", "icTwilight"]
 
-    private func infoRow(iconName: String, label: String, value: String, sub: String?) -> some View {
+    private func infoRow(iconName: String, label: String, value: String, sub: String?, multiline: Bool = false) -> some View {
         HStack(spacing: 12) {
             iconContainer(named: iconName, white: Self.whiteIconNames.contains(iconName))
             VStack(alignment: .leading, spacing: 2) {
@@ -78,16 +80,19 @@ struct SpotRealTimeInfoSection: View {
                     Text(value)
                         .pretendard(.heading(.large))
                         .foregroundStyle(.gray0)
+                        .lineLimit(multiline ? 2 : 1)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: multiline ? .infinity : nil, alignment: .leading)
                     if let sub {
                         Text(sub)
-                            .pretendard(.body(.medium()))
+                            .pretendard(.body(.medium(.bold)))
                             .foregroundStyle(.gray50)
                     }
                 }
             }
-            Spacer()
+            Spacer(minLength: 0)
         }
-        .frame(height: 54)
+        .frame(minHeight: 54)
     }
 
     private var congestionRow: some View {

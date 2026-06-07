@@ -3,6 +3,18 @@ import SwiftUI
 struct SpotShellRootView: View {
     @ObservedObject var viewModel: SpotDetailViewModel
     var onDismiss: () -> Void = {}
+    @State private var isLoginViewPresented = false
+    @State private var pendingLogin = false
+
+    // 미디엄 시트는 화면 하단 일부만 차지하므로, 시트 내부 overlay 로는
+    // 팝업이 화면 중앙이 아닌 시트 중앙에 떠버린다.
+    // 풀스크린 커버(clear 배경)로 띄워 화면 전체 기준 중앙에 배치한다.
+    private var loginPromptBinding: Binding<Bool> {
+        Binding(
+            get: { viewModel.isLoginRequired && viewModel.presentationPhase == .sheetMedium },
+            set: { viewModel.isLoginRequired = $0 }
+        )
+    }
 
     var body: some View {
         Group {
@@ -18,6 +30,36 @@ struct SpotShellRootView: View {
             }
         }
         .animation(.easeInOut(duration: 0.2), value: viewModel.presentationPhase)
+        // 미디엄 시트에서는 SpotDetailView 의 로그인 유도 오버레이가 없으므로
+        // 여기서 직접 띄운다. (large/fullCover 는 SpotDetailView 가 처리해 중복 방지)
+        .fullScreenCover(isPresented: loginPromptBinding, onDismiss: {
+            // 팝업 dismiss 가 끝난 뒤 로그인 화면을 띄워 커버 중첩 충돌을 피한다.
+            if pendingLogin {
+                pendingLogin = false
+                isLoginViewPresented = true
+            }
+        }) {
+            ZStack {
+                Color.black.opacity(0.5).ignoresSafeArea()
+                    .onTapGesture { viewModel.isLoginRequired = false }
+                LoginPromptPopup(
+                    onCancel: { viewModel.isLoginRequired = false },
+                    onLogin: {
+                        pendingLogin = true
+                        viewModel.isLoginRequired = false
+                    }
+                )
+                .padding(.horizontal, 32)
+            }
+            .presentationBackground(.clear)
+        }
+        .fullScreenCover(isPresented: $isLoginViewPresented) {
+            LoginView(
+                viewModel: LoginViewModel(socialLoginService: getSocialLoginService()),
+                onSignInSucceeded: { isLoginViewPresented = false },
+                isClosable: true
+            )
+        }
         .task {
             if viewModel.previewState == .idle {
                 await viewModel.onAppear()

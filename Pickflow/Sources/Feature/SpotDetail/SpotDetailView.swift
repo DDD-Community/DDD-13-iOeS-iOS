@@ -162,7 +162,15 @@ struct SpotDetailView: View {
                         onOpenSpot: { isOpenSpotSheetPresented = true }
                     )
                     SpotRealTimeInfoSection(spot: spot)
-                    ReportButton(action: { isReportSheetPresented = true })
+                    ReportButton(action: {
+                        if viewModel.isLoggedIn {
+                            isReportSheetPresented = true
+                        } else {
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                viewModel.isLoginRequired = true
+                            }
+                        }
+                    })
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
