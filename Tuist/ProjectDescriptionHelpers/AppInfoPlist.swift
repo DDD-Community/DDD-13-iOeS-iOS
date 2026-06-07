@@ -16,6 +16,8 @@ extension InfoPlist {
         "KAKAO_REST_API_KEY": .string("$(KAKAO_REST_API_KEY)"),
         "NSLocationWhenInUseUsageDescription": .string("사용자의 현재 위치를 기반으로 정확한 포토스팟 정보를 제공하기 위해 위치 권한이 필요합니다."),
         "NSPhotoLibraryUsageDescription": .string("보관함 커버 이미지를 설정하기 위해 사진 접근 권한이 필요합니다."),
+        // 일부 접근(limited) 시 iOS 기본 자동 알림을 끄고, 앱 내 배너로 "사진 추가"를 제어한다.
+        "PHPhotoLibraryPreventAutomaticLimitedAccessAlert": .boolean(true),
         "NSCameraUsageDescription": .string("프로필 사진 및 보관함 커버 이미지를 촬영하기 위해 카메라 접근 권한이 필요합니다."),
         "CFBundleURLTypes": .array([
             .dictionary([

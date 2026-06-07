@@ -13,18 +13,56 @@ enum CoverAlbum: String, CaseIterable {
 // MARK: - ViewModel
 
 @MainActor
-final class ArchiveCoverImagePickerViewModel: ObservableObject {
+final class ArchiveCoverImagePickerViewModel: NSObject, ObservableObject, PHPhotoLibraryChangeObserver {
     @Published var assets: [PHAsset] = []
     @Published var selectedAsset: PHAsset?
     @Published var selectedImageData: Data?
     @Published var authorizationStatus: PHAuthorizationStatus = .notDetermined
     @Published var selectedAlbum: CoverAlbum = .recent
 
+    /// 일부 접근(limited)에서 허용 사진이 바뀔 때 그리드를 자동 갱신하기 위한 옵저버 등록 여부.
+    private var isObservingLibrary = false
+
+    deinit {
+        // 등록 여부와 무관하게 안전하게 해제.
+        PHPhotoLibrary.shared().unregisterChangeObserver(self)
+    }
+
     func requestAndLoad() async {
         let status = await PHPhotoLibrary.requestAuthorization(for: .readWrite)
         authorizationStatus = status
         guard status == .authorized || status == .limited else { return }
+        registerLibraryObserverIfNeeded()
         await loadAssets(for: selectedAlbum)
+    }
+
+    /// 일부 접근일 때 "앱에 허용할 사진 관리" 시스템 시트를 띄운다.
+    /// 여기서의 다중선택은 *커버 선택*이 아니라 *앱에 보여줄 사진 허용* 관리다.
+    func presentLimitedLibraryPicker() {
+        guard let vc = Self.topViewController() else { return }
+        PHPhotoLibrary.shared().presentLimitedLibraryPicker(from: vc)
+    }
+
+    private func registerLibraryObserverIfNeeded() {
+        guard !isObservingLibrary else { return }
+        PHPhotoLibrary.shared().register(self)
+        isObservingLibrary = true
+    }
+
+    nonisolated func photoLibraryDidChange(_ changeInstance: PHChange) {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            await self.loadAssets(for: self.selectedAlbum)
+        }
+    }
+
+    private static func topViewController() -> UIViewController? {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        let scene = scenes.first { $0.activationState == .foregroundActive } ?? scenes.first
+        var top = scene?.windows.first(where: \.isKeyWindow)?.rootViewController
+            ?? scene?.windows.first?.rootViewController
+        while let presented = top?.presentedViewController { top = presented }
+        return top
     }
 
     func selectAlbum(_ album: CoverAlbum) {
@@ -203,6 +241,9 @@ struct ArchiveCoverImagePickerView: View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
                 albumSelector
+                if vm.authorizationStatus == .limited {
+                    limitedAccessBanner
+                }
                 LazyVGrid(
                     columns: Array(repeating: GridItem(.flexible(), spacing: 2), count: 4),
                     spacing: 2
@@ -247,6 +288,38 @@ struct ArchiveCoverImagePickerView: View {
             .padding(.vertical, 12)
         }
         .buttonStyle(.plain)
+    }
+
+    private var limitedAccessBanner: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("선택한 사진만 보여요")
+                    .pretendard(.body(.medium(.bold)))
+                    .foregroundStyle(.gray0)
+                Text("커버로 쓸 사진이 없다면 더 추가해 주세요")
+                    .pretendard(.body(.small()))
+                    .foregroundStyle(.gray50)
+            }
+            Spacer(minLength: 0)
+            Button {
+                vm.presentLimitedLibraryPicker()
+            } label: {
+                Text("사진 추가")
+                    .pretendard(.body(.medium(.bold)))
+                    .foregroundStyle(.gray0)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(UIAsset.Colors.gray70.swiftUIColor)
+                    .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(UIAsset.Colors.gray90.swiftUIColor)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .padding(.horizontal, 16)
+        .padding(.bottom, 8)
     }
 
     private var cameraCell: some View {
@@ -299,13 +372,15 @@ struct ArchivePhotoThumbnailView: View {
 
     private func loadThumbnail() async -> UIImage? {
         let opts = PHImageRequestOptions()
-        opts.deliveryMode = .fastFormat
+        // highQualityFormat: 결과 핸들러 1회 호출 보장(continuation 안전) + 필요 시 iCloud 다운로드.
+        // fastFormat + 네트워크 차단이면 캐시 없는(일부 접근/ iCloud 최적화) 사진이 nil로 와 빈 칸이 됨.
+        opts.deliveryMode = .highQualityFormat
         opts.resizeMode = .fast
-        opts.isNetworkAccessAllowed = false
+        opts.isNetworkAccessAllowed = true
         return await withCheckedContinuation { continuation in
             PHImageManager.default().requestImage(
                 for: asset,
-                targetSize: CGSize(width: 200, height: 200),
+                targetSize: CGSize(width: 300, height: 300),
                 contentMode: .aspectFill,
                 options: opts
             ) { image, _ in
