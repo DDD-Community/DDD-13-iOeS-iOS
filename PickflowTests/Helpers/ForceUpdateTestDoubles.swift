@@ -16,13 +16,17 @@ extension AppVersionPolicy {
         minimumVersion: String = "1.0.0",
         latestVersion: String = "1.0.0",
         forceUpdate: Bool = false,
-        storeUrl: String = "https://apps.apple.com/app/id000000000"
+        storeUrl: String = "https://apps.apple.com/app/id000000000",
+        supportEmail: String? = nil,
+        termsPolicies: [TermsPolicy]? = nil
     ) -> AppVersionPolicy {
         AppVersionPolicy(
             minimumVersion: minimumVersion,
             latestVersion: latestVersion,
             forceUpdate: forceUpdate,
-            storeUrl: storeUrl
+            storeUrl: storeUrl,
+            supportEmail: supportEmail,
+            termsPolicies: termsPolicies
         )
     }
 }

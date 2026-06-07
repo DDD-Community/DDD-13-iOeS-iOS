@@ -18,20 +18,30 @@ final class MyProfileViewModel: ObservableObject {
     @Published private(set) var isLoginLoading = false
     @Published private(set) var loginError: String?
 
+    /// 고객센터 1:1 문의 이메일. config API 응답으로 채워지며, 서버가 내려주기 전까지는 `nil`.
+    @Published private(set) var supportEmail: String?
+    /// 약관/정책 문서 목록. config API 응답으로 채워지며, 서버가 내려주기 전까지는 빈 배열.
+    @Published private(set) var termsPolicies: [TermsPolicy] = []
+
     let userService: UserServiceProtocol
     let authService: AuthServiceProtocol
     private let socialLoginService: SocialLoginServiceProtocol
+    private let appVersionService: AppVersionServiceProtocol
+
+    private var didLoadAppConfig = false
 
     nonisolated(unsafe) private var notificationObservers: [NSObjectProtocol] = []
 
     init(
         userService: UserServiceProtocol,
         authService: AuthServiceProtocol,
-        socialLoginService: SocialLoginServiceProtocol
+        socialLoginService: SocialLoginServiceProtocol,
+        appVersionService: AppVersionServiceProtocol
     ) {
         self.userService = userService
         self.authService = authService
         self.socialLoginService = socialLoginService
+        self.appVersionService = appVersionService
         setupNotificationObservers()
     }
 
@@ -42,6 +52,8 @@ final class MyProfileViewModel: ObservableObject {
     // 화면 재진입 시에는 이미 로드된 데이터를 유지하고,
     // 실제 변경 이벤트(노티피케이션)에만 반응해 갱신한다.
     func onAppear() async {
+        await loadAppConfigIfNeeded()
+
         if case .signedIn = state { return }
 
         let authState = await authService.currentAuthState()
@@ -50,6 +62,16 @@ final class MyProfileViewModel: ObservableObject {
             return
         }
         await fetchUser()
+    }
+
+    /// 약관/정책 URL과 고객센터 이메일을 config API에서 한 번 받아 캐시한다.
+    private func loadAppConfigIfNeeded() async {
+        guard !didLoadAppConfig else { return }
+        didLoadAppConfig = true
+
+        guard let policy = try? await appVersionService.fetchIOSVersionPolicy() else { return }
+        supportEmail = policy.supportEmail
+        termsPolicies = policy.termsPolicies ?? []
     }
 
     func refresh() async {
