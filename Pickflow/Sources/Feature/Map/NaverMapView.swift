@@ -93,7 +93,8 @@ final class NaverMapViewController: UIViewController, @preconcurrency NMFMapView
         // 동적 spots 갱신을 위해 매번 fresh clusterer를 만든다.
     }
 
-    private var lastSpotIdsHash: Int?
+    /// 현재 clusterer가 들고 있는 spotId → key 매핑. viewport 갱신 시 diff로 add/remove만 적용.
+    private var currentSpotKeys: [Int64: MapSpotClusterKey] = [:]
     private var lastMySpotIdsHash: Int?
     private var mySpotMarkers: [NMFMarker] = []
     fileprivate var leafMarkerRefs: [Int64: NMFMarker] = [:]
@@ -181,25 +182,55 @@ final class NaverMapViewController: UIViewController, @preconcurrency NMFMapView
     }
 
     private func updateCurationClusterer(spots: [ClusterableSpot], mapView: NMFMapView) {
-        // clusterer 재생성은 spots 변경 시만 — selectedSpotId 변경은 별도로 leaf marker만 갱신.
-        let newHash = spots.map(\.id).reduce(into: Hasher()) { $0.combine($1) }.finalize()
-        guard newHash != lastSpotIdsHash else { return }
-        lastSpotIdsHash = newHash
-        leafMarkerRefs.removeAll()
+        // 동일 spotId는 NMCClusterer에 그대로 두고 add/remove diff만 반영해야
+        // viewport 이동 시 살아남은 spot의 cluster centroid가 튀지 않는다.
+        let incoming: [Int64: MapSpotClusterKey] = Dictionary(
+            uniqueKeysWithValues: spots.map { ($0.id, MapSpotClusterKey(spot: $0)) }
+        )
 
-        clusterer?.mapView = nil
-
-        let builder = NMCBuilder<MapSpotClusterKey>()
-        builder.maxZoom = 15
-        builder.leafMarkerUpdater = MapLeafMarkerUpdater(controller: self)
-        builder.clusterMarkerUpdater = MapClusterMarkerUpdater()
-        let newClusterer = builder.build()
-        let pairs: [(MapSpotClusterKey, NSObject)] = spots.map { spot in
-            (MapSpotClusterKey(spot: spot), NSNull())
+        if clusterer == nil {
+            let builder = NMCBuilder<MapSpotClusterKey>()
+            builder.maxZoom = 15
+            builder.leafMarkerUpdater = MapLeafMarkerUpdater(controller: self)
+            builder.clusterMarkerUpdater = MapClusterMarkerUpdater()
+            let newClusterer = builder.build()
+            if !incoming.isEmpty {
+                let pairs = incoming.values.map { ($0, NSNull() as NSObject) }
+                newClusterer.addAll(Dictionary(uniqueKeysWithValues: pairs))
+            }
+            newClusterer.mapView = mapView
+            clusterer = newClusterer
+            currentSpotKeys = incoming
+            return
         }
-        newClusterer.addAll(Dictionary(uniqueKeysWithValues: pairs))
-        newClusterer.mapView = mapView
-        clusterer = newClusterer
+
+        guard let clusterer else { return }
+
+        let incomingIds = Set(incoming.keys)
+        let currentIds = Set(currentSpotKeys.keys)
+        let addedIds = incomingIds.subtracting(currentIds)
+        let removedIds = currentIds.subtracting(incomingIds)
+        guard !addedIds.isEmpty || !removedIds.isEmpty else { return }
+
+        if !removedIds.isEmpty {
+            let removedKeys = removedIds.compactMap { currentSpotKeys[$0] }
+            clusterer.removeAll(removedKeys)
+            for id in removedIds {
+                leafMarkerRefs.removeValue(forKey: id)
+                currentSpotKeys.removeValue(forKey: id)
+            }
+        }
+
+        if !addedIds.isEmpty {
+            var addedPairs: [(MapSpotClusterKey, NSObject)] = []
+            addedPairs.reserveCapacity(addedIds.count)
+            for id in addedIds {
+                guard let key = incoming[id] else { continue }
+                addedPairs.append((key, NSNull()))
+                currentSpotKeys[id] = key
+            }
+            clusterer.addAll(Dictionary(uniqueKeysWithValues: addedPairs))
+        }
     }
 
     /// my spots는 클러스터링 미참여. NMCClusterer 외부에서 NMFMarker로 직접 add/remove.

@@ -8,14 +8,12 @@ final class MockClusteringService: ClusteringServiceProtocol, @unchecked Sendabl
     var mySpotsResult: Result<[MySpot], any Error> = .success([])
     private(set) var mySpotsRequests: [Viewport] = []
 
-    func fetchClusterableSpots(viewport: Viewport, theme: String?) async throws -> [ClusterableSpot] {
+    func fetchSpots(viewport: Viewport, theme: String?) async throws -> (curation: [ClusterableSpot], mySpots: [MySpot]) {
         requests.append((viewport, theme))
-        return try result.get()
-    }
-
-    func fetchMySpots(viewport: Viewport) async throws -> [MySpot] {
         mySpotsRequests.append(viewport)
-        return try mySpotsResult.get()
+        let curation = try result.get()
+        let mine = (try? mySpotsResult.get()) ?? []
+        return (curation, mine)
     }
 }
 

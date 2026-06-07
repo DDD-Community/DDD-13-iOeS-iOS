@@ -127,17 +127,18 @@ final class MapClusteringViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.mySpots, [mySpot])
     }
 
-    func test_viewportChanged_큐레이션실패해도_mySpots는로드된다() async throws {
+    func test_viewportChanged_viewport호출실패시_state는failed이고_mySpots는비어있다() async throws {
+        // viewport는 curation/mySpot을 단일 엔드포인트에서 함께 받아오므로,
+        // 호출이 실패하면 둘 다 비어있는 것이 새 동작 시멘틱.
         clusteringService.result = .failure(TestError.failed)
-        let mySpot = MySpot.fixture()
-        clusteringService.mySpotsResult = .success([mySpot])
+        clusteringService.mySpotsResult = .success([MySpot.fixture()])
 
         await viewModel.viewportChanged(.fixture())
 
         guard case .failed = viewModel.state else {
-            return XCTFail("Expected failed state for curation, got \(viewModel.state)")
+            return XCTFail("Expected failed state, got \(viewModel.state)")
         }
-        XCTAssertEqual(viewModel.mySpots, [mySpot])
+        XCTAssertEqual(viewModel.mySpots, [])
     }
 
     // MARK: - mapBackgroundTapped

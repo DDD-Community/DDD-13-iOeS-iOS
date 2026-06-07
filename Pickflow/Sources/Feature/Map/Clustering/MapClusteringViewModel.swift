@@ -57,17 +57,14 @@ final class MapClusteringViewModel: ObservableObject {
     }
 
     private func fetch(viewport: Viewport, theme: String?) async {
-        // 큐레이션 spots와 my spots를 병행 fetch — 한쪽 실패해도 다른쪽은 살림.
-        async let curationTask = clusteringService.fetchClusterableSpots(viewport: viewport, theme: theme)
-        async let mySpotsTask = (try? clusteringService.fetchMySpots(viewport: viewport)) ?? []
-
+        // viewport 1회 호출로 curation/mySpots 동시 수신 — 동일 엔드포인트를 2번 때리는 문제 제거.
         do {
-            let spots = try await curationTask
-            state = .loaded(spots: spots)
+            let (curation, mine) = try await clusteringService.fetchSpots(viewport: viewport, theme: theme)
+            state = .loaded(spots: curation)
+            mySpots = mine
         } catch {
             state = .failed(error.localizedDescription)
         }
-        mySpots = await mySpotsTask
     }
 }
 
