@@ -6,7 +6,7 @@ struct MyProfileSignedInContent: View {
 
     let user: User
     var cachedProfileImage: UIImage?
-    var supportEmail: String = "pickflow.help@gmail.com"
+    var supportEmail: String?
     var onAccountManagementTap: () -> Void = {}
     var onNoticeTap: () -> Void = {}
     var onTermsAndPolicyTap: () -> Void = {}
@@ -203,6 +203,7 @@ struct MyProfileSignedInContent: View {
 
     // 고객센터 및 1:1 문의: 기본 메일 앱으로 문의 메일 작성 화면을 띄운다.
     private func composeSupportEmail() {
+        guard let supportEmail, !supportEmail.isEmpty else { return }
         let subject = "[Pickflow] 1:1 문의"
             .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         guard let url = URL(string: "mailto:\(supportEmail)?subject=\(subject)") else { return }

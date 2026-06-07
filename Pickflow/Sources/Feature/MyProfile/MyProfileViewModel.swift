@@ -18,12 +18,10 @@ final class MyProfileViewModel: ObservableObject {
     @Published private(set) var isLoginLoading = false
     @Published private(set) var loginError: String?
 
-    /// 고객센터 1:1 문의 이메일. config API 응답으로 갱신되며, 미반영 시 기본값을 유지한다.
-    @Published private(set) var supportEmail: String = MyProfileViewModel.defaultSupportEmail
-    /// 약관/정책 문서 목록. config API 응답으로 갱신되며, 미반영 시 기본값을 유지한다.
-    @Published private(set) var termsPolicies: [TermsPolicy] = TermsPolicy.fallback
-
-    static let defaultSupportEmail = "pickflow.help@gmail.com"
+    /// 고객센터 1:1 문의 이메일. config API 응답으로 채워지며, 서버가 내려주기 전까지는 `nil`.
+    @Published private(set) var supportEmail: String?
+    /// 약관/정책 문서 목록. config API 응답으로 채워지며, 서버가 내려주기 전까지는 빈 배열.
+    @Published private(set) var termsPolicies: [TermsPolicy] = []
 
     let userService: UserServiceProtocol
     let authService: AuthServiceProtocol
@@ -67,18 +65,13 @@ final class MyProfileViewModel: ObservableObject {
     }
 
     /// 약관/정책 URL과 고객센터 이메일을 config API에서 한 번 받아 캐시한다.
-    /// 실패하거나 서버가 값을 내려주지 않으면 기본값을 유지한다(fail-soft).
     private func loadAppConfigIfNeeded() async {
         guard !didLoadAppConfig else { return }
         didLoadAppConfig = true
 
         guard let policy = try? await appVersionService.fetchIOSVersionPolicy() else { return }
-        if let email = policy.supportEmail, !email.isEmpty {
-            supportEmail = email
-        }
-        if let policies = policy.termsPolicies, !policies.isEmpty {
-            termsPolicies = policies
-        }
+        supportEmail = policy.supportEmail
+        termsPolicies = policy.termsPolicies ?? []
     }
 
     func refresh() async {

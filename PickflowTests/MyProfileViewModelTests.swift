@@ -80,23 +80,23 @@ final class MyProfileViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.termsPolicies, policies)
     }
 
-    func test_onAppear_config미반영_supportEmail과termsPolicies가기본값을유지한다() async throws {
+    func test_onAppear_config미반영_supportEmail은nil_termsPolicies는빈배열이다() async throws {
         authService.stubbedAuthState = .signedOut
         appVersionService.fetchResult = .success(.fixture(supportEmail: nil, termsPolicies: nil))
 
         await viewModel.onAppear()
 
-        XCTAssertEqual(viewModel.supportEmail, MyProfileViewModel.defaultSupportEmail)
-        XCTAssertEqual(viewModel.termsPolicies, TermsPolicy.fallback)
+        XCTAssertNil(viewModel.supportEmail)
+        XCTAssertTrue(viewModel.termsPolicies.isEmpty)
     }
 
-    func test_onAppear_config요청실패_기본값을유지한다() async throws {
+    func test_onAppear_config요청실패_supportEmail은nil_termsPolicies는빈배열이다() async throws {
         authService.stubbedAuthState = .signedOut
         appVersionService.fetchResult = .failure(TestError.failed)
 
         await viewModel.onAppear()
 
-        XCTAssertEqual(viewModel.supportEmail, MyProfileViewModel.defaultSupportEmail)
-        XCTAssertEqual(viewModel.termsPolicies, TermsPolicy.fallback)
+        XCTAssertNil(viewModel.supportEmail)
+        XCTAssertTrue(viewModel.termsPolicies.isEmpty)
     }
 }
