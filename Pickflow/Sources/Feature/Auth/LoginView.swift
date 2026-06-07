@@ -48,21 +48,11 @@ struct LoginView: View {
         } message: { message in
             Text(message)
         }
-        .overlay {
-            if let info = viewModel.withdrawnAccountInfo {
-                RestoreAccountDialog(
-                    message: info.message,
-                    onCancel: {
-                        viewModel.cancelRestoreTapped()
-                    },
-                    onConfirm: {
-                        Task { await viewModel.confirmRestoreTapped() }
-                    }
-                )
-                .transition(.opacity)
-            }
-        }
-        .animation(.easeInOut(duration: 0.25), value: viewModel.withdrawnAccountInfo != nil)
+        .restoreAccountPrompt(
+            info: viewModel.withdrawnAccountInfo,
+            onCancel: { viewModel.cancelRestoreTapped() },
+            onConfirm: { Task { await viewModel.confirmRestoreTapped() } }
+        )
     }
 
     // MARK: - Background
