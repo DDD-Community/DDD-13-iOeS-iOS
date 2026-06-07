@@ -229,7 +229,8 @@ struct HomeMapView: View {
             .fullScreenCover(isPresented: $isAddPlaceLoginViewPresented) {
                 LoginView(
                     viewModel: LoginViewModel(socialLoginService: getSocialLoginService()),
-                    onSignInSucceeded: { isAddPlaceLoginViewPresented = false }
+                    onSignInSucceeded: { isAddPlaceLoginViewPresented = false },
+                    isClosable: true
                 )
             }
             .overlay {

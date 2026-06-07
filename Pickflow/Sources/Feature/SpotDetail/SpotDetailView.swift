@@ -78,7 +78,8 @@ struct SpotDetailView: View {
         .fullScreenCover(isPresented: $isLoginViewPresented) {
             LoginView(
                 viewModel: LoginViewModel(socialLoginService: getSocialLoginService()),
-                onSignInSucceeded: { isLoginViewPresented = false }
+                onSignInSucceeded: { isLoginViewPresented = false },
+                isClosable: true
             )
         }
         .sheet(isPresented: $isOpenSpotSheetPresented) {
