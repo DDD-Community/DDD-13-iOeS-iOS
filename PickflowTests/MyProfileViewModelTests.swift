@@ -5,17 +5,20 @@ import XCTest
 final class MyProfileViewModelTests: XCTestCase {
     private var userService: MockUserService!
     private var authService: MockAuthServiceForProfile!
+    private var appVersionService: MockAppVersionService!
     private var viewModel: MyProfileViewModel!
 
     override func setUp() async throws {
         try await super.setUp()
         userService = MockUserService()
         authService = MockAuthServiceForProfile()
-        viewModel = MyProfileViewModel(userService: userService, authService: authService, socialLoginService: MockSocialLoginService())
+        appVersionService = MockAppVersionService()
+        viewModel = MyProfileViewModel(userService: userService, authService: authService, socialLoginService: MockSocialLoginService(), appVersionService: appVersionService)
     }
 
     override func tearDown() async throws {
         viewModel = nil
+        appVersionService = nil
         authService = nil
         userService = nil
         try await super.tearDown()
@@ -62,5 +65,38 @@ final class MyProfileViewModelTests: XCTestCase {
         await viewModel.refresh()
 
         XCTAssertEqual(viewModel.state, .signedIn(.fixture(nickname: "refreshed")))
+    }
+
+    // MARK: - App Config (약관/고객센터)
+
+    func test_onAppear_config응답_supportEmail과termsPolicies가서버값으로갱신된다() async throws {
+        authService.stubbedAuthState = .signedOut
+        let policies = [TermsPolicy(type: "TERMS_OF_SERVICE", title: "서비스 이용약관", url: "https://example.com/terms")]
+        appVersionService.fetchResult = .success(.fixture(supportEmail: "help@pickflow.test", termsPolicies: policies))
+
+        await viewModel.onAppear()
+
+        XCTAssertEqual(viewModel.supportEmail, "help@pickflow.test")
+        XCTAssertEqual(viewModel.termsPolicies, policies)
+    }
+
+    func test_onAppear_config미반영_supportEmail과termsPolicies가기본값을유지한다() async throws {
+        authService.stubbedAuthState = .signedOut
+        appVersionService.fetchResult = .success(.fixture(supportEmail: nil, termsPolicies: nil))
+
+        await viewModel.onAppear()
+
+        XCTAssertEqual(viewModel.supportEmail, MyProfileViewModel.defaultSupportEmail)
+        XCTAssertEqual(viewModel.termsPolicies, TermsPolicy.fallback)
+    }
+
+    func test_onAppear_config요청실패_기본값을유지한다() async throws {
+        authService.stubbedAuthState = .signedOut
+        appVersionService.fetchResult = .failure(TestError.failed)
+
+        await viewModel.onAppear()
+
+        XCTAssertEqual(viewModel.supportEmail, MyProfileViewModel.defaultSupportEmail)
+        XCTAssertEqual(viewModel.termsPolicies, TermsPolicy.fallback)
     }
 }

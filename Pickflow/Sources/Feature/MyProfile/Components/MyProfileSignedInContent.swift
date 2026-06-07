@@ -6,11 +6,10 @@ struct MyProfileSignedInContent: View {
 
     let user: User
     var cachedProfileImage: UIImage?
+    var supportEmail: String = "pickflow.help@gmail.com"
     var onAccountManagementTap: () -> Void = {}
     var onNoticeTap: () -> Void = {}
     var onTermsAndPolicyTap: () -> Void = {}
-
-    private let supportEmail = "pickflow.help@gmail.com"
 
     var body: some View {
         ScrollView(showsIndicators: false) {

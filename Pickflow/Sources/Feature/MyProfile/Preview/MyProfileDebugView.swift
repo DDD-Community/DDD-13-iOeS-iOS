@@ -12,7 +12,8 @@ struct MyProfileSignedInDebugView: View {
         let vm = MyProfileViewModel(
             userService: MockUserService(),
             authService: MockAuthServiceForProfile(),
-            socialLoginService: MockSocialLoginServiceForProfile()
+            socialLoginService: MockSocialLoginServiceForProfile(),
+            appVersionService: MockAppVersionServiceForProfile()
         )
         vm.applySignedInState(user: .fixture())
         return vm
@@ -51,5 +52,18 @@ private final class MockSocialLoginServiceForProfile: SocialLoginServiceProtocol
     func signInWithApple() async throws {}
     func restoreAccount(restoreToken: String) async throws {}
     func retrySignIn(with credential: ProviderCredential) async throws {}
+}
+
+private final class MockAppVersionServiceForProfile: AppVersionServiceProtocol, @unchecked Sendable {
+    func fetchIOSVersionPolicy() async throws -> AppVersionPolicy {
+        AppVersionPolicy(
+            minimumVersion: "1.0.0",
+            latestVersion: "1.0.0",
+            forceUpdate: false,
+            storeUrl: "https://apps.apple.com/app/id000000000",
+            supportEmail: nil,
+            termsPolicies: nil
+        )
+    }
 }
 #endif

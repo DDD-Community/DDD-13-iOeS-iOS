@@ -18,20 +18,32 @@ final class MyProfileViewModel: ObservableObject {
     @Published private(set) var isLoginLoading = false
     @Published private(set) var loginError: String?
 
+    /// 고객센터 1:1 문의 이메일. config API 응답으로 갱신되며, 미반영 시 기본값을 유지한다.
+    @Published private(set) var supportEmail: String = MyProfileViewModel.defaultSupportEmail
+    /// 약관/정책 문서 목록. config API 응답으로 갱신되며, 미반영 시 기본값을 유지한다.
+    @Published private(set) var termsPolicies: [TermsPolicy] = TermsPolicy.fallback
+
+    static let defaultSupportEmail = "pickflow.help@gmail.com"
+
     let userService: UserServiceProtocol
     let authService: AuthServiceProtocol
     private let socialLoginService: SocialLoginServiceProtocol
+    private let appVersionService: AppVersionServiceProtocol
+
+    private var didLoadAppConfig = false
 
     nonisolated(unsafe) private var notificationObservers: [NSObjectProtocol] = []
 
     init(
         userService: UserServiceProtocol,
         authService: AuthServiceProtocol,
-        socialLoginService: SocialLoginServiceProtocol
+        socialLoginService: SocialLoginServiceProtocol,
+        appVersionService: AppVersionServiceProtocol
     ) {
         self.userService = userService
         self.authService = authService
         self.socialLoginService = socialLoginService
+        self.appVersionService = appVersionService
         setupNotificationObservers()
     }
 
@@ -42,6 +54,8 @@ final class MyProfileViewModel: ObservableObject {
     // 화면 재진입 시에는 이미 로드된 데이터를 유지하고,
     // 실제 변경 이벤트(노티피케이션)에만 반응해 갱신한다.
     func onAppear() async {
+        await loadAppConfigIfNeeded()
+
         if case .signedIn = state { return }
 
         let authState = await authService.currentAuthState()
@@ -50,6 +64,21 @@ final class MyProfileViewModel: ObservableObject {
             return
         }
         await fetchUser()
+    }
+
+    /// 약관/정책 URL과 고객센터 이메일을 config API에서 한 번 받아 캐시한다.
+    /// 실패하거나 서버가 값을 내려주지 않으면 기본값을 유지한다(fail-soft).
+    private func loadAppConfigIfNeeded() async {
+        guard !didLoadAppConfig else { return }
+        didLoadAppConfig = true
+
+        guard let policy = try? await appVersionService.fetchIOSVersionPolicy() else { return }
+        if let email = policy.supportEmail, !email.isEmpty {
+            supportEmail = email
+        }
+        if let policies = policy.termsPolicies, !policies.isEmpty {
+            termsPolicies = policies
+        }
     }
 
     func refresh() async {

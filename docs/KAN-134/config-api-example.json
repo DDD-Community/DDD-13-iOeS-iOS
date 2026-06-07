@@ -1,0 +1,29 @@
+{
+  "code": "S000",
+  "data": {
+    "minimumVersion": "1.0.1",
+    "latestVersion": "1.0.0",
+    "forceUpdate": true,
+    "storeUrl": "https://apps.apple.com/app/id0000000000",
+    "supportEmail": "pickflow.help@gmail.com",
+    "termsPolicies": [
+      {
+        "type": "TERMS_OF_SERVICE",
+        "title": "서비스 이용약관",
+        "url": "https://cubic-print-1cb.notion.site/abe90976df958360b53001e6ee774eb3?pvs=143"
+      },
+      {
+        "type": "LOCATION_TERMS",
+        "title": "위치정보 서비스 이용약관",
+        "url": "https://cubic-print-1cb.notion.site/36390976df9580289cc9ebcba9ed7ffd?pvs=143"
+      },
+      {
+        "type": "PRIVACY_POLICY",
+        "title": "개인정보처리방침",
+        "url": "https://cubic-print-1cb.notion.site/07a90976df958319b6d1013e089c5ee6?pvs=143"
+      }
+    ]
+  },
+  "message": "성공",
+  "success": true
+}
