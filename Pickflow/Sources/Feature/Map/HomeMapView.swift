@@ -167,6 +167,8 @@ struct HomeMapView: View {
             .navigationDestination(isPresented: $isAddPlacePresented) {
                 SpotRegistrationAssembly.make { _ in
                     isAddPlacePresented = false
+                    // 최초 스팟 등록 성공 직후 앱스토어 평점 요청 팝업 1회 발동.
+                    getFirstSpotReviewRequester().spotRegistrationDidComplete()
                 }
             }
             .fullScreenCover(
