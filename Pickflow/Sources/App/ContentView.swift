@@ -6,6 +6,8 @@ import UIKit
 struct ContentView: View {
     @EnvironmentObject private var deepLinkRouter: DeepLinkRouter
     @State private var selectedTab: Tab
+    // 보관함 탭은 한 번 방문하면 뷰를 살려둔다(재생성 시 이미지 재로드·스크롤 리셋로 리프레시처럼 보임).
+    @State private var hasVisitedSaved: Bool
     @State private var isExploreAddPlacePresented = false
     @State private var isExploreSpotDetailPresented = false
     @State private var savedPath = NavigationPath()
@@ -26,6 +28,7 @@ struct ContentView: View {
     ) {
         self.onSignedOut = onSignedOut
         _selectedTab = State(initialValue: initialTab)
+        _hasVisitedSaved = State(initialValue: initialTab == .saved)
         _myProfileViewModel = StateObject(wrappedValue: myProfileViewModel ?? MyProfileViewModel(
             userService: getUserService(),
             authService: getAuthService(),
@@ -61,7 +64,7 @@ struct ContentView: View {
     }
 
     var body: some View {
-        Group {
+        ZStack {
             switch selectedTab {
             case .explore:
                 HomeMapView(
@@ -70,12 +73,8 @@ struct ContentView: View {
                     clusteringViewModel: clusteringViewModel
                 )
             case .saved:
-                NavigationStack(path: $savedPath) {
-                    ArchiveView(
-                        viewModel: archiveViewModel,
-                        onExploreTap: { selectedTab = .explore }
-                    )
-                }
+                // 실제 보관함 뷰는 아래 overlay 에서 항상 살아있다. 여기선 레이아웃 자리만.
+                Color.clear
             case .my:
                 NavigationStack {
                     MyProfileView(
@@ -92,6 +91,20 @@ struct ContentView: View {
                     )
                 }
             }
+
+            // 보관함 탭: 최초 방문 시 생성 후 계속 살려둔다. 탭 전환마다 재생성되면
+            // AsyncImage 썸네일/헤더 사진이 다시 로드되고 스크롤이 리셋돼 리프레시처럼 보인다.
+            if hasVisitedSaved || selectedTab == .saved {
+                NavigationStack(path: $savedPath) {
+                    ArchiveView(
+                        viewModel: archiveViewModel,
+                        onExploreTap: { selectedTab = .explore }
+                    )
+                }
+                .opacity(selectedTab == .saved ? 1 : 0)
+                .allowsHitTesting(selectedTab == .saved)
+                .zIndex(selectedTab == .saved ? 1 : 0)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -101,6 +114,9 @@ struct ContentView: View {
             }
         }
         .animation(.easeInOut(duration: 0.25), value: isTabBarVisible)
+        .onChange(of: selectedTab) { _, newValue in
+            if newValue == .saved { hasVisitedSaved = true }
+        }
         .onChange(of: deepLinkRouter.pendingSpotId) { _, spotId in
             guard spotId != nil else { return }
             selectedTab = .explore
