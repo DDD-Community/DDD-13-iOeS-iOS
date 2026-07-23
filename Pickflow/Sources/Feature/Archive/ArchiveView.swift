@@ -219,7 +219,10 @@ struct ArchiveView: View {
                 VStack(spacing: 0) {
                     // spacer = photo visible height below safe area + tab bar height
                     Color.clear.frame(height: 240 + tabBarHeight)
-                    tabContent.frame(minHeight: 300, alignment: .top)
+                    tabContent
+                        .frame(minHeight: 300, alignment: .top)
+                        // 마지막 셀이 하단 CustomTabBar 뒤로 묻히지 않도록 탭바 높이만큼 여백 확보
+                        .padding(.bottom, CustomTabBar.height)
                 }
                 .background(ScrollOffsetReader { offset in scrollOffset = offset })
             }
