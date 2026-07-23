@@ -10,6 +10,11 @@ public enum URLScheme {
 extension InfoPlist {
     public static let app: Self = .extendingDefault(with: [
         "CFBundleDisplayName": .string(ProjectEnvironment.name),
+        // Tuist 기본 Info.plist는 CFBundleShortVersionString을 리터럴 "1.0"으로 하드코딩하고,
+        // archive 시 $(MARKETING_VERSION) 빌드 변수도 치환되지 않으므로, 실제 버전 문자열을 직접 박는다.
+        // ProjectEnvironment.marketingVersion 을 단일 소스로 BuildSettings 와 함께 참조한다.
+        // (CFBundleVersion(빌드넘버)은 fastlane agvtool 경로로 관리하므로 여기서 건드리지 않는다.)
+        "CFBundleShortVersionString": .string(ProjectEnvironment.marketingVersion),
         "FirebaseAppDelegateProxyEnabled": .boolean(false),
         "FirebaseMessagingAutoInitEnabled": .boolean(true),
         "KAKAO_NATIVE_APP_KEY": .string("$(KAKAO_NATIVE_APP_KEY)"),

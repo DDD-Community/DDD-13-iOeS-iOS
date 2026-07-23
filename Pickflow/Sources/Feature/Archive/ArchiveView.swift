@@ -170,7 +170,11 @@ struct ArchiveView: View {
             }
         }
         .navigationDestination(isPresented: $showRegistration) {
-            SpotRegistrationAssembly.make { _ in showRegistration = false }
+            SpotRegistrationAssembly.make { _ in
+                showRegistration = false
+                // 최초 스팟 등록 성공 직후 앱스토어 평점 요청 팝업 1회 발동.
+                getFirstSpotReviewRequester().spotRegistrationDidComplete()
+            }
         }
         .fullScreenCover(isPresented: $showCoverPicker) {
             ArchiveCoverImagePickerView(
