@@ -81,6 +81,58 @@ container.register(AuthServiceProtocol.self) { AuthService() }
 - pn rule 적용
 - PR 본문 및 코멘트는 영어로 작성
 
+## 버전 관리 & 배포
+
+> 팀 합의 사항. 논의 배경: [Discussion #68](https://github.com/DDD-Community/DDD-13-iOeS-iOS/discussions/68)
+
+### 두 숫자를 분리
+
+| 항목 | 키 | 의미 | 관리 |
+|------|-----|------|------|
+| **마케팅 버전** | `CFBundleShortVersionString` | 유저·스토어에 보이는 버전 (1.2.0) | 수동 (제품 결정) |
+| **빌드 넘버** | `CFBundleVersion` | 같은 버전 내 빌드 구분 (19, 20…) | 자동 (fastlane `latest_testflight_build_number + 1`) |
+
+원칙: **마케팅 버전은 사람이, 빌드 넘버는 자동으로.** TestFlight에 아무리 자주 올려도 마케팅 버전은 고정하고 빌드 넘버만 증가한다. (`1.3.0 (20) → (21) → (22)…`)
+
+### 마케팅 버전 = SemVer (MAJOR.MINOR.PATCH)
+
+유저가 기능을 사용하는 관점을 기준으로 구분한다.
+
+- **PATCH** (`1.2.N`): 버그 수정·소규모 개선 (핫픽스)
+- **MINOR** (`1.N.0`): 기능 **추가·수정(개편)** — 하위호환
+- **MAJOR** (`N.0.0`): 기능 **삭제·브레이킹**. 아래 중 하나라도 해당하면 MAJOR로 올린다.
+  - 기존 사용자 데이터/로컬 저장소 마이그레이션이 필요하고 되돌릴 수 없음
+  - 최소 지원 iOS를 올려 일부 기기가 업데이트를 못 받음
+  - 사용자가 의존하던 기능을 제거함
+  - 핵심 플로우를 전면 재설계해 사용자가 다시 배워야 함
+  - (문서화된 예외) PM이 "이건 x.0으로 낸다"고 명시적으로 결정
+
+### 단일 소스
+
+버전은 한 곳에서만 수정한다.
+
+```swift
+// Tuist/ProjectDescriptionHelpers/ProjectEnvironment.swift
+public static let marketingVersion = "1.1.0"   // ← 이 줄만 수정
+```
+
+`BuildSettings.swift`(MARKETING_VERSION)와 `AppInfoPlist.swift`(CFBundleShortVersionString)가 이 상수를 함께 참조한다.
+
+### 팀 규칙
+
+- ✅ 마케팅 버전 변경은 **별도 커밋** (`[TICKET] 버전 x.y.z`)
+- ✅ 릴리즈마다 **git 태그**, 접두사 `v` 사용 (`v1.1.0`) — GitHub Actions `v*` 트리거와 시각적 관례에 맞춤
+- ✅ 기능 릴리즈 = MINOR, 핫픽스 = PATCH
+- ✅ 빌드 넘버는 **자동**, 손대지 않기
+- ✅ 스토어에 출시된 버전 번호는 **재사용 금지**
+- 🔜 릴리즈 자동화(fastlane `bump_version` lane + 태그 자동 생성) 도입하기로 합의 (추후 적용)
+
+### ⚠️ 배포 함정 (재발 방지)
+
+1. **Info.plist 버전은 반드시 리터럴** — Tuist 기본 plist는 `CFBundleShortVersionString`을 리터럴로 하드코딩하고 `$(MARKETING_VERSION)` 빌드 변수는 archive 시 치환되지 않아 리터럴 문자열이 그대로 업로드된다. 그래서 실제 버전 문자열을 직접 박아야 한다(현재 `ProjectEnvironment.marketingVersion`로 처리).
+2. **스토어 출시 버전 번호 재사용 금지** — 한 번 App Store에 승인/출시된 버전은 train이 닫혀 재업로드 불가 (`Invalid Pre-Release Train, 90186`).
+3. **TestFlight Deploy는 `branch` input 기준** — 워크플로가 `branch` input(기본 `develop`)을 checkout한다. 특정 브랜치 배포 시 `gh workflow run "TestFlight Deploy" -f branch=feature/XXX`.
+
 ## AI Ground Rule
 
 - 이 파일(`AGENTS.md`)이 모든 AI 에이전트의 **단일 진실 소스(Single Source of Truth)**
