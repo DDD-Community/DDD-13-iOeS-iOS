@@ -17,31 +17,40 @@ struct SpotSearchView: View {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
 
+    private func dismissKeyboard() {
+        UIApplication.shared.endEditing()
+    }
+
     var body: some View {
-        ZStack {
-            UIAsset.Colors.gray95.color
-                .ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                headerView
-
-                VStack(alignment: .leading, spacing: 28) {
-                    SpotSearchBar(text: $viewModel.searchQuery) {
-                        Task {
-                            await viewModel.search()
-                        }
-                    }
-
-                    contentView
-                }
+        // root 를 ScrollView 로 둔다: 키보드를 뷰 전체 offset 이 아닌 content inset 으로 처리해
+        // 키보드 등장 시 헤더/검색바가 status bar 뒤로 밀려 올라가는 문제를 방지한다.
+        ScrollView {
+            contentView
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
                 .padding(.bottom, 40)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .frame(maxWidth: .infinity, alignment: .top)
         }
-        .ignoresSafeArea(.keyboard, edges: .bottom)
+        .scrollDismissesKeyboard(.immediately)
+        // 빈 영역을 탭하면 키보드를 내린다. (검색 결과 셀은 Button 이라 탭 우선순위가 유지됨)
+        .contentShape(Rectangle())
+        .onTapGesture { dismissKeyboard() }
+        // 헤더 + 검색바는 상단 safe area 에 고정 → 스크롤/키보드와 무관하게 항상 상단에 노출
+        .safeAreaInset(edge: .top, spacing: 0) {
+            VStack(spacing: 8) {
+                headerView
+
+                SpotSearchBar(text: $viewModel.searchQuery) {
+                    Task {
+                        await viewModel.search()
+                    }
+                }
+                .padding(.horizontal, 16)
+            }
+            .padding(.bottom, 20)
+            .background(UIAsset.Colors.gray95.color)
+        }
+        .background(UIAsset.Colors.gray95.color.ignoresSafeArea())
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
         .navigationDestination(item: $pushedAddress) { address in
@@ -95,50 +104,34 @@ struct SpotSearchView: View {
         switch viewModel.state {
         case .idle:
             SpotSearchEmptyPlaceholder(message: "당신이 발견한 일상 속 반짝임,\n어디인가요?")
-                .keyboardDismissOnDrag()
         case .loading:
             ProgressView()
                 .tint(UIAsset.Colors.gray0.color)
                 .frame(maxWidth: .infinity)
                 .padding(.top, 120)
-                .keyboardDismissOnDrag()
         case let .loaded(addresses):
-            ScrollView(.vertical, showsIndicators: false) {
-                LazyVStack(alignment: .leading, spacing: 0) {
-                    ForEach(Array(addresses.enumerated()), id: \.element.id) { index, address in
-                        SpotSearchResultItem(
-                            address: address,
-                            distanceText: viewModel.distanceText(for: address)
-                        ) {
-                            pushedAddress = address
-                        }
-                        .padding(.vertical, 24)
+            // root ScrollView 가 스크롤을 담당하므로 중첩 ScrollView 없이 LazyVStack 만 둔다.
+            LazyVStack(alignment: .leading, spacing: 0) {
+                ForEach(Array(addresses.enumerated()), id: \.element.id) { index, address in
+                    SpotSearchResultItem(
+                        address: address,
+                        distanceText: viewModel.distanceText(for: address)
+                    ) {
+                        pushedAddress = address
+                    }
+                    .padding(.vertical, 24)
 
-                        if index < addresses.count - 1 {
-                            Divider()
-                                .background(UIAsset.Colors.gray80.color)
-                        }
+                    if index < addresses.count - 1 {
+                        Divider()
+                            .background(UIAsset.Colors.gray80.color)
                     }
                 }
             }
-            .scrollDismissesKeyboard(.interactively)
         case .empty:
             SpotSearchEmptyPlaceholder(message: "검색 결과가 없어요.\n다른 장소를 검색해 보세요.")
-                .keyboardDismissOnDrag()
         case .failed:
             EmptyView()
         }
-    }
-}
-
-private extension View {
-    func keyboardDismissOnDrag() -> some View {
-        simultaneousGesture(
-            DragGesture(minimumDistance: 1)
-                .onChanged { _ in
-                    UIApplication.shared.endEditing()
-                }
-        )
     }
 }
 

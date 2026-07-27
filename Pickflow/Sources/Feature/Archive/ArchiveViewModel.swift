@@ -20,6 +20,14 @@ final class ArchiveViewModel: ObservableObject {
         case loaded(items: [SpotListItem], hasNext: Bool)
         case empty
         case failed(String)
+
+        /// 이미 화면에 표시할 결과가 확정된 상태(로딩 스켈레톤을 다시 띄울 필요 없음).
+        var hasData: Bool {
+            switch self {
+            case .loaded, .empty: true
+            case .signedOut, .loading, .failed: false
+            }
+        }
     }
 
     enum MySpotsLoadState: Equatable {
@@ -27,6 +35,14 @@ final class ArchiveViewModel: ObservableObject {
         case loaded(items: [MySpotListItem], hasNext: Bool)
         case empty
         case failed(String)
+
+        /// 이미 화면에 표시할 결과가 확정된 상태(로딩 스켈레톤을 다시 띄울 필요 없음).
+        var hasData: Bool {
+            switch self {
+            case .loaded, .empty: true
+            case .loading, .failed: false
+            }
+        }
     }
 
     @Published private(set) var state: LoadState = .loading
@@ -75,8 +91,8 @@ final class ArchiveViewModel: ObservableObject {
     }
 
     private func setupNotificationObservers() {
-        // 스팟 상세 등 다른 화면에서 북마크가 변경되면 저장된 스팟 목록을 다시 불러온다.
-        let observer = NotificationCenter.default.addObserver(
+        // 스팟 상세 등 다른 화면에서 북마크가 변경되면 저장된 스팟 목록을 조용히 다시 불러온다.
+        let bookmarkObserver = NotificationCenter.default.addObserver(
             forName: .spotBookmarkDidChange,
             object: nil,
             queue: .main
@@ -86,11 +102,22 @@ final class ArchiveViewModel: ObservableObject {
             Task { @MainActor [weak self] in
                 guard let self, !isSelfPost else { return }
                 guard self.state != .signedOut else { return }
-                await self.fetchArchiveInfo()
-                await self.fetchArchive()
+                await self.fetchArchive(silent: true)
             }
         }
-        notificationObservers = [observer]
+        // 스팟 등록 완료 시 나만의 스팟 목록을 조용히 갱신한다.
+        // (보관함 밖/안 어디서 등록하든 반영 — 빈 상태 placeholder 등록 후 pop 시에도 갱신)
+        let registerObserver = NotificationCenter.default.addObserver(
+            forName: .spotDidRegister,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self, self.state != .signedOut else { return }
+                await self.fetchMySpots(silent: true)
+            }
+        }
+        notificationObservers = [bookmarkObserver, registerObserver]
     }
 
     func onAppear() async {
@@ -99,19 +126,24 @@ final class ArchiveViewModel: ObservableObject {
             state = .signedOut
             return
         }
+        // 이미 표시할 데이터가 있으면(탭 재진입 등) 로딩 스켈레톤 없이 조용히 갱신해
+        // 화면이 매번 깜빡이며 리프레시되는 현상을 막는다. (@StateObject 라 이전 상태 유지)
+        // 최초 진입·재시도·로그인 직후엔 데이터가 없으므로 로딩을 노출한다.
+        let archiveSilent = state.hasData
+        let mySpotsSilent = mySpotsState.hasData
         let hadLocation = locationService.lastKnownLocation != nil
         currentCoordinate = locationService.lastKnownLocation
         await withTaskGroup(of: Void.self) { group in
             group.addTask { await self.fetchArchiveInfo() }
-            group.addTask { await self.fetchArchive() }
-            group.addTask { await self.fetchMySpots() }
+            group.addTask { await self.fetchArchive(silent: archiveSilent) }
+            group.addTask { await self.fetchMySpots(silent: mySpotsSilent) }
         }
-        // 위치 없이 로드했다면, 위치 들어오는 즉시 거리 포함해 재조회
+        // 위치 없이 로드했다면, 위치 들어오는 즉시 거리 포함해 조용히 재조회
         if !hadLocation {
             if let coord = try? await locationService.currentLocation() {
                 currentCoordinate = coord
-                await fetchArchive()
-                await fetchMySpots()
+                await fetchArchive(silent: true)
+                await fetchMySpots(silent: true)
             }
         }
     }
@@ -305,10 +337,14 @@ final class ArchiveViewModel: ObservableObject {
         }
     }
 
-    private func fetchArchive() async {
-        state = .loading
-        currentPage = 0
-        hasNext = false
+    /// - Parameter silent: true면 로딩/실패 상태로 전환하지 않고 성공 시에만 목록을 교체한다.
+    ///   (탭 재진입·백그라운드 갱신에서 화면 깜빡임을 없애기 위함)
+    private func fetchArchive(silent: Bool = false) async {
+        if !silent {
+            state = .loading
+            currentPage = 0
+            hasNext = false
+        }
 
         do {
             let response = try await archiveService.fetchSavedSpots(
@@ -322,17 +358,21 @@ final class ArchiveViewModel: ObservableObject {
                 ? .empty
                 : .loaded(items: response.spots, hasNext: response.hasNext)
         } catch let e as APIError {
+            guard !silent else { return }
             state = .failed(e.message)
             e.post()
         } catch {
+            guard !silent else { return }
             state = .failed(error.localizedDescription)
         }
     }
 
-    private func fetchMySpots() async {
-        mySpotsState = .loading
-        mySpotsCurrentPage = 0
-        mySpotsHasNext = false
+    private func fetchMySpots(silent: Bool = false) async {
+        if !silent {
+            mySpotsState = .loading
+            mySpotsCurrentPage = 0
+            mySpotsHasNext = false
+        }
 
         do {
             let response = try await archiveService.fetchMySpots(
@@ -346,6 +386,7 @@ final class ArchiveViewModel: ObservableObject {
                 ? .empty
                 : .loaded(items: response.spots, hasNext: response.hasNext)
         } catch {
+            guard !silent else { return }
             mySpotsState = .failed(error.localizedDescription)
         }
     }
