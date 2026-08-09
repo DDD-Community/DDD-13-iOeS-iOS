@@ -16,7 +16,7 @@ final class MapClusteringViewModel: ObservableObject {
     private let clusteringService: ClusteringServiceProtocol
     private let debounceMillis: Int
     private var lastViewport: Viewport?
-    private var currentTheme: String?
+    private var currentThemes: Set<SpotTheme> = []
     private var debounceTask: Task<Void, Never>?
 
     /// 지도 카메라 이동/초기 진입 시 viewportChanged 가 짧은 간격으로 중복 발사되는 것을
@@ -29,22 +29,22 @@ final class MapClusteringViewModel: ObservableObject {
     func viewportChanged(_ viewport: Viewport) async {
         debounceTask?.cancel()
         lastViewport = viewport
-        let theme = currentTheme
+        let themes = currentThemes
         let task = Task { [weak self, debounceMillis] in
             if debounceMillis > 0 {
                 try? await Task.sleep(for: .milliseconds(debounceMillis))
             }
             guard !Task.isCancelled, let self else { return }
-            await self.fetch(viewport: viewport, theme: theme)
+            await self.fetch(viewport: viewport, themes: themes)
         }
         debounceTask = task
         await task.value
     }
 
-    func themeChanged(_ theme: String?) async {
-        currentTheme = theme
+    func themeChanged(_ themes: Set<SpotTheme>) async {
+        currentThemes = themes
         guard let viewport = lastViewport else { return }
-        await fetch(viewport: viewport, theme: theme)
+        await fetch(viewport: viewport, themes: themes)
     }
 
     func spotMarkerTapped(_ spotId: Int64) {
@@ -56,10 +56,10 @@ final class MapClusteringViewModel: ObservableObject {
         selectedSpotId = nil
     }
 
-    private func fetch(viewport: Viewport, theme: String?) async {
+    private func fetch(viewport: Viewport, themes: Set<SpotTheme>) async {
         // viewport 1회 호출로 curation/mySpots 동시 수신 — 동일 엔드포인트를 2번 때리는 문제 제거.
         do {
-            let (curation, mine) = try await clusteringService.fetchSpots(viewport: viewport, theme: theme)
+            let (curation, mine) = try await clusteringService.fetchSpots(viewport: viewport, themes: themes)
             state = .loaded(spots: curation)
             mySpots = mine
         } catch {

@@ -12,7 +12,8 @@ final class SpotListViewModel: ObservableObject {
     }
 
     @Published private(set) var state: LoadState = .idle
-    @Published private(set) var selectedTheme: SpotTheme?
+    /// 카테고리 필터(다중선택). 비어 있으면 전체.
+    @Published private(set) var selectedThemes: Set<SpotTheme> = []
     @Published private(set) var sort: SpotListSort = .distance
     @Published var showLoginPrompt: Bool = false
     @Published var showLocationPermissionPrompt: Bool = false
@@ -35,32 +36,33 @@ final class SpotListViewModel: ObservableObject {
         bookmarkService: BookmarkServiceProtocol,
         locationService: LocationServiceProtocol,
         tokenStore: TokenStoreProtocol,
-        initialTheme: SpotTheme? = nil
+        initialThemes: Set<SpotTheme> = []
     ) {
         self.spotListService = spotListService
         self.bookmarkService = bookmarkService
         self.locationService = locationService
         self.tokenStore = tokenStore
-        self.selectedTheme = initialTheme
+        self.selectedThemes = initialThemes
     }
 
     func onAppear() async {
         await reload()
     }
 
+    /// 칩 탭 토글. 이미 선택돼 있으면 해제한다.
     func themeTapped(_ theme: SpotTheme) async {
-        if selectedTheme == theme {
-            selectedTheme = nil
+        if selectedThemes.contains(theme) {
+            selectedThemes.remove(theme)
         } else {
-            selectedTheme = theme
+            selectedThemes.insert(theme)
         }
         await reload()
     }
 
-    /// 외부(HomeMapView 의 mood capsule 등)에서 테마 변경을 통보받았을 때 호출. 동일하면 no-op.
-    func themeSynced(_ theme: SpotTheme?) async {
-        guard selectedTheme != theme else { return }
-        selectedTheme = theme
+    /// 외부(HomeMapView 의 필터 칩 등)에서 카테고리 변경을 통보받았을 때 호출. 동일하면 no-op.
+    func themeSynced(_ themes: Set<SpotTheme>) async {
+        guard selectedThemes != themes else { return }
+        selectedThemes = themes
         await reload()
     }
 
@@ -93,7 +95,7 @@ final class SpotListViewModel: ObservableObject {
         do {
             let response = try await spotListService.fetchSpots(
                 page: nextPage,
-                theme: selectedTheme,
+                themes: selectedThemes,
                 sort: sort,
                 latitude: currentCoordinate?.latitude,
                 longitude: currentCoordinate?.longitude
@@ -180,7 +182,7 @@ final class SpotListViewModel: ObservableObject {
         do {
             let response = try await spotListService.fetchSpots(
                 page: 0,
-                theme: selectedTheme,
+                themes: selectedThemes,
                 sort: sort,
                 latitude: coordinate?.latitude,
                 longitude: coordinate?.longitude

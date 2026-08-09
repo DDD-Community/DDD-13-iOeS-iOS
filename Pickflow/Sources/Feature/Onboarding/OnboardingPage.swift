@@ -31,9 +31,9 @@ struct OnboardingPage: Identifiable, Hashable, Sendable {
 
 struct OnboardingMoodHeader: Hashable, Sendable {
     /// 아래쪽 큰 칩 (선택된 표시).
-    let primary: MoodFilter
+    let primary: SpotTheme
     /// 위쪽 작은 칩 (비선택 표시).
-    let secondary: MoodFilter
+    let secondary: SpotTheme
     /// 캡슐 하단 설명 문구. `\n`으로 줄바꿈.
     let description: String
 }

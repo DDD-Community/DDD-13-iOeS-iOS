@@ -7,16 +7,16 @@ final class SpotListMockService: SpotListServiceProtocol, Sendable {
 
     func fetchSpots(
         page: Int,
-        theme: SpotTheme?,
+        themes: Set<SpotTheme>,
         sort _: SpotListSort,
         latitude _: Double?,
         longitude _: Double?
     ) async throws -> SpotListPage {
         try await Task.sleep(for: .milliseconds(400))
 
-        let filtered: [SpotListItem] = theme.map { selected in
-            Self.allItems.filter { $0.theme == selected }
-        } ?? Self.allItems
+        let filtered: [SpotListItem] = themes.isEmpty
+            ? Self.allItems
+            : Self.allItems.filter { themes.contains($0.theme) }
 
         let start = page * Self.pageSize
         guard start < filtered.count else {

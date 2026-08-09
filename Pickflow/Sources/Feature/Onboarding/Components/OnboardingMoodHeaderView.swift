@@ -42,14 +42,14 @@ struct OnboardingMoodHeaderView: View {
     }
 
     private func moodChip(
-        _ mood: MoodFilter,
+        _ mood: SpotTheme,
         width: CGFloat,
         height: CGFloat,
         isSelected: Bool
     ) -> some View {
         let isLarge = height >= ChipSize.largeHeight
         return HStack(spacing: 4) {
-            Image(mood.imageName)
+            Image(mood.iconAssetName)
                 .resizable()
                 .scaledToFit()
                 .frame(width: isLarge ? 18 : 14, height: isLarge ? 18 : 14)
@@ -61,17 +61,8 @@ struct OnboardingMoodHeaderView: View {
         .background(OnboardingPalette.panelBackground, in: RoundedRectangle(cornerRadius: ChipSize.cornerRadius))
         .overlay(
             RoundedRectangle(cornerRadius: ChipSize.cornerRadius)
-                .stroke(isSelected ? mood.borderColor : .clear, lineWidth: 1)
+                .stroke(isSelected ? mood.accentColor : .clear, lineWidth: 1)
         )
-    }
-}
-
-extension MoodFilter {
-    fileprivate var borderColor: Color {
-        switch self {
-        case .sunset: Color(red: 250 / 255, green: 97 / 255, blue: 51 / 255)
-        case .reflection: Color(red: 30 / 255, green: 138 / 255, blue: 246 / 255)
-        }
     }
 }
 

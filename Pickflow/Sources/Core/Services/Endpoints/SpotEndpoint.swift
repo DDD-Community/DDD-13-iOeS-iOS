@@ -40,7 +40,7 @@ enum SpotEndpoint: APIEndpoint {
 
 struct SpotViewportEndpoint: APIEndpoint {
     let viewport: Viewport
-    let theme: SpotTheme?
+    let themes: Set<SpotTheme>
 
     var baseURL: String { APIBaseURL.current }
     var path: String { "/v1/spots/viewport" }
@@ -58,8 +58,8 @@ struct SpotViewportEndpoint: APIEndpoint {
             "bottomRightLat": r(viewport.bottomRight.latitude),
             "bottomRightLng": r(viewport.bottomRight.longitude),
         ]
-        if let theme {
-            p["theme"] = theme.apiCode
+        if let themeValue = SpotThemeQuery.value(for: themes) {
+            p[SpotThemeQuery.parameterName] = themeValue
         }
         return p
     }

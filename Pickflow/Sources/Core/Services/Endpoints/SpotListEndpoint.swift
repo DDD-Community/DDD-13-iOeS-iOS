@@ -3,7 +3,7 @@ import Foundation
 
 struct SpotListEndpoint: APIEndpoint {
     let page: Int
-    let theme: SpotTheme?
+    let themes: Set<SpotTheme>
     let sort: SpotListSort?
     let latitude: Double?
     let longitude: Double?
@@ -15,8 +15,8 @@ struct SpotListEndpoint: APIEndpoint {
         // 서버 제약: 위/경도 소수점 6자리까지 허용. (KAN-107)
         let r: (Double) -> Double = { (($0 * 1_000_000).rounded()) / 1_000_000 }
         var parameters: Parameters = ["page": page]
-        if let theme {
-            parameters["theme"] = theme.apiCode
+        if let themeValue = SpotThemeQuery.value(for: themes) {
+            parameters[SpotThemeQuery.parameterName] = themeValue
         }
         if let sort {
             parameters["sort"] = sort.apiCode

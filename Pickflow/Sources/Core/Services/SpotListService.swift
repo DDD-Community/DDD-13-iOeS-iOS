@@ -9,7 +9,7 @@ final class SpotListService: SpotListServiceProtocol, Sendable {
 
     func fetchSpots(
         page: Int,
-        theme: SpotTheme?,
+        themes: Set<SpotTheme>,
         sort: SpotListSort,
         latitude: Double?,
         longitude: Double?
@@ -17,7 +17,7 @@ final class SpotListService: SpotListServiceProtocol, Sendable {
         let envelope: APIEnvelope<SpotListPage> = try await networkManager.request(
             endpoint: SpotListEndpoint(
                 page: page,
-                theme: theme,
+                themes: themes,
                 sort: sort,
                 latitude: latitude,
                 longitude: longitude

@@ -1,38 +1,8 @@
 import SwiftUI
 
-// 무드 필터 (노을/윤슬).
-enum MoodFilter: String, CaseIterable, Sendable {
-    case sunset = "노을"
-    case reflection = "윤슬"
-
-    var imageName: String {
-        switch self {
-        case .sunset:
-            "icon_photo_category_sunset"
-        case .reflection:
-            "icon_photo_category_reflection"
-        }
-
-    }
-
-    var spotTheme: SpotTheme {
-        switch self {
-        case .sunset: .sunset
-        case .reflection: .reflection
-        }
-    }
-    
-    var apiCode: String {
-        switch self {
-        case .sunset: "SUNSET"
-        case .reflection: "YUNSEUL"
-        }
-    }
-}
-
 struct HomeMapView: View {
     @EnvironmentObject private var deepLinkRouter: DeepLinkRouter
-    @State private var selectedMood: MoodFilter? = nil
+    @State private var selectedThemes: Set<SpotTheme> = []
     @State private var mapListMode: MapListMode = .map
     @Binding var isAddPlacePresented: Bool
     @Binding var isSpotDetailPresented: Bool
@@ -40,7 +10,6 @@ struct HomeMapView: View {
     @State private var isSpotDetailSheetPresented = false
     @State private var selectedSpotVM: SpotDetailViewModel?
     @State private var listDetailVM: SpotDetailViewModel?
-    // FIXME(§13a): selectedMood ↔ SpotListViewModel.selectedTheme 양방향 동기화 별도 PR
     @StateObject private var spotList = SpotListViewModel(
         spotListService: getSpotListService(),
         bookmarkService: getBookmarkService(),
@@ -159,10 +128,10 @@ struct HomeMapView: View {
             .task {
                 await refreshUserLocation()
             }
-            .onChange(of: selectedMood) { _, mood in
-                Task { await clusteringViewModel.themeChanged(mood?.spotTheme.apiCode) }
-                // 무드 필터 지도-리스트 공유 (§13(a)): mood 변화 시 SpotListViewModel 도 갱신
-                Task { await spotList.themeSynced(mood?.spotTheme) }
+            .onChange(of: selectedThemes) { _, themes in
+                Task { await clusteringViewModel.themeChanged(themes) }
+                // 카테고리 필터 지도-리스트 공유 (§13(a)): 선택 변화 시 SpotListViewModel 도 갱신
+                Task { await spotList.themeSynced(themes) }
             }
             .navigationDestination(isPresented: $isAddPlacePresented) {
                 SpotRegistrationAssembly.make { _ in
@@ -323,36 +292,42 @@ struct HomeMapView: View {
                 }
             }
 
+            // 카테고리 4개(햇살/윤슬/노을/야경)를 한 줄에 담기 위해 칩 좌우 패딩을 10 으로 좁힌다.
             HStack(spacing: 8) {
-                ForEach(MoodFilter.allCases, id: \.self) { mood in
-                    moodCapsuleButton(mood)
+                ForEach(SpotTheme.allCases, id: \.self) { theme in
+                    themeCapsuleButton(theme)
                 }
             }
         }
     }
 
-    private func moodCapsuleButton(_ mood: MoodFilter) -> some View {
-        Button {
-            selectedMood = selectedMood == mood ? nil : mood
+    private func themeCapsuleButton(_ theme: SpotTheme) -> some View {
+        let isSelected = selectedThemes.contains(theme)
+        return Button {
+            if isSelected {
+                selectedThemes.remove(theme)
+            } else {
+                selectedThemes.insert(theme)
+            }
         } label: {
             HStack(spacing: 6) {
-                
-                Image(mood.imageName)
-                    .renderingMode(.original)
+                AssetImage(named: theme.iconAssetName, size: 20) {
+                    Text(theme.iconEmoji)
+                        .font(.system(size: 16))
+                }
 
-                Text(mood.rawValue)
+                Text(theme.displayName)
                     .pretendard(.body(.large(.bold)))
                     .padding(.vertical, 8)
-                    .foregroundStyle(selectedMood == mood ? .white : .primary)
+                    .foregroundStyle(isSelected ? .white : .primary)
             }
-            .padding(.horizontal, 14)
+            .padding(.horizontal, 10)
             .background(.gray95)
             .clipShape(RoundedRectangle(cornerRadius: 8))
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(selectedMood == mood ? Color.orangeBorder : .clear, lineWidth: 1)
+                    .stroke(isSelected ? Color.orangeBorder : .clear, lineWidth: 1)
             )
-
         }
     }
 

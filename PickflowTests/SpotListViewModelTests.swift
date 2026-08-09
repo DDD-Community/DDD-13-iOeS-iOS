@@ -110,7 +110,7 @@ final class SpotListViewModelTests: XCTestCase {
 
     // MARK: - themeTapped
 
-    func test_themeTapped_새무드선택시_selectedTheme이변경되고page0부터재호출한다() async {
+    func test_themeTapped_새카테고리선택시_selectedThemes에추가되고page0부터재호출한다() async {
         spotListService.responder = { _ in
             .success(SpotListPage(spots: [.fixture()], page: 0, hasNext: false))
         }
@@ -118,13 +118,13 @@ final class SpotListViewModelTests: XCTestCase {
 
         await viewModel.themeTapped(.sunset)
 
-        XCTAssertEqual(viewModel.selectedTheme, .sunset)
+        XCTAssertEqual(viewModel.selectedThemes, [.sunset])
         XCTAssertEqual(spotListService.requests.count, 2)
-        XCTAssertEqual(spotListService.requests.last?.theme, .sunset)
+        XCTAssertEqual(spotListService.requests.last?.themes, [.sunset])
         XCTAssertEqual(spotListService.requests.last?.page, 0)
     }
 
-    func test_themeTapped_동일무드재탭시_selectedTheme이nil로해제되고재호출한다() async {
+    func test_themeTapped_동일카테고리재탭시_선택이해제되고재호출한다() async {
         spotListService.responder = { _ in
             .success(SpotListPage(spots: [.fixture()], page: 0, hasNext: false))
         }
@@ -133,8 +133,21 @@ final class SpotListViewModelTests: XCTestCase {
 
         await viewModel.themeTapped(.sunset)
 
-        XCTAssertNil(viewModel.selectedTheme)
-        XCTAssertNil(spotListService.requests.last?.theme)
+        XCTAssertTrue(viewModel.selectedThemes.isEmpty)
+        XCTAssertEqual(spotListService.requests.last?.themes, [])
+    }
+
+    func test_themeTapped_다른카테고리추가선택시_둘다유지한채재호출한다() async {
+        spotListService.responder = { _ in
+            .success(SpotListPage(spots: [.fixture()], page: 0, hasNext: false))
+        }
+        await viewModel.onAppear()
+        await viewModel.themeTapped(.sunset)
+
+        await viewModel.themeTapped(.nightView)
+
+        XCTAssertEqual(viewModel.selectedThemes, [.sunset, .nightView])
+        XCTAssertEqual(spotListService.requests.last?.themes, [.sunset, .nightView])
     }
 
     // MARK: - sortChanged
