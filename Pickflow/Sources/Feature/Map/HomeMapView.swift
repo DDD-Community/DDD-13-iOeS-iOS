@@ -292,10 +292,13 @@ struct HomeMapView: View {
                 }
             }
 
-            // 카테고리 4개(햇살/윤슬/노을/야경)를 한 줄에 담기 위해 칩 좌우 패딩을 10 으로 좁힌다.
-            HStack(spacing: 8) {
-                ForEach(SpotTheme.allCases, id: \.self) { theme in
-                    themeCapsuleButton(theme)
+            // 카테고리 4개 기준 폭 360 (칩 84 × 4 + 간격 8 × 3) 으로 390pt 화면에 꼭 맞는다.
+            // 더 좁은 기기나 카테고리 추가 시 잘리지 않도록 가로 스크롤로 감싼다.
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(SpotTheme.allCases, id: \.self) { theme in
+                        themeCapsuleButton(theme)
+                    }
                 }
             }
         }
@@ -321,7 +324,7 @@ struct HomeMapView: View {
                     .padding(.vertical, 8)
                     .foregroundStyle(isSelected ? .white : .primary)
             }
-            .padding(.horizontal, 10)
+            .padding(.horizontal, 14)
             .background(.gray95)
             .clipShape(RoundedRectangle(cornerRadius: 8))
             .overlay(
