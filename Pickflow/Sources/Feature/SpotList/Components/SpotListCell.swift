@@ -71,7 +71,7 @@ struct SpotListCell: View {
     }
 
     private var moodBadge: some View {
-        Image(item.theme.overlayAssetName)
+        Image(item.theme.iconAssetName)
             .renderingMode(.original)
             .resizable()
             .scaledToFit()
@@ -134,22 +134,6 @@ struct SpotListCell: View {
                     .pretendard(.body(.small()))
                     .foregroundStyle(.gray10)
             }
-        }
-    }
-}
-
-extension SpotTheme {
-    var displayName: String {
-        switch self {
-        case .sunset: "노을"
-        case .reflection: "윤슬"
-        }
-    }
-
-    var overlayAssetName: String {
-        switch self {
-        case .sunset: "icon_photo_category_sunset"
-        case .reflection: "icon_photo_category_reflection"
         }
     }
 }

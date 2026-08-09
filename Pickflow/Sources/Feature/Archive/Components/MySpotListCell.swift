@@ -87,7 +87,7 @@ struct MySpotListCell: View {
     }
 
     private var moodBadge: some View {
-        Image(item.theme.overlayAssetName)
+        Image(item.theme.iconAssetName)
             .renderingMode(.original)
             .resizable()
             .scaledToFit()

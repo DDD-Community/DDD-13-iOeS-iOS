@@ -4,26 +4,6 @@ enum SpotRegistrationCopy {
     static let mockDistanceText = "2.5km"
 }
 
-extension SpotTheme {
-    var iconAssetName: String {
-        switch self {
-        case .sunset:
-            "icon_photo_category_sunset"
-        case .reflection:
-            "icon_photo_category_reflection"
-        }
-    }
-
-    var iconEmoji: String {
-        switch self {
-        case .sunset:
-            "🌇"
-        case .reflection:
-            "🌊"
-        }
-    }
-}
-
 extension Calendar {
     static let spotRegistrationGregorian: Calendar = {
         var calendar = Calendar(identifier: .gregorian)
