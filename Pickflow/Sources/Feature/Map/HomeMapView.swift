@@ -292,45 +292,7 @@ struct HomeMapView: View {
                 }
             }
 
-            // 카테고리 4개 기준 폭 360 (칩 84 × 4 + 간격 8 × 3) 으로 390pt 화면에 꼭 맞는다.
-            // 더 좁은 기기나 카테고리 추가 시 잘리지 않도록 가로 스크롤로 감싼다.
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(SpotTheme.allCases, id: \.self) { theme in
-                        themeCapsuleButton(theme)
-                    }
-                }
-            }
-        }
-    }
-
-    private func themeCapsuleButton(_ theme: SpotTheme) -> some View {
-        let isSelected = selectedThemes.contains(theme)
-        return Button {
-            if isSelected {
-                selectedThemes.remove(theme)
-            } else {
-                selectedThemes.insert(theme)
-            }
-        } label: {
-            HStack(spacing: 6) {
-                AssetImage(named: theme.iconAssetName, size: 20) {
-                    Text(theme.iconEmoji)
-                        .font(.system(size: 16))
-                }
-
-                Text(theme.displayName)
-                    .pretendard(.body(.large(.bold)))
-                    .padding(.vertical, 8)
-                    .foregroundStyle(isSelected ? .white : .primary)
-            }
-            .padding(.horizontal, 14)
-            .background(.gray95)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(isSelected ? Color.orangeBorder : .clear, lineWidth: 1)
-            )
+            SpotThemeFilterBar(selectedThemes: $selectedThemes)
         }
     }
 
@@ -403,13 +365,6 @@ struct HomeMapView: View {
         }
     }
 
-}
-
-// MARK: - Colors
-
-extension Color {
-    fileprivate static let orangeBorder: Color = Color(
-        red: 250 / 255, green: 97 / 255, blue: 51 / 255)
 }
 
 private struct TopBarHeightKey: PreferenceKey {
