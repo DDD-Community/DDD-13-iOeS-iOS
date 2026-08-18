@@ -24,7 +24,8 @@ enum SpotListSort: String, Sendable, CaseIterable, Equatable {
     var displayName: String {
         switch self {
         case .distance: "가까운 순"
-        case .recommended: "북마크 순"
+        // 서버 RECOMMENDED 정렬 기준이 bookmark_count → like_count 로 바뀌었다.
+        case .recommended: "추천 순"
         }
     }
 

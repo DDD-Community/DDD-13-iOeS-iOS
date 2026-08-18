@@ -63,7 +63,8 @@ extension SpotTheme: Codable {
 }
 
 extension SpotTheme {
-    // TODO(BE-API): 햇살/야경 서버 enum 값 확정 시 SUNLIGHT / NIGHT_VIEW 교체.
+    /// 서버 SpotTheme enum 과 1:1. 리스트 응답(`SpotItem.theme`)은 축약 코드로 내려오므로
+    /// `init?(apiCode:)` 에서 양쪽을 모두 받는다. (SS=노을, YS=윤슬, SL=햇살, NV=야경)
     var apiCode: String {
         switch self {
         case .sunlight: "SUNLIGHT"
