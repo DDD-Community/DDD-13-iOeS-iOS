@@ -5,6 +5,11 @@ import XCTest
 /// base URL 구성과 오버라이드 동작을 고정해둔다.
 final class APIEnvironmentTests: XCTestCase {
 
+    override func setUp() {
+        super.setUp()
+        APIEnvironment.clearOverride()
+    }
+
     override func tearDown() {
         APIEnvironment.clearOverride()
         super.tearDown()
@@ -24,6 +29,7 @@ final class APIEnvironmentTests: XCTestCase {
         APIEnvironment.setOverride(.prod)
 
         XCTAssertEqual(APIEnvironment.current, .prod)
+        XCTAssertTrue(APIEnvironment.isOverridden)
         XCTAssertEqual(APIBaseURL.current, "https://pickflow-api.us/api")
     }
 
@@ -33,15 +39,42 @@ final class APIEnvironmentTests: XCTestCase {
         APIEnvironment.clearOverride()
 
         XCTAssertEqual(APIEnvironment.current, .buildDefault)
+        XCTAssertFalse(APIEnvironment.isOverridden)
+    }
+
+    /// 핵심 안전장치 — 전환해둔 걸 잊은 유저가 업데이트 후에도 계속 dev 를 보면 안 된다.
+    func test_앱버전이바뀌면_오버라이드가무시된다() {
+        APIEnvironment.setOverride(.prod)
+        XCTAssertEqual(APIEnvironment.current, .prod)
+
+        // 이전 버전에서 전환해둔 상태를 흉내낸다.
+        UserDefaults.standard.set("0.0.1-old", forKey: APIEnvironment.overrideAppVersionKey)
+
+        XCTAssertEqual(APIEnvironment.current, .buildDefault)
+        XCTAssertFalse(APIEnvironment.isOverridden)
+    }
+
+    func test_알수없는값이저장돼있으면_빌드기본값을쓴다() {
+        UserDefaults.standard.set("staging", forKey: APIEnvironment.overrideKey)
+        UserDefaults.standard.set(APIEnvironment.currentAppVersion, forKey: APIEnvironment.overrideAppVersionKey)
+
+        XCTAssertEqual(APIEnvironment.current, .buildDefault)
     }
 
     /// 인증 엔드포인트가 별도 상수를 쓰던 시절의 회귀 방지.
     /// 모든 엔드포인트가 같은 호스트를 봐야 한다.
     func test_인증엔드포인트도_같은baseURL을쓴다() {
-        APIEnvironment.setOverride(.dev)
+        APIEnvironment.setOverride(.prod)
 
         XCTAssertEqual(AuthEndpoint.refresh(refreshToken: "t").baseURL, APIBaseURL.current)
         XCTAssertEqual(SpotEndpoint.detail(spotId: 1).baseURL, APIBaseURL.current)
-        XCTAssertEqual(APIBaseURL.current, "https://dev-api.pickflow-api.us/api")
+        XCTAssertEqual(APIBaseURL.current, "https://pickflow-api.us/api")
+    }
+
+    // MARK: - 숨은 진입점
+
+    func test_잠금해제_규칙이_우연히열리지않을만큼이다() {
+        XCTAssertGreaterThanOrEqual(APIEnvironmentUnlock.requiredTapCount, 5)
+        XCTAssertFalse(APIEnvironmentUnlock.passcode.isEmpty)
     }
 }

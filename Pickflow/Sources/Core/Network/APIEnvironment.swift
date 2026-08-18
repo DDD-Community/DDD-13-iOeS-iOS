@@ -3,8 +3,12 @@ import Foundation
 /// API 서버 환경.
 ///
 /// 기본값은 빌드 컨피그를 따른다 — Debug 는 dev, Release(TestFlight/App Store) 는 prod.
-/// Debug 빌드에 한해 런타임으로 바꿀 수 있고, 그 선택은 앱을 재시작해도 유지된다.
-/// Release 빌드에는 오버라이드 경로 자체가 컴파일되지 않으므로 운영 빌드가 dev 를 볼 일은 없다.
+/// 운영 빌드에서도 숨은 진입점(마이 > 앱 버전 연속 탭 + 패스코드)으로 전환할 수 있어
+/// 앱을 다시 말지 않고 QA 가 가능하다. 대신 아래 두 가지로 오조작을 막는다.
+///
+/// - 전환된 상태는 화면에 계속 표시된다 (마이 > 앱 버전 옆 `· dev`).
+/// - 오버라이드는 **설치된 앱 버전에 묶인다.** 앱을 업데이트하면 자동으로 풀리므로,
+///   전환해둔 걸 잊은 유저가 계속 dev 를 바라보는 상황이 이어지지 않는다.
 enum APIEnvironment: String, CaseIterable, Sendable {
     case dev
     case prod
@@ -27,6 +31,10 @@ enum APIEnvironment: String, CaseIterable, Sendable {
 }
 
 extension APIEnvironment {
+    // 앱 버전 연동 해제 동작을 테스트에서 검증하기 위해 internal 로 둔다.
+    static let overrideKey = "apiEnvironmentOverride"
+    static let overrideAppVersionKey = "apiEnvironmentOverrideAppVersion"
+
     /// 빌드 컨피그가 정하는 기본 환경.
     static var buildDefault: APIEnvironment {
         #if DEBUG
@@ -36,24 +44,48 @@ extension APIEnvironment {
         #endif
     }
 
-    #if DEBUG
-    private static let overrideKey = "debug.apiEnvironmentOverride"
+    static var current: APIEnvironment { storedOverride ?? buildDefault }
 
-    static var current: APIEnvironment {
-        UserDefaults.standard.string(forKey: overrideKey)
-            .flatMap(APIEnvironment.init(rawValue:)) ?? buildDefault
+    /// 기본값과 다른 환경으로 전환된 상태인지. 화면에 표시해 두기 위해 쓴다.
+    static var isOverridden: Bool { storedOverride != nil }
+
+    /// 저장된 오버라이드. 기록될 때의 앱 버전과 현재 앱 버전이 다르면 무시한다.
+    private static var storedOverride: APIEnvironment? {
+        let defaults = UserDefaults.standard
+        guard let raw = defaults.string(forKey: overrideKey),
+              let environment = APIEnvironment(rawValue: raw),
+              defaults.string(forKey: overrideAppVersionKey) == currentAppVersion
+        else {
+            return nil
+        }
+        return environment
     }
 
-    /// Debug 빌드 전용. 서버가 바뀌면 기존 토큰은 다른 서버에서 발급된 값이라 무효하므로,
-    /// 호출부에서 토큰을 비우고 앱을 재시작해야 한다.
+    /// - Important: 서버가 바뀌면 기존 토큰은 반대편 서버에서 발급된 값이라 무효하다.
+    ///   호출부에서 토큰을 비우고 앱 재시작을 안내해야 한다.
     static func setOverride(_ environment: APIEnvironment) {
-        UserDefaults.standard.set(environment.rawValue, forKey: overrideKey)
+        let defaults = UserDefaults.standard
+        defaults.set(environment.rawValue, forKey: overrideKey)
+        defaults.set(currentAppVersion, forKey: overrideAppVersionKey)
     }
 
     static func clearOverride() {
-        UserDefaults.standard.removeObject(forKey: overrideKey)
+        let defaults = UserDefaults.standard
+        defaults.removeObject(forKey: overrideKey)
+        defaults.removeObject(forKey: overrideAppVersionKey)
     }
-    #else
-    static var current: APIEnvironment { buildDefault }
-    #endif
+
+    static var currentAppVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
+    }
+}
+
+/// 숨은 진입점 규칙. 보안 장치가 아니라 **일반 유저가 실수로 들어가지 못하게 하는 속도 방지턱**이다.
+enum APIEnvironmentUnlock {
+    /// 마이 > 앱 버전 값을 연속으로 탭해야 하는 횟수.
+    static let requiredTapCount = 7
+    /// 이 시간 안에 연속으로 눌러야 카운트가 유지된다.
+    static let tapWindow: TimeInterval = 3
+    /// 팀 내 공유용 코드. 바이너리에 박히므로 비밀이 아니며, 오조작 방지 용도로만 쓴다.
+    static let passcode = "1123"
 }

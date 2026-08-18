@@ -1,11 +1,10 @@
-#if DEBUG
 import SwiftUI
 
-/// Debug 빌드 전용 API 서버 전환 화면.
+/// API 서버 전환 화면. 마이 > 앱 버전 연속 탭 + 패스코드로만 도달한다.
 ///
 /// 서버를 바꾸면 기존 토큰은 반대편 서버에서 발급된 값이라 그대로 쓰면 401 이 난다.
 /// 그래서 전환 시 토큰을 비우고, 진행 중인 세션/캐시가 섞이지 않도록 앱 재시작을 안내한다.
-struct APIEnvironmentDebugView: View {
+struct APIEnvironmentSwitchView: View {
     private let tokenStore: TokenStoreProtocol
 
     @State private var selection: APIEnvironment = APIEnvironment.current
@@ -20,15 +19,7 @@ struct APIEnvironmentDebugView: View {
             UIAsset.Colors.gray95.color.ignoresSafeArea()
 
             VStack(alignment: .leading, spacing: 24) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("API 환경")
-                        .pretendard(.heading(.large))
-                        .foregroundStyle(.gray0)
-
-                    Text("빌드 기본값은 \(APIEnvironment.buildDefault.displayName) 이에요.\nDebug 빌드에서만 바꿀 수 있고, 운영 빌드에는 이 화면이 없어요.")
-                        .pretendard(.body(.small()))
-                        .foregroundStyle(.gray30)
-                }
+                header
 
                 VStack(spacing: 8) {
                     ForEach(APIEnvironment.allCases, id: \.self) { environment in
@@ -36,16 +27,7 @@ struct APIEnvironmentDebugView: View {
                     }
                 }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("현재 요청 주소")
-                        .pretendard(.body(.small(.bold)))
-                        .foregroundStyle(.gray30)
-
-                    Text(APIEnvironment.current.baseURL)
-                        .pretendard(.body(.small()))
-                        .foregroundStyle(.sunsetOrange)
-                        .textSelection(.enabled)
-                }
+                currentAddress
 
                 Spacer()
             }
@@ -59,6 +41,31 @@ struct APIEnvironmentDebugView: View {
         }
     }
 
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("API 환경")
+                .pretendard(.heading(.large))
+                .foregroundStyle(.gray0)
+
+            Text("이 빌드의 기본값은 \(APIEnvironment.buildDefault.displayName) 이에요.\n앱을 업데이트하면 기본값으로 돌아가요.")
+                .pretendard(.body(.small()))
+                .foregroundStyle(.gray30)
+        }
+    }
+
+    private var currentAddress: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("현재 요청 주소")
+                .pretendard(.body(.small(.bold)))
+                .foregroundStyle(.gray30)
+
+            Text(APIEnvironment.current.baseURL)
+                .pretendard(.body(.small()))
+                .foregroundStyle(.sunsetOrange)
+                .textSelection(.enabled)
+        }
+    }
+
     private func environmentRow(_ environment: APIEnvironment) -> some View {
         let isSelected = selection == environment
         return Button {
@@ -67,9 +74,17 @@ struct APIEnvironmentDebugView: View {
         } label: {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(environment.displayName)
-                        .pretendard(.body(.medium(.bold)))
-                        .foregroundStyle(.gray0)
+                    HStack(spacing: 6) {
+                        Text(environment.displayName)
+                            .pretendard(.body(.medium(.bold)))
+                            .foregroundStyle(.gray0)
+
+                        if environment == APIEnvironment.buildDefault {
+                            Text("기본")
+                                .pretendard(.body(.small()))
+                                .foregroundStyle(.gray30)
+                        }
+                    }
 
                     Text(environment.baseURL)
                         .pretendard(.body(.small()))
@@ -94,10 +109,13 @@ struct APIEnvironmentDebugView: View {
     }
 
     private func apply(_ environment: APIEnvironment) {
-        APIEnvironment.setOverride(environment)
+        if environment == APIEnvironment.buildDefault {
+            APIEnvironment.clearOverride()
+        } else {
+            APIEnvironment.setOverride(environment)
+        }
         try? tokenStore.clear()
         selection = environment
         isRestartNoticePresented = true
     }
 }
-#endif
