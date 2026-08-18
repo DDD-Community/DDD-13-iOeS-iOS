@@ -89,5 +89,42 @@ struct MyProfileView: View {
             onCancel: { viewModel.cancelRestore() },
             onConfirm: { Task { await viewModel.confirmRestore() } }
         )
+        .apiEnvironmentDebugEntry()
     }
 }
+
+private extension View {
+    /// Debug 빌드에서만 API 환경 전환 진입점을 붙인다. Release 빌드에서는 no-op.
+    @ViewBuilder
+    func apiEnvironmentDebugEntry() -> some View {
+        #if DEBUG
+        modifier(APIEnvironmentDebugEntry())
+        #else
+        self
+        #endif
+    }
+}
+
+#if DEBUG
+private struct APIEnvironmentDebugEntry: ViewModifier {
+    @State private var isPresented = false
+
+    func body(content: Content) -> some View {
+        content
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        isPresented = true
+                    } label: {
+                        Image(systemName: "ladybug")
+                            .foregroundStyle(.gray30)
+                    }
+                    .accessibilityLabel("디버그 설정")
+                }
+            }
+            .navigationDestination(isPresented: $isPresented) {
+                APIEnvironmentDebugView(tokenStore: getTokenStore())
+            }
+    }
+}
+#endif

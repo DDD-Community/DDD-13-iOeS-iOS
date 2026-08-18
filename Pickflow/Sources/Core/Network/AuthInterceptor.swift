@@ -52,7 +52,7 @@ final class AuthInterceptor: RequestInterceptor, @unchecked Sendable {
 
     // URLSession으로 직접 호출해 Alamofire Session과의 순환 참조를 방지
     private func callRefresh(_ refreshToken: String) async throws -> AuthToken {
-        var urlRequest = URLRequest(url: URL(string: AppConfig.baseURL + "/v1/auth/refresh")!)
+        var urlRequest = URLRequest(url: URL(string: APIBaseURL.current + "/v1/auth/refresh")!)
         urlRequest.httpMethod = "POST"
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
         urlRequest.httpBody = try JSONEncoder().encode(["refreshToken": refreshToken])
