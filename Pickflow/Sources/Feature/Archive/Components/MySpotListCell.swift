@@ -68,21 +68,26 @@ struct MySpotListCell: View {
 
     private var aspect: CGFloat { item.spotId.isMultiple(of: 2) ? 1.2 : 0.9 }
 
+    /// 나만보기(DRAFT)와 알 수 없는 상태는 뱃지를 달지 않는다.
+    @ViewBuilder
     private var statusBadge: some View {
-        Text(item.status.displayName)
-            .pretendard(.label(.medium))
-            .foregroundStyle(.gray0)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(statusBackground)
-            .clipShape(Capsule())
+        if let badgeText = item.status.badgeText {
+            Text(badgeText)
+                .pretendard(.label(.medium))
+                .foregroundStyle(.gray0)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(statusBackground)
+                .clipShape(Capsule())
+        }
     }
 
     private var statusBackground: Color {
         switch item.status {
-        case .pending: UIAsset.Colors.gray80.swiftUIColor.opacity(0.85)
+        case .pending, .reReviewPending: UIAsset.Colors.gray80.swiftUIColor.opacity(0.85)
         case .published: UIAsset.Colors.sunsetOrange.swiftUIColor.opacity(0.85)
         case .rejected: Color.red.opacity(0.7)
+        case .draft, .unknown: .clear
         }
     }
 
