@@ -17,6 +17,8 @@ struct MyProfileSignedInContent: View {
     var environmentBadge: String?
     /// 앱 버전 행 탭. 연속 탭이 서버 전환 진입점이라 호출부에서 횟수를 센다.
     var onAppVersionTap: () -> Void = {}
+    /// 앱 버전 행 길게 누르기. Debug 빌드에서 서버 전환 화면으로 바로 들어가는 지름길.
+    var onAppVersionLongPress: () -> Void = {}
 
     // 연결된 소셜 인디케이터 색상 (#FFA100)
     private let connectedProviderColor = Color(red: 1.0, green: 161.0 / 255.0, blue: 0.0)
@@ -182,6 +184,7 @@ struct MyProfileSignedInContent: View {
             .padding(.vertical, 18)
             .contentShape(Rectangle())
             .onTapGesture { onAppVersionTap() }
+            .onLongPressGesture { onAppVersionLongPress() }
         }
     }
 

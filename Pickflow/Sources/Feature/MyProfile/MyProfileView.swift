@@ -40,7 +40,8 @@ struct MyProfileView: View {
                     onNoticeTap: { viewModel.navigateToNotice() },
                     onTermsAndPolicyTap: { viewModel.navigateToTermsAndPolicy() },
                     environmentBadge: APIEnvironment.isOverridden ? APIEnvironment.current.rawValue : nil,
-                    onAppVersionTap: registerAppVersionTap
+                    onAppVersionTap: registerAppVersionTap,
+                    onAppVersionLongPress: openEnvironmentSwitchIfDebug
                 )
 
             case let .failed(message):
@@ -132,5 +133,13 @@ struct MyProfileView: View {
         passcodeInput = ""
         guard entered == APIEnvironmentUnlock.passcode else { return }
         isEnvironmentSwitchPresented = true
+    }
+
+    /// Debug 빌드에서는 길게 누르기 한 번으로 바로 연다. 연속 탭·패스코드는 운영 빌드용 관문이라
+    /// 개발 중에는 매번 거칠 이유가 없다. Release 빌드에서는 아무 일도 하지 않는다.
+    private func openEnvironmentSwitchIfDebug() {
+        #if DEBUG
+        isEnvironmentSwitchPresented = true
+        #endif
     }
 }

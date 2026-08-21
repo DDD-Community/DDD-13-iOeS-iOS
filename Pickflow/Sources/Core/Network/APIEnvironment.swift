@@ -44,10 +44,28 @@ extension APIEnvironment {
         #endif
     }
 
-    static var current: APIEnvironment { storedOverride ?? buildDefault }
+    /// 우선순위: 실행 인자 > 저장된 오버라이드 > 빌드 기본값.
+    static var current: APIEnvironment { launchArgumentOverride ?? storedOverride ?? buildDefault }
 
     /// 기본값과 다른 환경으로 전환된 상태인지. 화면에 표시해 두기 위해 쓴다.
-    static var isOverridden: Bool { storedOverride != nil }
+    static var isOverridden: Bool { launchArgumentOverride != nil || storedOverride != nil }
+
+    #if DEBUG
+    /// Xcode 스킴 > Run > Arguments Passed On Launch 에 `-apiEnvironment dev` 를 넣어두면
+    /// UI 를 거치지 않고 실행할 때마다 해당 환경으로 붙는다. 개발 중 전환이 가장 빠른 경로다.
+    ///
+    /// 정상 설치된 앱에는 실행 인자를 넣을 수 없으므로 일반 사용자에게 노출될 여지가 없고,
+    /// Release 빌드에는 이 경로 자체가 컴파일되지 않는다.
+    static let launchArgumentKey = "apiEnvironment"
+
+    static var launchArgumentOverride: APIEnvironment? {
+        let arguments = UserDefaults.standard.volatileDomain(forName: UserDefaults.argumentDomain)
+        guard let raw = arguments[launchArgumentKey] as? String else { return nil }
+        return APIEnvironment(rawValue: raw)
+    }
+    #else
+    static var launchArgumentOverride: APIEnvironment? { nil }
+    #endif
 
     /// 저장된 오버라이드. 기록될 때의 앱 버전과 현재 앱 버전이 다르면 무시한다.
     private static var storedOverride: APIEnvironment? {

@@ -50,6 +50,13 @@ struct APIEnvironmentSwitchView: View {
             Text("이 빌드의 기본값은 \(APIEnvironment.buildDefault.displayName) 이에요.\n앱을 업데이트하면 기본값으로 돌아가요.")
                 .pretendard(.body(.small()))
                 .foregroundStyle(.gray30)
+
+            if let forced = APIEnvironment.launchArgumentOverride {
+                // 실행 인자가 우선하므로 아래에서 무엇을 고르든 반영되지 않는다. 헷갈리지 않게 알려준다.
+                Text("실행 인자로 \(forced.displayName) 이 고정돼 있어요.\n스킴에서 -apiEnvironment 를 빼야 아래 선택이 적용돼요.")
+                    .pretendard(.body(.small()))
+                    .foregroundStyle(.sunsetOrange)
+            }
         }
     }
 

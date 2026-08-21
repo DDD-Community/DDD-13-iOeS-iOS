@@ -71,6 +71,38 @@ final class APIEnvironmentTests: XCTestCase {
         XCTAssertEqual(APIBaseURL.current, "https://pickflow-api.us/api")
     }
 
+    // MARK: - 실행 인자
+
+    /// 개발 중에는 스킴에 `-apiEnvironment dev` 를 넣어두고 UI 를 아예 거치지 않는다.
+    func test_실행인자가_저장된오버라이드보다우선한다() {
+        APIEnvironment.setOverride(.prod)
+
+        withLaunchArgument("dev") {
+            XCTAssertEqual(APIEnvironment.current, .dev)
+            XCTAssertTrue(APIEnvironment.isOverridden)
+        }
+
+        // 인자가 빠지면 저장된 값으로 되돌아간다.
+        XCTAssertEqual(APIEnvironment.current, .prod)
+    }
+
+    func test_실행인자값이_알수없는문자열이면_무시된다() {
+        withLaunchArgument("staging") {
+            XCTAssertNil(APIEnvironment.launchArgumentOverride)
+            XCTAssertEqual(APIEnvironment.current, .buildDefault)
+        }
+    }
+
+    private func withLaunchArgument(_ value: String, _ body: () -> Void) {
+        let defaults = UserDefaults.standard
+        let original = defaults.volatileDomain(forName: UserDefaults.argumentDomain)
+        var patched = original
+        patched[APIEnvironment.launchArgumentKey] = value
+        defaults.setVolatileDomain(patched, forName: UserDefaults.argumentDomain)
+        defer { defaults.setVolatileDomain(original, forName: UserDefaults.argumentDomain) }
+        body()
+    }
+
     // MARK: - 숨은 진입점
 
     func test_잠금해제_규칙이_우연히열리지않을만큼이다() {
