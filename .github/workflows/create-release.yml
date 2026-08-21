@@ -1,9 +1,15 @@
-name: Bump Version
+name: Create Release
 
-# 마케팅 버전을 올려 develop 으로 향하는 PR 을 만들고 auto-merge 를 예약한다.
-# 어떤 숫자로 올릴지는 사람이 정하고(제품 결정), 그 뒤의 반복 작업만 자동화한다.
+# develop 에서 릴리즈 브랜치를 자르면서 마케팅 버전 상향까지 한 번에 처리한다.
 #
-# 사람이 하는 일은 PR 승인 클릭 한 번뿐이다. auto-merge 를 켜는 것도 워크플로가 한다.
+# 버전 커밋이 보호 대상인 develop 이 아니라 새로 만드는 release/x.y.z 에 올라가므로
+# PR·승인·룰셋 bypass 가 필요 없다. 워크플로가 브랜치를 만들고 그대로 푸시한다.
+#
+# 이후 흐름은 사람이 진행한다:
+#   1. QA 중 나온 수정은 release/x.y.z 로 PR (CI 가 돈다)
+#   2. TestFlight Deploy 워크플로를 branch=release/x.y.z 로 실행
+#   3. 배포 확정 후 태그 vx.y.z
+#   4. release/x.y.z → develop 백머지 PR (버전 + 수정분 회수)
 
 on:
   workflow_dispatch:
@@ -18,31 +24,30 @@ on:
           - minor
           - major
       version:
-        description: "버전을 직접 지정 (예: 1.2.0). 비우면 bump 기준으로 계산"
+        description: "버전을 직접 지정 (예: 1.3.0). 비우면 bump 기준으로 계산"
         type: string
         required: false
         default: ""
       ticket:
-        description: "커밋/PR 제목 prefix 에 쓸 티켓 번호"
+        description: "커밋 제목 prefix 에 쓸 티켓 번호"
         type: string
         required: false
         default: "RELEASE"
 
-# 동시에 두 번 돌면 같은 버전으로 브랜치가 겹친다.
+# 동시에 두 번 돌면 같은 릴리즈 브랜치를 두고 경합한다.
 concurrency:
-  group: bump-version
+  group: create-release
   cancel-in-progress: false
 
 permissions:
   contents: write
-  pull-requests: write
 
 env:
   VERSION_FILE: Tuist/ProjectDescriptionHelpers/ProjectEnvironment.swift
 
 jobs:
-  bump:
-    # 텍스트 한 줄만 고치므로 Xcode 가 필요 없다. ubuntu 가 훨씬 빠르고 저렴하다.
+  create-release:
+    # 텍스트 한 줄만 고치므로 Xcode 가 필요 없다.
     runs-on: ubuntu-latest
 
     steps:
@@ -98,14 +103,24 @@ jobs:
             exit 1
           fi
 
+          branch="release/$next"
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+            echo "::error::$branch 브랜치가 이미 있습니다."
+            exit 1
+          fi
+
           echo "current=$current" >> "$GITHUB_OUTPUT"
           echo "next=$next" >> "$GITHUB_OUTPUT"
-          echo "branch=chore/bump-$next" >> "$GITHUB_OUTPUT"
-          echo "### 버전 $current → $next" >> "$GITHUB_STEP_SUMMARY"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
 
-      - name: Apply version
+      - name: Create release branch with version bump
         run: |
           set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git switch -c '${{ steps.version.outputs.branch }}'
 
           sed -i -E 's/(marketingVersion = ")[0-9]+\.[0-9]+\.[0-9]+(")/\1${{ steps.version.outputs.next }}\2/' "$VERSION_FILE"
 
@@ -116,58 +131,24 @@ jobs:
 
           git --no-pager diff -- "$VERSION_FILE"
 
-      - name: Commit and push
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-
-          branch='${{ steps.version.outputs.branch }}'
-          if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
-            echo "::error::$branch 브랜치가 이미 있습니다. 이전 실행이 남아 있는지 확인하세요."
-            exit 1
-          fi
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git switch -c "$branch"
           git add "$VERSION_FILE"
           git commit -m "[${{ inputs.ticket }}] 버전 ${{ steps.version.outputs.next }}"
-          git push origin "$branch"
+          git push origin '${{ steps.version.outputs.branch }}'
 
-      - name: Open PR and enable auto-merge
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Summary
         run: |
-          set -euo pipefail
-
-          # ${{ }} 는 bash 가 아니라 Actions 가 먼저 치환하므로 quoted heredoc 안에서도 값이 들어간다.
-          cat > /tmp/pr-body.md <<'BODY'
-          마케팅 버전을 올립니다. `Bump Version` 워크플로가 자동 생성했습니다.
+          cat >> "$GITHUB_STEP_SUMMARY" <<'SUMMARY'
+          ## 릴리즈 브랜치 생성 완료
 
           | | |
           | --- | --- |
-          | 이전 | ${{ steps.version.outputs.current }} |
-          | 이후 | ${{ steps.version.outputs.next }} |
+          | 브랜치 | `${{ steps.version.outputs.branch }}` |
+          | 버전 | ${{ steps.version.outputs.current }} → **${{ steps.version.outputs.next }}** |
 
-          `ProjectEnvironment.marketingVersion` 한 줄만 바뀌며, `MARKETING_VERSION` 과
-          `CFBundleShortVersionString` 이 이 값을 함께 참조합니다.
+          ### 다음 단계
 
-          > [!NOTE]
-          > `GITHUB_TOKEN` 으로 만든 PR 이라 `pull_request` 워크플로(유닛 테스트·빌드 검증)가
-          > 트리거되지 않습니다. 승인 시 diff 한 줄을 직접 확인해 주세요.
-
-          auto-merge 가 예약돼 있어 승인하면 자동으로 머지됩니다.
-          BODY
-
-          url=$(gh pr create \
-            --base develop \
-            --head '${{ steps.version.outputs.branch }}' \
-            --title '[${{ inputs.ticket }}] 버전 ${{ steps.version.outputs.next }}' \
-            --body-file /tmp/pr-body.md)
-
-          echo "$url"
-          echo "PR: $url" >> "$GITHUB_STEP_SUMMARY"
-
-          gh pr merge --auto --squash "$url"
+          1. QA 중 나온 수정은 `${{ steps.version.outputs.branch }}` 로 PR (CI 가 돕니다)
+          2. Actions → **TestFlight Deploy** → `branch` 에 `${{ steps.version.outputs.branch }}` 입력
+          3. 배포 확정 후 태그 `v${{ steps.version.outputs.next }}`
+          4. `${{ steps.version.outputs.branch }}` → `develop` 백머지 PR
+          SUMMARY

@@ -66,10 +66,26 @@ container.register(AuthServiceProtocol.self) { AuthService() }
 
 ### Workflow
 
-- `main` ← `develop` ← `feature/*`
-- feature 작업 완료 시 `develop`으로 PR
-- develop 작업 완료 시 `main`으로 PR
+`develop` 이 trunk 다. `main` 은 쓰지 않는다.
+
+```
+feature/* ──PR──> develop ──[Create Release]──> release/x.y.z
+                     ^                              │
+                     │                              ├─ QA 수정 PR
+                     │                              ├─ TestFlight 배포
+                     │                              ├─ 태그 vx.y.z
+                     └──────백머지 PR───────────────┘
+```
+
+- feature 작업 완료 시 `develop` 으로 PR
+- 배포할 때가 되면 **Create Release** 워크플로로 `release/x.y.z` 를 만든다.
+  버전 상향 커밋이 이 브랜치에 함께 올라간다 (아래 참고)
+- QA 중 나온 수정은 `release/x.y.z` 로 PR 한다. **feature 를 release 로 직접 머지하지 않는다**
+- 배포·태깅이 끝나면 `release/x.y.z` 를 `develop` 으로 백머지해 버전과 수정분을 회수한다
+- release 브랜치가 열려 있어도 다음 기능은 `develop` 에 계속 쌓는다 (동시 릴리즈 대응)
 - 1인 1피처 기준
+
+> `develop` 과 `release/**` 로 향하는 PR 에서 CI(유닛 테스트·빌드 검증)가 돈다.
 
 ### Commit Message
 
@@ -125,26 +141,34 @@ public static let marketingVersion = "1.1.0"   // ← 이 줄만 수정
 - ✅ 기능 릴리즈 = MINOR, 핫픽스 = PATCH
 - ✅ 빌드 넘버는 **자동**, 손대지 않기
 - ✅ 스토어에 출시된 버전 번호는 **재사용 금지**
-- ✅ 버전 상향은 **Bump Version 워크플로**로 실행한다 (아래 참고)
+- ✅ 버전 상향은 **Create Release 워크플로**로 실행한다 (아래 참고)
 - 🔜 태그 자동 생성은 아직 수동 (TestFlight Deploy 성공 시 자동화 예정)
 
-### Bump Version 워크플로
+### Create Release 워크플로
 
-Actions → **Bump Version** → Run workflow 에서 올릴 단위만 고르면 나머지는 자동이다.
+Actions → **Create Release** → Run workflow 에서 올릴 단위만 고르면,
+`develop` 에서 릴리즈 브랜치를 자르면서 버전 상향 커밋까지 함께 올린다.
 
 | 입력 | 설명 |
 |------|------|
 | `bump` | `patch` / `minor` / `major` — 현재 버전 기준으로 계산 |
-| `version` | 직접 지정 (예: `1.2.0`). 넣으면 `bump` 는 무시 |
-| `ticket` | 커밋·PR 제목 prefix (기본 `RELEASE`) |
+| `version` | 직접 지정 (예: `1.3.0`). 넣으면 `bump` 는 무시 |
+| `ticket` | 커밋 제목 prefix (기본 `RELEASE`) |
 
-`ProjectEnvironment.marketingVersion` 을 고쳐 `chore/bump-x.y.z` 브랜치로 PR 을 만들고
-auto-merge 까지 예약한다. **사람이 할 일은 승인 클릭 한 번**이다.
+버전 커밋이 보호 대상인 `develop` 이 아니라 **새로 만드는 `release/x.y.z` 에 올라가므로
+PR·승인·룰셋 bypass 가 필요 없다.** 워크플로가 브랜치를 만들고 그대로 푸시한다.
 
-현재 버전과 같거나 낮은 값, 이미 태그가 있는 값은 워크플로가 거부한다.
+이후는 사람이 진행한다.
 
-> `GITHUB_TOKEN` 으로 만든 PR 이라 `pull_request` 워크플로(테스트·빌드 검증)가 트리거되지 않는다.
-> 승인 시 diff 한 줄을 직접 확인할 것.
+1. QA 중 나온 수정은 `release/x.y.z` 로 PR (CI 가 돈다)
+2. **TestFlight Deploy** 워크플로를 `branch=release/x.y.z` 로 실행
+3. 배포 확정 후 태그 `vx.y.z`
+4. `release/x.y.z` → `develop` 백머지 PR
+
+현재 버전과 같거나 낮은 값, 이미 태그가 있는 값, 이미 있는 브랜치는 워크플로가 거부한다.
+
+> `develop` 의 `marketingVersion` 은 백머지 시점에 올라간다. 릴리즈 브랜치가 열려 있는 동안
+> develop 이 이전 버전을 가리키는 것은 정상이다.
 
 ### ⚠️ 배포 함정 (재발 방지)
 

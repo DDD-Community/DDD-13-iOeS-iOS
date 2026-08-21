@@ -4,6 +4,8 @@ on:
   pull_request:
     branches:
       - develop
+      # 릴리즈 브랜치로 들어가는 QA 수정도 검증한다. 빠뜨리면 배포 직전 변경이 무검증으로 머지된다.
+      - "release/**"
   workflow_dispatch:
 
 jobs:
