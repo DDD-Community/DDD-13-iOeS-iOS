@@ -125,7 +125,26 @@ public static let marketingVersion = "1.1.0"   // ← 이 줄만 수정
 - ✅ 기능 릴리즈 = MINOR, 핫픽스 = PATCH
 - ✅ 빌드 넘버는 **자동**, 손대지 않기
 - ✅ 스토어에 출시된 버전 번호는 **재사용 금지**
-- 🔜 릴리즈 자동화(fastlane `bump_version` lane + 태그 자동 생성) 도입하기로 합의 (추후 적용)
+- ✅ 버전 상향은 **Bump Version 워크플로**로 실행한다 (아래 참고)
+- 🔜 태그 자동 생성은 아직 수동 (TestFlight Deploy 성공 시 자동화 예정)
+
+### Bump Version 워크플로
+
+Actions → **Bump Version** → Run workflow 에서 올릴 단위만 고르면 나머지는 자동이다.
+
+| 입력 | 설명 |
+|------|------|
+| `bump` | `patch` / `minor` / `major` — 현재 버전 기준으로 계산 |
+| `version` | 직접 지정 (예: `1.2.0`). 넣으면 `bump` 는 무시 |
+| `ticket` | 커밋·PR 제목 prefix (기본 `RELEASE`) |
+
+`ProjectEnvironment.marketingVersion` 을 고쳐 `chore/bump-x.y.z` 브랜치로 PR 을 만들고
+auto-merge 까지 예약한다. **사람이 할 일은 승인 클릭 한 번**이다.
+
+현재 버전과 같거나 낮은 값, 이미 태그가 있는 값은 워크플로가 거부한다.
+
+> `GITHUB_TOKEN` 으로 만든 PR 이라 `pull_request` 워크플로(테스트·빌드 검증)가 트리거되지 않는다.
+> 승인 시 diff 한 줄을 직접 확인할 것.
 
 ### ⚠️ 배포 함정 (재발 방지)
 
