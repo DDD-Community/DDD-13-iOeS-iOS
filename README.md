@@ -4,17 +4,19 @@
 
 ### Workflow
 
-- `master(main)` - 배포 브랜치
-- `develop` - 개발 브랜치
+- `develop` - trunk. 개발과 배포가 모두 여기서 이뤄집니다.
 - `feature` - 기능 개발 브랜치 (1인 1피처 가정)
 
 ```
-master(main) → develop → feature
+feature → develop → 배포 + 태그 vx.y.z
 ```
 
-- `master(main)`에서 `develop` 브랜치를 생성합니다.
 - `develop`에서 `feature` 브랜치를 생성하여 작업합니다.
 - `feature` 작업 완료 시 `develop`으로 PR을 생성합니다.
+- 배포는 `develop`에서 그대로 나가고, 릴리즈 지점은 `vx.y.z` 태그로 남깁니다.
+- 배포 브랜치(`main`, `release/*`)는 두지 않습니다.
+
+자세한 버전·배포 규칙은 [AGENTS.md](AGENTS.md)를 참고하세요.
 
 ### Commit Convention
 

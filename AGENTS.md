@@ -66,10 +66,25 @@ container.register(AuthServiceProtocol.self) { AuthService() }
 
 ### Workflow
 
-- `main` ← `develop` ← `feature/*`
-- feature 작업 완료 시 `develop`으로 PR
-- develop 작업 완료 시 `main`으로 PR
+`develop` 이 trunk 다. `main` 과 상시 `release/*` 브랜치는 쓰지 않는다.
+
+```
+feature/* ──PR──> develop ──> TestFlight/스토어 배포 ──> 태그 vx.y.z
+                     ^
+hotfix/x.y.z ────────┘   (배포된 태그에서 분기 → 배포 → develop 머지)
+```
+
+- feature 작업 완료 시 `develop` 으로 PR — CI(유닛 테스트·빌드 검증)가 여기서만 돈다
+- 배포는 `develop` 에서 그대로 나간다. **배포 브랜치를 따로 두지 않고 태그로 릴리즈 지점을 남긴다**
+- 배포가 끝나면 그 커밋에 `vx.y.z` 태그를 단다
 - 1인 1피처 기준
+
+> release 브랜치를 두지 않는 이유: TestFlight 배포가 `branch` input 기반 수동 실행이라
+> develop 에서 바로 올릴 수 있고, 1인 1피처 규모에서는 백머지·체리픽 비용이 더 크다.
+
+**핫픽스** — 스토어에 나간 버전을 급히 고쳐야 하는데 `develop` 이 이미 앞서 있다면,
+해당 태그(`vx.y.z`)에서 `hotfix/x.y.z+1` 을 분기해 수정하고 배포한 뒤 `develop` 으로 머지한다.
+develop 이 배포 시점과 크게 다르지 않으면 그냥 develop 에서 PATCH 를 올려 배포한다.
 
 ### Commit Message
 
