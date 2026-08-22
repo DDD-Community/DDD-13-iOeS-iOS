@@ -1,0 +1,1689 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "pickflow API — 유저 스팟 공개 시스템",
+    "version": "2026.08.14",
+    "description": "브랜치 `2026/HJY/유저스팟_공개시스템_개발`에서 신규/변경된 API만 모은 문서다.\n전체 배경과 설계 결정은 `docs/user-spot-publication-system.md` 참고.\n\n### 이번 브랜치 범위\n- **신규**: 나만의 스팟 수정/삭제, 공개 해제(오픈 철회·비공개 전환), 좋아요 등록/취소\n- **동작 변경**: 스팟 상세/미리보기/리스트 조회, 저장된 스팟 목록 조회\n- **내부 변경**(응답 스펙은 기존과 동일): 오픈 신청, 스팟 검수(승인/반려) — 이력 적재 및 비관적 락 도입\n\n### 공통 사항\n- 모든 응답은 `ApiResponse<T>` 래퍼를 사용한다 (`success`, `code`, `message`, `data`).\n- 인증이 필요한데 토큰이 없거나 무효하면 `401 C004`, 권한이 없으면 `403 C005`로 응답한다.\n- 비공개 스팟에 대한 접근은 `403`이 아닌 `404 SP001`로 응답해 존재 여부 자체를 숨긴다.\n",
+    "contact": {
+      "name": "황제연"
+    }
+  },
+  "servers": [
+    {
+      "url": "/api",
+      "description": "context-path 포함 기본 서버 (dev 프로필 기준 http://localhost:8080/api)"
+    }
+  ],
+  "tags": [
+    {
+      "name": "나만의 스팟",
+      "description": "사용자가 등록한 스팟의 조회/수정/삭제/오픈신청/공개해제"
+    },
+    {
+      "name": "스팟",
+      "description": "스팟 상세/리스트/미리보기 조회 (공개 스팟 대상)"
+    },
+    {
+      "name": "스팟 좋아요",
+      "description": "스팟 추천(좋아요) 등록/취소"
+    },
+    {
+      "name": "북마크 및 저장된 스팟 관리",
+      "description": "저장된 스팟 목록 조회"
+    },
+    {
+      "name": "스팟 검수 어드민",
+      "description": "오픈 신청 건 승인/반려 (USER_ADMIN 전용)"
+    }
+  ],
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "paths": {
+    "/v1/users/me/my-spots/{spotId}": {
+      "put": {
+        "tags": [
+          "나만의 스팟"
+        ],
+        "summary": "나만의 스팟 수정",
+        "description": "나만보기(DRAFT) 또는 반려(REJECTED) 상태의 스팟을 수정한다.\n검수중이거나 공개된 스팟은 `SP010`으로 응답하므로, 공개를 먼저 해제한 뒤 수정해야 한다.\n반려된 스팟은 수정 후 오픈 신청으로 재검수를 요청할 수 있다.\n좌표를 변경하면 주소·기상 격자·혼잡 지역과 날씨 정보가 새 위치 기준으로 다시 계산된다\n(좌표가 그대로면 외부 API 호출 없이 문구만 갱신).\n이미지를 첨부하지 않으면 기존 이미지가 유지되며, 수정으로 스팟 상태가 바뀌지는 않는다.\n",
+        "operationId": "updateMySpot",
+        "x-added-in-this-branch": true,
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SpotId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "request"
+                ],
+                "properties": {
+                  "request": {
+                    "$ref": "#/components/schemas/UpdateMySpotRequest"
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "교체할 스팟 이미지 파일. 미첨부 시 기존 이미지를 그대로 유지한다."
+                  }
+                }
+              },
+              "encoding": {
+                "request": {
+                  "contentType": "application/json"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "수정 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseUpdateMySpotResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "검증 실패 또는 수정 불가 상태 (SP010)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                },
+                "examples": {
+                  "notEditable": {
+                    "value": {
+                      "success": false,
+                      "code": "SP010",
+                      "message": "검수 중이거나 공개된 스팟은 수정할 수 없어요. 오픈을 취소한 뒤 수정해주세요."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "description": "본인이 등록한 스팟이 아님 (SP008)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "존재하지 않는 스팟 (SP001)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "나만의 스팟"
+        ],
+        "summary": "나만의 스팟 삭제",
+        "description": "본인이 등록한 스팟을 삭제한다(논리삭제).\n검수중(PENDING)/재검토대기(RE_REVIEW_PENDING) 상태에서는 `SP011`로 응답하므로,\n오픈 신청을 먼저 철회한 뒤 삭제해야 한다.\n다른 사용자의 북마크 목록에는 '삭제된 스팟'으로 표시된다.\n",
+        "operationId": "deleteMySpot",
+        "x-added-in-this-branch": true,
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SpotId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "삭제 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "description": "본인이 등록한 스팟이 아님 (SP008)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "존재하지 않는 스팟 (SP001)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "검수 중인 스팟은 삭제 불가 (SP011)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                },
+                "examples": {
+                  "notDeletable": {
+                    "value": {
+                      "success": false,
+                      "code": "SP011",
+                      "message": "검수 중인 스팟은 삭제할 수 없어요. 오픈 신청을 먼저 취소해주세요."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/users/me/my-spots/{spotId}/publications": {
+      "delete": {
+        "tags": [
+          "나만의 스팟"
+        ],
+        "summary": "나만의 스팟 공개 해제 (오픈 신청 철회 / 비공개 전환)",
+        "description": "스팟의 공개 상태를 해제해 나만보기(DRAFT)로 되돌린다.\n검수중(PENDING)/재검토대기(RE_REVIEW_PENDING)이면 오픈 신청 철회로, 공개(PUBLISHED)면 비공개 전환으로 처리되며\n응답의 `previousStatus`로 어느 쪽이었는지 구분할 수 있다.\n이미 쌓인 좋아요/북마크는 그대로 유지된다.\n나만보기(DRAFT) 상태는 해제할 대상이 없어 `SP009`,\n철회 직전에 운영자 검수가 확정된 경우에는 `SP009` 대신 `SP004`(이미 처리된 신청이에요)로 응답한다.\n본인이 등록한 스팟만 해제할 수 있다.\n",
+        "operationId": "cancelPublication",
+        "x-added-in-this-branch": true,
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SpotId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "공개 해제 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseCancelPublicationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "해제할 대상이 없는 상태 (SP009)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                },
+                "examples": {
+                  "notCancelable": {
+                    "value": {
+                      "success": false,
+                      "code": "SP009",
+                      "message": "공개 상태를 해제할 수 없는 스팟이에요."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "description": "본인이 등록한 스팟이 아님 (SP008)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "존재하지 않는 스팟 (SP001)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "철회 직전 운영자가 이미 처리를 확정한 경합 상황 (SP004)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                },
+                "examples": {
+                  "alreadyReviewed": {
+                    "value": {
+                      "success": false,
+                      "code": "SP004",
+                      "message": "이미 처리된 신청이에요."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/users/me/my-spots/{spotId}/open-requests": {
+      "post": {
+        "tags": [
+          "나만의 스팟"
+        ],
+        "summary": "나만의 스팟 오픈 신청 (검수 요청)",
+        "description": "나만보기(DRAFT) 또는 반려(REJECTED) 상태의 스팟을 지도에 공개하기 위해 오픈 신청한다.\nDRAFT는 검수중(PENDING)으로, REJECTED는 재검토대기(RE_REVIEW_PENDING)로 전이되며 검수가 시작된다.\n본인이 등록한 스팟만 신청할 수 있다.\n\n**이번 브랜치 변경점(응답 스펙 동일)**: 신청 이력(`spot_open_requests`)이 새로 적재되고,\n상태 전이 경로에 비관적 락이 걸려 동시 신청/검수 경합을 방지한다.\n",
+        "operationId": "requestOpen",
+        "x-changed-in-this-branch": "internal",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SpotId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "오픈 신청 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOpenMySpotResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "오픈 신청할 수 없는 상태 (SP005)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "description": "본인이 등록한 스팟이 아님 (SP008)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "존재하지 않는 스팟 (SP001)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/spots/{spotId}/likes": {
+      "post": {
+        "tags": [
+          "스팟 좋아요"
+        ],
+        "summary": "스팟 좋아요",
+        "description": "스팟에 좋아요(추천)를 등록한다. 공개(PUBLISHED)된 스팟에만 허용되며,\n그 외 상태의 유저 스팟은 `SL003`으로 응답한다. 관리자 큐레이션 스팟은 상태와 무관하게 허용된다.\n비로그인 상태로 호출하면 `401(C004)`로 응답한다.\n응답의 `likeCount`는 서버에 최종 반영된 값이므로 화면은 이 값을 기준으로 맞추면 된다.\n",
+        "operationId": "addLike",
+        "x-added-in-this-branch": true,
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SpotId"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "좋아요 등록 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseSpotLikeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "좋아요할 수 없는 상태의 스팟 (SL003)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                },
+                "examples": {
+                  "notLikeable": {
+                    "value": {
+                      "success": false,
+                      "code": "SL003",
+                      "message": "공개된 스팟에만 좋아요를 누를 수 있어요."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "description": "존재하지 않거나 비공개인 스팟 (SP001)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "이미 좋아요한 스팟 (SL001)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                },
+                "examples": {
+                  "alreadyLiked": {
+                    "value": {
+                      "success": false,
+                      "code": "SL001",
+                      "message": "이미 좋아요한 스팟이에요."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "스팟 좋아요"
+        ],
+        "summary": "스팟 좋아요 취소",
+        "description": "등록한 좋아요를 취소한다. 좋아요하지 않은 스팟이면 `SL002`로 응답한다.\n비로그인 상태로 호출하면 `401(C004)`로 응답한다.\n",
+        "operationId": "removeLike",
+        "x-added-in-this-branch": true,
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SpotId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "좋아요 취소 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseSpotLikeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "좋아요하지 않은 스팟 (SL002)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                },
+                "examples": {
+                  "notLiked": {
+                    "value": {
+                      "success": false,
+                      "code": "SL002",
+                      "message": "좋아요하지 않은 스팟이에요."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "description": "존재하지 않는 스팟 (SP001)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/spots/{spotId}": {
+      "get": {
+        "tags": [
+          "스팟"
+        ],
+        "summary": "스팟 상세 조회",
+        "description": "스팟 ID로 상세 정보(이미지, 한 줄 코멘트, 기록일자/시간, 날씨, 혼잡도, 일몰시간, 북마크/좋아요 여부 등)를 반환한다.\n공개되지 않은 스팟은 등록한 본인에게만 보이며, 그 외에는 `404`로 응답한다(403이 아님 — 비공개 스팟의 존재 여부 자체를 숨기기 위함).\n반려된 내 스팟이면 `rejection`에 반려 사유가 함께 내려간다(타인에게는 노출되지 않음).\n조회수는 공개 상태의 스팟을 등록자 외의 사용자가 볼 때만 증가한다.\n비로그인 시 `isBookmarked`/`isLiked`/`isMySpot`은 항상 `false`다.\n\n**이번 브랜치 변경점**: 비공개 상태 접근제어(404) 신규 도입, `status`/`isCurated`/`rejection`/`likeCount`/`isLiked`/`isLikeable` 필드 추가.\n",
+        "operationId": "getSpotDetail",
+        "x-changed-in-this-branch": "behavior",
+        "security": [],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SpotId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseSpotDetailResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "존재하지 않거나 비공개(본인이 아닌 경우) 스팟 (SP001)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/spots/{spotId}/preview": {
+      "get": {
+        "tags": [
+          "스팟"
+        ],
+        "summary": "스팟 미리보기 조회",
+        "description": "스팟 ID와 사용자 위치를 기반으로 간략 정보(스팟명, 내 스팟 여부, 테마, 북마크/좋아요 수, 거리, 주소)를 반환한다.\n공개되지 않은 스팟은 등록한 본인에게만 보이며, 그 외에는 `404`로 응답한다.\n위도/경도 미전달 시 거리 정보는 `null`이다. 비로그인 시 `isMySpot`은 항상 `false`다.\n\n**이번 브랜치 변경점**: 비공개 상태 접근제어(404) 신규 도입, `isCurated`/`likeCount`/`isLiked`/`isLikeable` 필드 추가.\n",
+        "operationId": "getSpotPreview",
+        "x-changed-in-this-branch": "behavior",
+        "security": [],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SpotId"
+          },
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": false,
+            "description": "사용자 위도 (거리 계산용)",
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "example": 37.55
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": false,
+            "description": "사용자 경도 (거리 계산용)",
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "example": 126.99
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseSpotPreviewResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "존재하지 않거나 비공개(본인이 아닌 경우) 스팟 (SP001)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/spots": {
+      "get": {
+        "tags": [
+          "스팟"
+        ],
+        "summary": "스팟 리스트 조회",
+        "description": "공개(PUBLISHED)된 스팟 목록을 6개 단위로 페이징 조회한다.\n`sort=DISTANCE` 시 위도/경도 필수이며 가까운 순으로 정렬된다.\n`sort=RECOMMENDED`(기본값) 시 좋아요 많은 순으로 정렬되며, 동률은 북마크 수로 가른다.\n비로그인 시 `isBookmarked`/`isLiked`는 항상 `false`다.\n\n**이번 브랜치 변경점**: 추천순 정렬 기준이 `bookmark_count` → `like_count`로 전환, `likeCount`/`isLiked` 필드 추가.\n",
+        "operationId": "getSpots",
+        "x-changed-in-this-branch": "behavior",
+        "security": [],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "페이지 번호 (0부터 시작)",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "theme",
+            "in": "query",
+            "required": false,
+            "description": "테마 필터 (SUNSET=노을, YUNSEUL=윤슬, SUNLIGHT=햇살, NIGHT_VIEW=야경), 미전달 시 전체",
+            "schema": {
+              "$ref": "#/components/schemas/SpotTheme"
+            }
+          },
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": false,
+            "description": "사용자 위도 (sort=DISTANCE 시 필수)",
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "example": 37.55
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": false,
+            "description": "사용자 경도 (sort=DISTANCE 시 필수)",
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "example": 126.99
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "description": "정렬 기준 (RECOMMENDED=좋아요순 기본값, DISTANCE=거리순)",
+            "schema": {
+              "$ref": "#/components/schemas/SortType"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseSpotListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "검증 실패 (예: sort=DISTANCE인데 위도/경도 누락, 좌표 범위 오류)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/users/me/saved-spots": {
+      "get": {
+        "tags": [
+          "북마크 및 저장된 스팟 관리"
+        ],
+        "summary": "저장된 스팟 목록 조회",
+        "description": "북마크한 스팟 목록을 6개 단위로 페이징 조회한다. 위도/경도를 함께 전달하면 거리(km)도 함께 반환된다.\n\n**이번 브랜치 변경점**: 목록에서 비공개 스팟을 제외하던 하드코딩 필터(`status='B'`)를 제거해 비공개 스팟도 포함하고,\n`isPrivate` 필드를 추가했다. 비공개 스팟은 `imageUrl`이 `null`로 마스킹된다(비공개 전환 시 이미지가 PRIVATE로 되돌아가므로\n저장해 둔 presigned URL을 계속 내려주지 않기 위함).\n",
+        "operationId": "getSavedSpots",
+        "x-changed-in-this-branch": "behavior",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "페이지 번호 (0부터 시작)",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseSavedSpotListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/v1/admin/spots/{spotId}/reviews": {
+      "post": {
+        "tags": [
+          "스팟 검수 어드민"
+        ],
+        "summary": "스팟 검수 (승인/반려)",
+        "description": "오픈 신청 건을 승인 또는 반려한다. 승인 시 즉시 지도에 공개되며,\n반려 시 사유를 함께 저장한다(기타 사유는 상세 설명 필수).\n이미 처리된 건을 다시 처리하려 하면 `409(SP004)`로 응답한다.\n`USER_ADMIN` 권한을 가진 팀원만 접근할 수 있다.\n\n**이번 브랜치 변경점(응답 스펙 동일)**: 상태 전이 경로에 비관적 락 적용, 오픈 신청 이력 마감 처리,\n승인 시 이미지 PRIVATE→PUBLIC 전환을 `SpotImageAccessService`로 위임.\n",
+        "operationId": "reviewSpot",
+        "x-changed-in-this-branch": "internal",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SpotId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpotReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "검수 처리 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseSpotReviewResultResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "검증 실패 (반려 사유 누락 SP006 / 기타 사유 상세 누락 SP007)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "description": "관리자 권한 없음 (C005)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "존재하지 않는 스팟 (SP001)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "이미 처리된 건 (SP004)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                },
+                "examples": {
+                  "alreadyReviewed": {
+                    "value": {
+                      "success": false,
+                      "code": "SP004",
+                      "message": "이미 처리된 스팟입니다."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "로그인 API로 발급받은 액세스 토큰. `Authorization: Bearer {token}`"
+      }
+    },
+    "parameters": {
+      "SpotId": {
+        "name": "spotId",
+        "in": "path",
+        "required": true,
+        "description": "스팟 ID",
+        "schema": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "인증 필요 (C004) — 토큰 없음/만료/블랙리스트",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiResponseError"
+            },
+            "examples": {
+              "unauthorized": {
+                "value": {
+                  "success": false,
+                  "code": "C004",
+                  "message": "인증이 필요합니다."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "SpotTheme": {
+        "type": "string",
+        "enum": [
+          "SUNSET",
+          "YUNSEUL",
+          "SUNLIGHT",
+          "NIGHT_VIEW"
+        ],
+        "description": "SUNSET=노을(SS), YUNSEUL=윤슬(YS), SUNLIGHT=햇살(SL, 신규), NIGHT_VIEW=야경(NV, 신규)"
+      },
+      "SortType": {
+        "type": "string",
+        "enum": [
+          "DISTANCE",
+          "RECOMMENDED"
+        ],
+        "default": "RECOMMENDED"
+      },
+      "ApiResponseError": {
+        "type": "object",
+        "description": "실패 응답 공통 포맷",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "code": {
+            "type": "string",
+            "example": "SP001"
+          },
+          "message": {
+            "type": "string",
+            "example": "존재하지 않는 스팟입니다."
+          }
+        }
+      },
+      "ApiResponseVoid": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "code": {
+            "type": "string",
+            "example": "S000"
+          },
+          "message": {
+            "type": "string",
+            "example": "성공"
+          }
+        }
+      },
+      "UpdateMySpotRequest": {
+        "type": "object",
+        "description": "나만의 스팟 수정 요청. 전달한 값으로 전체를 덮어쓴다.",
+        "required": [
+          "name",
+          "theme",
+          "latitude",
+          "longitude"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "example": "한강 노을 명소"
+          },
+          "theme": {
+            "$ref": "#/components/schemas/SpotTheme"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "example": 37.5326
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "example": 126.9905
+          },
+          "comment": {
+            "type": "string",
+            "nullable": true
+          },
+          "recordedDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "description": "촬영 일자 (yyyy-MM-dd)"
+          },
+          "recordedTime": {
+            "type": "string",
+            "pattern": "^\\d{2}:\\d{2}$",
+            "nullable": true,
+            "description": "촬영 시각 (HH:mm)"
+          }
+        }
+      },
+      "UpdateMySpotResponse": {
+        "type": "object",
+        "properties": {
+          "spotId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "status": {
+            "type": "string",
+            "example": "DRAFT",
+            "description": "스팟 상태 (수정으로는 바뀌지 않음)"
+          },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "대표 이미지 URL (없으면 null)"
+          }
+        }
+      },
+      "CancelPublicationResponse": {
+        "type": "object",
+        "properties": {
+          "spotId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "previousStatus": {
+            "type": "string",
+            "example": "PUBLISHED",
+            "description": "해제 전 상태 (PENDING/RE_REVIEW_PENDING=오픈 신청 철회, PUBLISHED=비공개 전환)"
+          },
+          "status": {
+            "type": "string",
+            "example": "DRAFT",
+            "description": "해제 후 상태 (항상 DRAFT)"
+          }
+        }
+      },
+      "OpenMySpotResponse": {
+        "type": "object",
+        "properties": {
+          "spotId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "status": {
+            "type": "string",
+            "description": "전이된 스팟 상태 (PENDING=검수중, RE_REVIEW_PENDING=재검토대기)"
+          }
+        }
+      },
+      "SpotLikeResponse": {
+        "type": "object",
+        "properties": {
+          "likeCount": {
+            "type": "integer",
+            "format": "int64",
+            "example": 12,
+            "description": "서버에 최종 반영된 좋아요 수"
+          },
+          "isLiked": {
+            "type": "boolean",
+            "description": "요청한 사용자의 좋아요 여부"
+          }
+        }
+      },
+      "SpotReviewRequest": {
+        "type": "object",
+        "required": [
+          "decision"
+        ],
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "APPROVED",
+              "REJECTED"
+            ],
+            "example": "REJECTED",
+            "description": "검수 결정 (APPROVED=승인, REJECTED=반려)"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "DUPLICATE",
+              "LOW_QUALITY",
+              "LOCATION_MISMATCH",
+              "FILTER_MISMATCH",
+              "ETC"
+            ],
+            "example": "LOW_QUALITY",
+            "description": "반려 사유 코드 (반려 시 필수)"
+          },
+          "detail": {
+            "type": "string",
+            "description": "반려 사유 상세 설명 (reason=ETC 인 경우 필수)"
+          }
+        }
+      },
+      "SpotReviewResultResponse": {
+        "type": "object",
+        "properties": {
+          "spotId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "status": {
+            "type": "string",
+            "description": "전이된 스팟 상태 (PUBLISHED=승인, REJECTED=반려)"
+          }
+        }
+      },
+      "SpotDetailResponse": {
+        "type": "object",
+        "properties": {
+          "spotId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "theme": {
+            "$ref": "#/components/schemas/SpotTheme"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "address": {
+            "type": "string",
+            "description": "간략 주소 (시·구 단위)"
+          },
+          "addressRoad": {
+            "type": "string"
+          },
+          "addressJibun": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "recordedDate": {
+            "type": "string",
+            "format": "date",
+            "example": "2024-05-01"
+          },
+          "recordedTime": {
+            "type": "string",
+            "example": "18:30"
+          },
+          "weatherSky": {
+            "type": "string"
+          },
+          "precipitation": {
+            "type": "string"
+          },
+          "precipitationProbability": {
+            "type": "integer"
+          },
+          "congestionLevel": {
+            "type": "string"
+          },
+          "sunsetTime": {
+            "type": "string",
+            "example": "19:12"
+          },
+          "astronomyDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "weatherUpdatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "congestionUpdatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "parkingInfo": {
+            "type": "string"
+          },
+          "bookmarkCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "isBookmarked": {
+            "type": "boolean",
+            "description": "비로그인 시 false"
+          },
+          "isMySpot": {
+            "type": "boolean",
+            "description": "비로그인 시 false"
+          },
+          "status": {
+            "type": "string",
+            "description": "스팟 공개 상태 (DRAFT/PENDING/RE_REVIEW_PENDING/PUBLISHED/REJECTED)",
+            "x-added-in-this-branch": true
+          },
+          "isCurated": {
+            "type": "boolean",
+            "description": "관리자 큐레이션 스팟 여부 (사용자 등록 스팟이면 false)",
+            "x-added-in-this-branch": true
+          },
+          "likeCount": {
+            "type": "integer",
+            "format": "int64",
+            "description": "좋아요(추천) 수",
+            "x-added-in-this-branch": true
+          },
+          "isLiked": {
+            "type": "boolean",
+            "description": "좋아요 여부 (비로그인 시 false)",
+            "x-added-in-this-branch": true
+          },
+          "isLikeable": {
+            "type": "boolean",
+            "description": "좋아요 가능 여부 (비공개 상태의 유저 스팟이면 false)",
+            "x-added-in-this-branch": true
+          },
+          "rejection": {
+            "type": "object",
+            "nullable": true,
+            "description": "반려된 내 스팟일 때만 채워지며 그 외에는 null",
+            "x-added-in-this-branch": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RejectionInfo"
+              }
+            ]
+          }
+        }
+      },
+      "RejectionInfo": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "example": "LOW_QUALITY"
+          },
+          "reasonLabel": {
+            "type": "string",
+            "example": "사진 상태 불량"
+          },
+          "guideMessage": {
+            "type": "string",
+            "description": "사용자 안내 문구"
+          },
+          "detail": {
+            "type": "string",
+            "description": "운영자가 입력한 상세 사유 (기타 사유일 때 사용)"
+          },
+          "rejectedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SpotPreviewResponse": {
+        "type": "object",
+        "properties": {
+          "spotId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isMySpot": {
+            "type": "boolean"
+          },
+          "theme": {
+            "$ref": "#/components/schemas/SpotTheme"
+          },
+          "bookmarkCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "distanceKm": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressSimple": {
+            "type": "string"
+          },
+          "addressRoad": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressJibun": {
+            "type": "string",
+            "nullable": true
+          },
+          "isBookmarked": {
+            "type": "boolean"
+          },
+          "likeCount": {
+            "type": "integer",
+            "format": "int64",
+            "x-added-in-this-branch": true
+          },
+          "isLiked": {
+            "type": "boolean",
+            "x-added-in-this-branch": true
+          },
+          "isLikeable": {
+            "type": "boolean",
+            "x-added-in-this-branch": true
+          },
+          "isCurated": {
+            "type": "boolean",
+            "x-added-in-this-branch": true
+          }
+        }
+      },
+      "SpotListResponse": {
+        "type": "object",
+        "properties": {
+          "spots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SpotItem"
+            }
+          },
+          "page": {
+            "type": "integer"
+          },
+          "hasNext": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SpotItem": {
+        "type": "object",
+        "properties": {
+          "spotId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string",
+            "example": "SS",
+            "description": "테마 코드 (SS=노을, YS=윤슬, SL=햇살, NV=야경)"
+          },
+          "thumbnailUrl": {
+            "type": "string"
+          },
+          "distanceKm": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "bookmarkCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "isBookmarked": {
+            "type": "boolean"
+          },
+          "likeCount": {
+            "type": "integer",
+            "format": "int64",
+            "x-added-in-this-branch": true
+          },
+          "isLiked": {
+            "type": "boolean",
+            "x-added-in-this-branch": true
+          }
+        }
+      },
+      "SavedSpotListResponse": {
+        "type": "object",
+        "properties": {
+          "spots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SavedSpotItem"
+            }
+          },
+          "page": {
+            "type": "integer"
+          },
+          "hasNext": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SavedSpotItem": {
+        "type": "object",
+        "properties": {
+          "spotId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "원본 이미지 URL (비공개 전환된 스팟이거나 이미지가 없으면 null)"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "distanceKm": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "bookmarkCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "savedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "isPrivate": {
+            "type": "boolean",
+            "description": "비공개 여부 (등록자가 공개를 해제했거나 아직 승인되지 않은 상태)",
+            "x-added-in-this-branch": true
+          }
+        }
+      },
+      "ApiResponseUpdateMySpotResponse": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "success": {
+                "type": "boolean",
+                "example": true
+              },
+              "code": {
+                "type": "string",
+                "example": "S000"
+              },
+              "message": {
+                "type": "string",
+                "example": "성공"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/UpdateMySpotResponse"
+              }
+            }
+          }
+        ]
+      },
+      "ApiResponseCancelPublicationResponse": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "success": {
+                "type": "boolean",
+                "example": true
+              },
+              "code": {
+                "type": "string",
+                "example": "S000"
+              },
+              "message": {
+                "type": "string",
+                "example": "성공"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/CancelPublicationResponse"
+              }
+            }
+          }
+        ]
+      },
+      "ApiResponseOpenMySpotResponse": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "success": {
+                "type": "boolean",
+                "example": true
+              },
+              "code": {
+                "type": "string",
+                "example": "S000"
+              },
+              "message": {
+                "type": "string",
+                "example": "성공"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenMySpotResponse"
+              }
+            }
+          }
+        ]
+      },
+      "ApiResponseSpotLikeResponse": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "success": {
+                "type": "boolean",
+                "example": true
+              },
+              "code": {
+                "type": "string",
+                "example": "S000"
+              },
+              "message": {
+                "type": "string",
+                "example": "성공"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/SpotLikeResponse"
+              }
+            }
+          }
+        ]
+      },
+      "ApiResponseSpotReviewResultResponse": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "success": {
+                "type": "boolean",
+                "example": true
+              },
+              "code": {
+                "type": "string",
+                "example": "S000"
+              },
+              "message": {
+                "type": "string",
+                "example": "성공"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/SpotReviewResultResponse"
+              }
+            }
+          }
+        ]
+      },
+      "ApiResponseSpotDetailResponse": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "success": {
+                "type": "boolean",
+                "example": true
+              },
+              "code": {
+                "type": "string",
+                "example": "S000"
+              },
+              "message": {
+                "type": "string",
+                "example": "성공"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/SpotDetailResponse"
+              }
+            }
+          }
+        ]
+      },
+      "ApiResponseSpotPreviewResponse": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "success": {
+                "type": "boolean",
+                "example": true
+              },
+              "code": {
+                "type": "string",
+                "example": "S000"
+              },
+              "message": {
+                "type": "string",
+                "example": "성공"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/SpotPreviewResponse"
+              }
+            }
+          }
+        ]
+      },
+      "ApiResponseSpotListResponse": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "success": {
+                "type": "boolean",
+                "example": true
+              },
+              "code": {
+                "type": "string",
+                "example": "S000"
+              },
+              "message": {
+                "type": "string",
+                "example": "성공"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/SpotListResponse"
+              }
+            }
+          }
+        ]
+      },
+      "ApiResponseSavedSpotListResponse": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "success": {
+                "type": "boolean",
+                "example": true
+              },
+              "code": {
+                "type": "string",
+                "example": "S000"
+              },
+              "message": {
+                "type": "string",
+                "example": "성공"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/SavedSpotListResponse"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
