@@ -97,6 +97,14 @@ final class DebugSpotService: SpotServiceProtocol, Sendable {
     }
 
     func reportSpot(id _: Int64, content _: String) async throws {}
+
+    func likeSpot(id _: Int64) async throws -> SpotLikeResponse {
+        SpotLikeResponse(likeCount: 1, isLiked: true)
+    }
+
+    func unlikeSpot(id _: Int64) async throws -> SpotLikeResponse {
+        SpotLikeResponse(likeCount: 0, isLiked: false)
+    }
 }
 
 final class DebugMySpotService: SpotServiceProtocol, Sendable {
@@ -113,6 +121,14 @@ final class DebugMySpotService: SpotServiceProtocol, Sendable {
     }
 
     func reportSpot(id _: Int64, content _: String) async throws {}
+
+    func likeSpot(id _: Int64) async throws -> SpotLikeResponse {
+        SpotLikeResponse(likeCount: 1, isLiked: true)
+    }
+
+    func unlikeSpot(id _: Int64) async throws -> SpotLikeResponse {
+        SpotLikeResponse(likeCount: 0, isLiked: false)
+    }
 }
 
 final class DebugBookmarkService: BookmarkServiceProtocol, Sendable {

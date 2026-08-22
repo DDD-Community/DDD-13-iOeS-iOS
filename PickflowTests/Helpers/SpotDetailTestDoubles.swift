@@ -18,6 +18,10 @@ final class MockSpotService: SpotServiceProtocol, @unchecked Sendable {
     private(set) var registerDrafts: [SpotRegistrationDraft] = []
     private(set) var reportedSpotIds: [Int64] = []
     private(set) var reportedContents: [String] = []
+    var likeResult: Result<SpotLikeResponse, any Error> = .success(SpotLikeResponse(likeCount: 1, isLiked: true))
+    var unlikeResult: Result<SpotLikeResponse, any Error> = .success(SpotLikeResponse(likeCount: 0, isLiked: false))
+    private(set) var likedSpotIds: [Int64] = []
+    private(set) var unlikedSpotIds: [Int64] = []
 
     func fetchSpotDetail(id: Int64, latitude: Double?, longitude: Double?) async throws -> SpotDetail {
         requests.append((id, latitude, longitude))
@@ -38,6 +42,16 @@ final class MockSpotService: SpotServiceProtocol, @unchecked Sendable {
         reportedSpotIds.append(id)
         reportedContents.append(content)
         if let reportError { throw reportError }
+    }
+
+    func likeSpot(id: Int64) async throws -> SpotLikeResponse {
+        likedSpotIds.append(id)
+        return try likeResult.get()
+    }
+
+    func unlikeSpot(id: Int64) async throws -> SpotLikeResponse {
+        unlikedSpotIds.append(id)
+        return try unlikeResult.get()
     }
 }
 

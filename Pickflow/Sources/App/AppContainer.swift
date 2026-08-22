@@ -30,6 +30,7 @@ final class AppContainer {
         container.register(MapServiceProtocol.self) { MapService(networkManager: networkManager) }
         container.register(AddressServiceProtocol.self) { AddressService(networkManager: networkManager) }
         container.register(SpotServiceProtocol.self) { SpotService(networkManager: networkManager) }
+        container.register(MySpotServiceProtocol.self) { MySpotService(networkManager: networkManager) }
         container.register(SpotListServiceProtocol.self) { SpotListService(networkManager: networkManager) }
         container.register(ArchiveServiceProtocol.self) { ArchiveService(networkManager: networkManager) }
         container.register(ClusteringServiceProtocol.self) { ClusteringService(networkManager: networkManager) }

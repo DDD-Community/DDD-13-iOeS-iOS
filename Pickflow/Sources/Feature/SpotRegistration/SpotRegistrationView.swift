@@ -241,4 +241,12 @@ private struct SpotRegistrationPreviewService: SpotServiceProtocol {
     }
 
     func reportSpot(id: Int64, content: String) async throws {}
+
+    func likeSpot(id: Int64) async throws -> SpotLikeResponse {
+        throw URLError(.notConnectedToInternet)
+    }
+
+    func unlikeSpot(id: Int64) async throws -> SpotLikeResponse {
+        throw URLError(.notConnectedToInternet)
+    }
 }
