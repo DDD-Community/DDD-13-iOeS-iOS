@@ -3,7 +3,7 @@ import Foundation
 struct SpotListItem: Codable, Sendable, Identifiable, Equatable {
     let spotId: Int64
     let name: String
-    let theme: SpotTheme
+    @LenientSpotTheme var theme: SpotTheme?
     let thumbnailUrl: String?
     let distanceKm: Double?
     let isBookmarked: Bool

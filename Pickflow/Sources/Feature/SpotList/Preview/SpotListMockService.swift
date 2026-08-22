@@ -16,7 +16,7 @@ final class SpotListMockService: SpotListServiceProtocol, Sendable {
 
         let filtered: [SpotListItem] = themes.isEmpty
             ? Self.allItems
-            : Self.allItems.filter { themes.contains($0.theme) }
+            : Self.allItems.filter { item in item.theme.map(themes.contains) ?? false }
 
         let start = page * Self.pageSize
         guard start < filtered.count else {

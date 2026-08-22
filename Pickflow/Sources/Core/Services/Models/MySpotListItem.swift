@@ -36,7 +36,7 @@ extension MySpotStatus: Decodable {
 struct MySpotListItem: Decodable, Sendable, Identifiable, Equatable {
     let spotId: Int64
     let name: String
-    let theme: SpotTheme
+    @LenientSpotTheme var theme: SpotTheme?
     let imageUrl: String?
     let latitude: Double
     let longitude: Double

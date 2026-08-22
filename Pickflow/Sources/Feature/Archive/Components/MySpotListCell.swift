@@ -91,14 +91,18 @@ struct MySpotListCell: View {
         }
     }
 
+    /// 해석하지 못한 카테고리면 뱃지를 달지 않는다.
+    @ViewBuilder
     private var moodBadge: some View {
-        Image(item.theme.iconAssetName)
-            .renderingMode(.original)
-            .resizable()
-            .scaledToFit()
-            .frame(width: 16, height: 16)
-            .padding(4)
-            .grayBackground()
+        if let theme = item.theme {
+            Image(theme.iconAssetName)
+                .renderingMode(.original)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 16, height: 16)
+                .padding(4)
+                .grayBackground()
+        }
     }
 
     private func distanceBadge(_ km: Double) -> some View {

@@ -24,9 +24,12 @@ struct SpotHeaderSection: View {
                 }
             }
 
-            Text(spot.isMySpot ? spot.theme.rawValue : "\(spot.theme.rawValue) · 북마크 \(spot.bookmarkCount)")
-                .pretendard(.body(.small()))
-                .foregroundStyle(.gray30)
+            // 해석하지 못한 카테고리면 표기를 빼고 북마크 수만 남긴다.
+            if let subtitle = subtitle {
+                Text(subtitle)
+                    .pretendard(.body(.small()))
+                    .foregroundStyle(.gray30)
+            }
 
             // 코멘트는 등록 시 선택 항목이라 없을 수 있다. 없으면 빈 말풍선을 띄우지 않는다.
             if let comment = spot.comment, !comment.isEmpty {
@@ -40,5 +43,14 @@ struct SpotHeaderSection: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
         }
+    }
+
+    /// 내 스팟은 카테고리만, 남의 스팟은 카테고리 · 북마크 수.
+    /// 카테고리를 해석하지 못했으면 그 부분만 빠진다.
+    private var subtitle: String? {
+        let theme = spot.theme?.displayName
+        guard !spot.isMySpot else { return theme }
+        let bookmark = "북마크 \(spot.bookmarkCount)"
+        return [theme, bookmark].compactMap { $0 }.joined(separator: " · ")
     }
 }
