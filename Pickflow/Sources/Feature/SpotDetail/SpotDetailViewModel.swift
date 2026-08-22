@@ -180,7 +180,11 @@ final class SpotDetailViewModel: ObservableObject {
 
         let url = "https://pickflow-api.us/\(SpotIDCoder.encodeSpot(spotId))"
         if case let .loaded(spot) = detailState {
-            shareSheetPresenter.present(items: ["\(spot.name) - \(spot.comment)\n\(url)"])
+            // 코멘트가 없으면 " - " 만 덩그러니 남지 않도록 스팟명만 공유한다.
+            let title = [spot.name, spot.comment].compactMap { $0 }
+                .filter { !$0.isEmpty }
+                .joined(separator: " - ")
+            shareSheetPresenter.present(items: ["\(title)\n\(url)"])
         } else {
             shareSheetPresenter.present(items: [url])
         }

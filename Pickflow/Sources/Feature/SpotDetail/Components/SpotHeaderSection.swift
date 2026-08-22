@@ -28,14 +28,17 @@ struct SpotHeaderSection: View {
                 .pretendard(.body(.small()))
                 .foregroundStyle(.gray30)
 
-            Text(spot.comment)
-                .pretendard(.body(.medium()))
-                .foregroundStyle(.gray0)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: .infinity)
-                .padding(16)
-                .background(.gray90)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            // 코멘트는 등록 시 선택 항목이라 없을 수 있다. 없으면 빈 말풍선을 띄우지 않는다.
+            if let comment = spot.comment, !comment.isEmpty {
+                Text(comment)
+                    .pretendard(.body(.medium()))
+                    .foregroundStyle(.gray0)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .padding(16)
+                    .background(.gray90)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
         }
     }
 }

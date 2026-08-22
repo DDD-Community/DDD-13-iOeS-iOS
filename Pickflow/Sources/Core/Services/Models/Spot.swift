@@ -3,11 +3,13 @@ import Foundation
 struct SpotDetail: Codable, Sendable, Identifiable, Equatable {
     let spotId: Int64
     let name: String
-    let comment: String
+    /// 한 줄 코멘트. 등록 시 선택 항목이라 비어 있을 수 있다.
+    let comment: String?
     let theme: SpotTheme
     let latitude: Double
     let longitude: Double
-    let address: String
+    /// 간략 주소(시·구). 서버가 채우지 못하면 null 로 온다.
+    let address: String?
     let imageUrl: String?
     let recordedDate: String?
     let recordedTime: String?
