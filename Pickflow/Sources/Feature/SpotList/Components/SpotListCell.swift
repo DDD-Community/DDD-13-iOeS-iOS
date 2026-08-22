@@ -139,19 +139,9 @@ struct SpotListCell: View {
 }
 
 extension SpotTheme {
-    var displayName: String {
-        switch self {
-        case .sunset: "노을"
-        case .reflection: "윤슬"
-        }
-    }
+    var displayName: String { rawValue }
 
-    var overlayAssetName: String {
-        switch self {
-        case .sunset: "icon_photo_category_sunset"
-        case .reflection: "icon_photo_category_reflection"
-        }
-    }
+    var overlayAssetName: String { iconAssetName }
 }
 
 #Preview {

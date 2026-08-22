@@ -80,7 +80,7 @@ struct MySpotListCell: View {
 
     private var statusBackground: Color {
         switch item.status {
-        case .pending: UIAsset.Colors.gray80.swiftUIColor.opacity(0.85)
+        case .draft, .pending, .reReviewPending, .unknown: UIAsset.Colors.gray80.swiftUIColor.opacity(0.85)
         case .published: UIAsset.Colors.sunsetOrange.swiftUIColor.opacity(0.85)
         case .rejected: Color.red.opacity(0.7)
         }
