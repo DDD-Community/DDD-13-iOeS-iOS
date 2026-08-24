@@ -13,6 +13,8 @@ struct MyProfileSignedInContent: View {
     var onAccountManagementTap: () -> Void = {}
     var onNoticeTap: () -> Void = {}
     var onTermsAndPolicyTap: () -> Void = {}
+    /// 기본 서버가 아닌 환경으로 전환된 경우 앱 버전 옆에 표시할 라벨. 평소에는 nil.
+    var environmentBadge: String?
 
     // 연결된 소셜 인디케이터 색상 (#FFA100)
     private let connectedProviderColor = Color(red: 1.0, green: 161.0 / 255.0, blue: 0.0)
@@ -170,9 +172,9 @@ struct MyProfileSignedInContent: View {
                     .pretendard(.body(.large()))
                     .foregroundStyle(.gray0)
                 Spacer()
-                Text(appVersion)
+                Text(appVersionLabel)
                     .pretendard(.body(.large()))
-                    .foregroundStyle(.gray40)
+                    .foregroundStyle(environmentBadge == nil ? .gray40 : .sunsetOrange)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 18)
@@ -225,6 +227,12 @@ struct MyProfileSignedInContent: View {
     private var appVersion: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
         return "v\(version)"
+    }
+
+    /// 기본 서버가 아닐 때는 버전 옆에 환경을 붙여, 전환된 상태가 계속 드러나게 한다.
+    private var appVersionLabel: String {
+        guard let environmentBadge else { return appVersion }
+        return "\(appVersion) · \(environmentBadge)"
     }
 
     // 고객센터 및 1:1 문의: 기본 메일 앱으로 문의 메일 작성 화면을 띄운다.

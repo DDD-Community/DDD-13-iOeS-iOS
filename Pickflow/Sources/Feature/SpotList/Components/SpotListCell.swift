@@ -70,14 +70,18 @@ struct SpotListCell: View {
         .clipped()
     }
 
+    /// 해석하지 못한 카테고리면 뱃지를 달지 않는다.
+    @ViewBuilder
     private var moodBadge: some View {
-        Image(item.theme.overlayAssetName)
-            .renderingMode(.original)
-            .resizable()
-            .scaledToFit()
-            .frame(width: 16, height: 16)
-            .padding(4)
-            .grayBackground()
+        if let theme = item.theme {
+            Image(theme.iconAssetName)
+                .renderingMode(.original)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 16, height: 16)
+                .padding(4)
+                .grayBackground()
+        }
     }
 
     private func distanceBadge(_ km: Double) -> some View {
@@ -123,9 +127,11 @@ struct SpotListCell: View {
 
     private var subtitleRow: some View {
         HStack(spacing: 4) {
-            Text(item.theme.displayName)
-                .pretendard(.body(.small()))
-                .foregroundStyle(.gray10)
+            if let theme = item.theme {
+                Text(theme.displayName)
+                    .pretendard(.body(.small()))
+                    .foregroundStyle(.gray10)
+            }
             if let count = bookmarkCount {
                 Text("·")
                 .pretendard(.body(.small()))
@@ -134,22 +140,6 @@ struct SpotListCell: View {
                     .pretendard(.body(.small()))
                     .foregroundStyle(.gray10)
             }
-        }
-    }
-}
-
-extension SpotTheme {
-    var displayName: String {
-        switch self {
-        case .sunset: "노을"
-        case .reflection: "윤슬"
-        }
-    }
-
-    var overlayAssetName: String {
-        switch self {
-        case .sunset: "icon_photo_category_sunset"
-        case .reflection: "icon_photo_category_reflection"
         }
     }
 }

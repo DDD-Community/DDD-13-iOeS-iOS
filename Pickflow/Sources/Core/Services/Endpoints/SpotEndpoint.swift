@@ -40,11 +40,13 @@ enum SpotEndpoint: APIEndpoint {
 
 struct SpotViewportEndpoint: APIEndpoint {
     let viewport: Viewport
-    let theme: SpotTheme?
+    let themes: Set<SpotTheme>
 
     var baseURL: String { APIBaseURL.current }
     var path: String { "/v1/spots/viewport" }
     var method: HTTPMethod { .get }
+    // 카테고리 다중선택이 반복 파라미터라 대괄호 없는 배열 인코딩이 필요하다.
+    var encoding: any ParameterEncoding { SpotThemeQuery.encoding }
     var parameters: Parameters? {
         // 서버 제약: 위/경도 소수점 6자리까지 허용. (KAN-107)
         let r: (Double) -> Double = { (($0 * 1_000_000).rounded()) / 1_000_000 }
@@ -58,8 +60,8 @@ struct SpotViewportEndpoint: APIEndpoint {
             "bottomRightLat": r(viewport.bottomRight.latitude),
             "bottomRightLng": r(viewport.bottomRight.longitude),
         ]
-        if let theme {
-            p["theme"] = theme.apiCode
+        if let themeValues = SpotThemeQuery.values(for: themes) {
+            p[SpotThemeQuery.parameterName] = themeValues
         }
         return p
     }

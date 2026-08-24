@@ -7,8 +7,8 @@ final class ClusteringService: ClusteringServiceProtocol, Sendable {
         self.networkManager = networkManager
     }
 
-    func fetchSpots(viewport: Viewport, theme: String?) async throws -> (curation: [ClusterableSpot], mySpots: [MySpot]) {
-        let summaries = try await fetchViewport(viewport: viewport, theme: theme)
+    func fetchSpots(viewport: Viewport, themes: Set<SpotTheme>) async throws -> (curation: [ClusterableSpot], mySpots: [MySpot]) {
+        let summaries = try await fetchViewport(viewport: viewport, themes: themes)
         var curation: [ClusterableSpot] = []
         var mySpots: [MySpot] = []
         curation.reserveCapacity(summaries.count)
@@ -22,11 +22,11 @@ final class ClusteringService: ClusteringServiceProtocol, Sendable {
         return (curation, mySpots)
     }
 
-    private func fetchViewport(viewport: Viewport, theme: String?) async throws -> [SpotSummary] {
+    private func fetchViewport(viewport: Viewport, themes: Set<SpotTheme>) async throws -> [SpotSummary] {
         let envelope: APIEnvelope<SpotViewportResponse> = try await networkManager.request(
             endpoint: SpotViewportEndpoint(
                 viewport: viewport,
-                theme: theme.flatMap(SpotTheme.init(apiCode:))
+                themes: themes
             )
         )
         return envelope.data.spots

@@ -5,7 +5,7 @@ import Foundation
 final class MockSpotListService: SpotListServiceProtocol, @unchecked Sendable {
     struct Request: Equatable {
         let page: Int
-        let theme: SpotTheme?
+        let themes: Set<SpotTheme>
         let sort: SpotListSort
         let latitude: Double?
         let longitude: Double?
@@ -19,12 +19,12 @@ final class MockSpotListService: SpotListServiceProtocol, @unchecked Sendable {
 
     func fetchSpots(
         page: Int,
-        theme: SpotTheme?,
+        themes: Set<SpotTheme>,
         sort: SpotListSort,
         latitude: Double?,
         longitude: Double?
     ) async throws -> SpotListPage {
-        let request = Request(page: page, theme: theme, sort: sort, latitude: latitude, longitude: longitude)
+        let request = Request(page: page, themes: themes, sort: sort, latitude: latitude, longitude: longitude)
         requests.append(request)
         return try responder(request).get()
     }

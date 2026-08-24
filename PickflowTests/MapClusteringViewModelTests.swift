@@ -60,7 +60,7 @@ final class MapClusteringViewModelTests: XCTestCase {
 
         XCTAssertEqual(clusteringService.requests.count, 1)
         XCTAssertEqual(clusteringService.requests.first?.viewport, viewport)
-        XCTAssertNil(clusteringService.requests.first?.theme)
+        XCTAssertEqual(clusteringService.requests.first?.themes, [])
     }
 
     // MARK: - debounce (1-A)
@@ -90,19 +90,19 @@ final class MapClusteringViewModelTests: XCTestCase {
 
     // MARK: - themeChanged
 
-    func test_themeChanged_호출시_마지막viewport와새theme으로재fetch된다() async throws {
+    func test_themeChanged_호출시_마지막viewport와새카테고리로재fetch된다() async throws {
         let viewport = Viewport.fixture()
         await viewModel.viewportChanged(viewport)
 
-        await viewModel.themeChanged("sunset")
+        await viewModel.themeChanged([.sunset, .nightView])
 
         XCTAssertEqual(clusteringService.requests.count, 2)
         XCTAssertEqual(clusteringService.requests.last?.viewport, viewport)
-        XCTAssertEqual(clusteringService.requests.last?.theme, "sunset")
+        XCTAssertEqual(clusteringService.requests.last?.themes, [.sunset, .nightView])
     }
 
     func test_themeChanged_viewport전이없으면_fetch하지않는다() async throws {
-        await viewModel.themeChanged("sunset")
+        await viewModel.themeChanged([.sunset])
 
         XCTAssertEqual(clusteringService.requests.count, 0)
     }
