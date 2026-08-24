@@ -6,7 +6,6 @@ struct SpotDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var isReportSheetPresented = false
     @State private var isLoginViewPresented = false
-    @State private var isOpenSpotSheetPresented = false
 
     var body: some View {
         ZStack {
@@ -82,32 +81,24 @@ struct SpotDetailView: View {
                 isClosable: true
             )
         }
-        .sheet(isPresented: $isOpenSpotSheetPresented) {
-            MySpotComingSoonSheet(
-                onCancel: { isOpenSpotSheetPresented = false },
-                onNotify: {
-                    isOpenSpotSheetPresented = false
-                    viewModel.notifyUpdateRequested()
-                }
+        .sheet(item: $viewModel.activeSheet) { sheet in
+            SpotPublicationSheetContent(
+                sheet: sheet,
+                onCancel: viewModel.dismissSheet,
+                onConfirm: { confirm(sheet) }
             )
-            .presentationDetents([.height(310)])
-            .presentationDragIndicator(.visible)
+            .presentationDetents([.height(sheet == .openRequest ? 280 : 238)])
+            .presentationDragIndicator(.hidden)
             .presentationBackground(UIAsset.Colors.gray95.swiftUIColor)
         }
         .overlay {
-            if let updateToast = viewModel.updateNotificationToast {
-                Text(updateToast)
-                    .pretendard(.body(.large(.bold)))
-                    .foregroundStyle(.gray90)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(.gray0)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .shadow(color: .black.opacity(0.12), radius: 12, x: 0, y: 4)
-                    .padding(.horizontal, 16)
-                    .transition(.opacity)
-                    .animation(.easeInOut(duration: 0.2), value: viewModel.updateNotificationToast)
+            if viewModel.isOpenCompletePresented {
+                ZStack {
+                    Color.black.opacity(0.5).ignoresSafeArea()
+                    SpotOpenCompletePopup(onConfirm: viewModel.acknowledgeOpenComplete)
+                }
+                .transition(.opacity)
+                .animation(.easeInOut(duration: 0.25), value: viewModel.isOpenCompletePresented)
             }
         }
         .overlay {
@@ -131,6 +122,31 @@ struct SpotDetailView: View {
         }
     }
 
+    /// 공개 토글. OFF 는 즉시 비공개 전환이지만 ON 은 재검수를 거쳐야 하므로
+    /// 바로 공개하지 않고 오픈 신청 시트를 띄운다.
+    private var visibilityBinding: Binding<Bool> {
+        Binding(
+            get: { viewModel.publicationStatus == .published },
+            set: { isOn in
+                if isOn {
+                    viewModel.presentSheet(.openRequest)
+                } else {
+                    Task { await viewModel.confirmCancelPublication() }
+                }
+            }
+        )
+    }
+
+    private func confirm(_ sheet: SpotPublicationSheet) {
+        Task {
+            switch sheet {
+            case .openRequest: await viewModel.confirmOpenRequest()
+            case .withdraw: await viewModel.confirmCancelPublication()
+            case .delete: await viewModel.confirmDelete()
+            }
+        }
+    }
+
     @ViewBuilder
     private var content: some View {
         switch viewModel.detailState {
@@ -148,6 +164,14 @@ struct SpotDetailView: View {
         case let .loaded(spot):
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
+                    if spot.status == .rejected, spot.isMySpot, let rejection = spot.rejection {
+                        SpotRejectionBanner(
+                            rejection: rejection,
+                            // TODO(PV-40): 반려 상태에서 호출할 API 가 서버에 없다. 정책 확정 후 연결.
+                            onWithdraw: {},
+                            onResubmit: {}
+                        )
+                    }
                     SpotHeaderSection(spot: spot)
                     SpotPhotoSection(
                         imageURL: spot.imageUrl,
@@ -159,7 +183,12 @@ struct SpotDetailView: View {
                         isBookmarked: viewModel.isBookmarked,
                         onRoute: viewModel.openNaverMapsRoute,
                         onBookmark: { Task { await viewModel.toggleBookmark() } },
-                        onOpenSpot: { isOpenSpotSheetPresented = true }
+                        onOpenSpot: { viewModel.presentSheet(.openRequest) },
+                        publicationStatus: spot.isMySpot ? viewModel.publicationStatus : nil,
+                        canLike: viewModel.canLike,
+                        isLiked: viewModel.isLiked,
+                        onWithdraw: { viewModel.presentSheet(.withdraw) },
+                        onLike: { Task { await viewModel.toggleLike() } }
                     )
                     SpotRealTimeInfoSection(spot: spot)
                     ReportButton(action: {
@@ -171,6 +200,13 @@ struct SpotDetailView: View {
                             }
                         }
                     })
+
+                    if spot.isMySpot {
+                        if viewModel.publicationStatus == .published {
+                            SpotVisibilityToggle(isPublic: visibilityBinding)
+                        }
+                        SpotDeleteLink { viewModel.presentSheet(.delete) }
+                    }
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 8)

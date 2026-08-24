@@ -21,7 +21,6 @@ final class SpotDetailViewModel: ObservableObject {
     @Published private(set) var isBookmarked = false
     @Published var dismissRequested = false
     @Published var toast: String?
-    @Published var updateNotificationToast: String?
     @Published var isLoginRequired = false
     @Published private(set) var presentationPhase: SpotPresentationPhase = .sheetMedium
 
@@ -355,15 +354,6 @@ final class SpotDetailViewModel: ObservableObject {
         detailLoadTask = nil
         detailState = .loading
         await performDetailLoad()
-    }
-
-    func notifyUpdateRequested() {
-        analyticsLogger.log(ShareFakedoorAnalyticsEvent.notifyButtonTap)
-        updateNotificationToast = "추후 업데이트 시, 가장 먼저 알림 보내드릴게요!"
-        Task { [weak self] in
-            try? await Task.sleep(for: .milliseconds(1500))
-            self?.updateNotificationToast = nil
-        }
     }
 
     func close() {
