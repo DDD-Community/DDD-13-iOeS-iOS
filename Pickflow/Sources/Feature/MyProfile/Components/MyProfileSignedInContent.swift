@@ -15,10 +15,6 @@ struct MyProfileSignedInContent: View {
     var onTermsAndPolicyTap: () -> Void = {}
     /// 기본 서버가 아닌 환경으로 전환된 경우 앱 버전 옆에 표시할 라벨. 평소에는 nil.
     var environmentBadge: String?
-    /// 앱 버전 행 탭. 연속 탭이 서버 전환 진입점이라 호출부에서 횟수를 센다.
-    var onAppVersionTap: () -> Void = {}
-    /// 앱 버전 행 길게 누르기. Debug 빌드에서 서버 전환 화면으로 바로 들어가는 지름길.
-    var onAppVersionLongPress: () -> Void = {}
 
     // 연결된 소셜 인디케이터 색상 (#FFA100)
     private let connectedProviderColor = Color(red: 1.0, green: 161.0 / 255.0, blue: 0.0)
@@ -182,9 +178,6 @@ struct MyProfileSignedInContent: View {
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 18)
-            .contentShape(Rectangle())
-            .onTapGesture { onAppVersionTap() }
-            .onLongPressGesture { onAppVersionLongPress() }
         }
     }
 
