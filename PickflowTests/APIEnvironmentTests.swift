@@ -20,9 +20,11 @@ final class APIEnvironmentTests: XCTestCase {
         XCTAssertEqual(APIEnvironment.prod.baseURL, "https://pickflow-api.us/api")
     }
 
-    /// 테스트는 Debug 빌드에서 돌므로 기본값이 dev 여야 한다.
-    func test_Debug빌드_기본값은_dev다() {
-        XCTAssertEqual(APIEnvironment.buildDefault, .dev)
+    /// 빌드 종류와 무관하게 운영이 기본이다. Debug 만 dev 로 갈라두면
+    /// Xcode 로 실행할 때마다 서버가 조용히 바뀐다.
+    func test_기본값은_빌드와무관하게_prod다() {
+        XCTAssertEqual(APIEnvironment.buildDefault, .prod)
+        XCTAssertEqual(APIEnvironment.current, .prod)
     }
 
     func test_오버라이드하면_current가바뀐다() {
@@ -42,21 +44,19 @@ final class APIEnvironmentTests: XCTestCase {
         XCTAssertFalse(APIEnvironment.isOverridden)
     }
 
-    /// 핵심 안전장치 — 전환해둔 걸 잊은 유저가 업데이트 후에도 계속 dev 를 보면 안 된다.
-    func test_앱버전이바뀌면_오버라이드가무시된다() {
-        APIEnvironment.setOverride(.prod)
-        XCTAssertEqual(APIEnvironment.current, .prod)
+    /// 마지막으로 고른 환경은 앱을 껐다 켜도 유지돼야 한다.
+    /// UserDefaults 에 남아 있으면 다음 실행에서 그대로 읽힌다.
+    func test_고른환경은_다음실행에서도유지된다() {
+        APIEnvironment.setOverride(.dev)
 
-        // 이전 버전에서 전환해둔 상태를 흉내낸다.
-        UserDefaults.standard.set("0.0.1-old", forKey: APIEnvironment.overrideAppVersionKey)
-
-        XCTAssertEqual(APIEnvironment.current, .buildDefault)
-        XCTAssertFalse(APIEnvironment.isOverridden)
+        // 앱을 다시 띄운 상황 — 저장소에서 다시 읽는다.
+        XCTAssertEqual(UserDefaults.standard.string(forKey: APIEnvironment.overrideKey), "dev")
+        XCTAssertEqual(APIEnvironment.current, .dev)
+        XCTAssertTrue(APIEnvironment.isOverridden)
     }
 
-    func test_알수없는값이저장돼있으면_빌드기본값을쓴다() {
+    func test_알수없는값이저장돼있으면_기본값을쓴다() {
         UserDefaults.standard.set("staging", forKey: APIEnvironment.overrideKey)
-        UserDefaults.standard.set(APIEnvironment.currentAppVersion, forKey: APIEnvironment.overrideAppVersionKey)
 
         XCTAssertEqual(APIEnvironment.current, .buildDefault)
     }

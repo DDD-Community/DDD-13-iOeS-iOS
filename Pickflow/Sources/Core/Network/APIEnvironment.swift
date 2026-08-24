@@ -31,18 +31,15 @@ enum APIEnvironment: String, CaseIterable, Sendable {
 }
 
 extension APIEnvironment {
-    // 앱 버전 연동 해제 동작을 테스트에서 검증하기 위해 internal 로 둔다.
+    // 테스트에서 저장 동작을 검증하기 위해 internal 로 둔다.
     static let overrideKey = "apiEnvironmentOverride"
-    static let overrideAppVersionKey = "apiEnvironmentOverrideAppVersion"
 
-    /// 빌드 컨피그가 정하는 기본 환경.
-    static var buildDefault: APIEnvironment {
-        #if DEBUG
-        .dev
-        #else
-        .prod
-        #endif
-    }
+    /// 기본 환경. 빌드 종류와 무관하게 운영이다.
+    ///
+    /// Debug 만 dev 로 갈라두면 Xcode 로 실행할 때마다 서버가 조용히 바뀌어,
+    /// 여태 운영 데이터를 보며 개발하던 흐름이 예고 없이 끊긴다.
+    /// dev 를 보려면 Dev Mode 에서 명시적으로 고르거나 스킴에 `-apiEnvironment dev` 를 넣는다.
+    static let buildDefault: APIEnvironment = .prod
 
     /// 우선순위: 실행 인자 > 저장된 오버라이드 > 빌드 기본값.
     static var current: APIEnvironment { launchArgumentOverride ?? storedOverride ?? buildDefault }
@@ -67,30 +64,19 @@ extension APIEnvironment {
     static var launchArgumentOverride: APIEnvironment? { nil }
     #endif
 
-    /// 저장된 오버라이드. 기록될 때의 앱 버전과 현재 앱 버전이 다르면 무시한다.
+    /// 마지막으로 고른 환경. 앱을 껐다 켜도, 업데이트해도 그대로 유지된다.
     private static var storedOverride: APIEnvironment? {
-        let defaults = UserDefaults.standard
-        guard let raw = defaults.string(forKey: overrideKey),
-              let environment = APIEnvironment(rawValue: raw),
-              defaults.string(forKey: overrideAppVersionKey) == currentAppVersion
-        else {
-            return nil
-        }
-        return environment
+        UserDefaults.standard.string(forKey: overrideKey).flatMap(APIEnvironment.init(rawValue:))
     }
 
     /// - Important: 서버가 바뀌면 기존 토큰은 반대편 서버에서 발급된 값이라 무효하다.
     ///   호출부에서 토큰을 비우고 앱 재시작을 안내해야 한다.
     static func setOverride(_ environment: APIEnvironment) {
-        let defaults = UserDefaults.standard
-        defaults.set(environment.rawValue, forKey: overrideKey)
-        defaults.set(currentAppVersion, forKey: overrideAppVersionKey)
+        UserDefaults.standard.set(environment.rawValue, forKey: overrideKey)
     }
 
     static func clearOverride() {
-        let defaults = UserDefaults.standard
-        defaults.removeObject(forKey: overrideKey)
-        defaults.removeObject(forKey: overrideAppVersionKey)
+        UserDefaults.standard.removeObject(forKey: overrideKey)
     }
 
     static var currentAppVersion: String {

@@ -55,7 +55,7 @@ struct DevModeView: View {
 
     private var apiEnvironmentSection: some View {
         section("API 환경") {
-            Text("이 빌드의 기본값은 \(APIEnvironment.buildDefault.displayName) 이에요.\n앱을 업데이트하면 기본값으로 돌아가요.")
+            Text("기본값은 \(APIEnvironment.buildDefault.displayName) 이에요.\n여기서 고른 환경은 앱을 껐다 켜도 그대로 유지돼요.")
                 .pretendard(.body(.small()))
                 .foregroundStyle(.gray30)
 
