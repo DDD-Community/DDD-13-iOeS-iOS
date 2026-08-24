@@ -126,6 +126,7 @@ struct DevModeView: View {
         }
         // 토큰은 반대편 서버에서 발급된 값이라 그대로 쓰면 401 이 난다.
         try? tokenStore.clear()
+        controller.environmentDidChange(to: environment)
         selectedEnvironment = environment
         isRestartNoticePresented = true
     }
@@ -139,12 +140,6 @@ struct DevModeView: View {
                 description: "화면 위에 현재 환경을 항상 표시해요.",
                 isOn: $controller.isBadgePreferred
             )
-
-            if APIEnvironment.isOverridden {
-                Text("기본 환경이 아닐 때는 꺼두어도 배지가 표시돼요.")
-                    .pretendard(.body(.small()))
-                    .foregroundStyle(.gray30)
-            }
 
             toggleRow(
                 title: "터치 표시하기",

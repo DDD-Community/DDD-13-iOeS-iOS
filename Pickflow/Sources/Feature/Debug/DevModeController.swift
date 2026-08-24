@@ -42,9 +42,17 @@ final class DevModeController: ObservableObject {
         TouchIndicatorPresenter.shared.setEnabled(isTouchIndicatorEnabled)
     }
 
-    /// 기본 환경이 아니면 배지를 강제로 띄운다.
-    /// 전환해둔 사실을 모른 채 "앱이 이상하다" 고 하는 상황을 막는 안전장치다.
-    var showsBadge: Bool { isBadgePreferred || APIEnvironment.isOverridden }
+    /// 배지 표시 여부는 토글이 그대로 결정한다.
+    /// 기본 환경이 아닐 때 강제로 띄우면 데모 촬영처럼 화면에 남으면 안 되는 상황에서 끌 방법이 없다.
+    /// 대신 환경을 바꾸는 순간 `environmentDidChange(to:)` 로 켜줘서, 모르고 지나칠 일도 없게 한다.
+    var showsBadge: Bool { isBadgePreferred }
+
+    /// 기본이 아닌 환경으로 바꾸면 배지를 자동으로 켠다.
+    /// 전환해둔 사실을 모른 채 "앱이 이상하다" 고 하는 상황을 막되, 끄는 건 사용자 몫으로 남긴다.
+    func environmentDidChange(to environment: APIEnvironment) {
+        guard environment != APIEnvironment.buildDefault else { return }
+        isBadgePreferred = true
+    }
 
     /// 마이 탭 버튼 탭. 짧은 간격으로 연달아 눌러야 카운트가 유지된다.
     /// 탭 전환 자체는 호출부에서 그대로 수행하므로 평소 사용에는 영향이 없다.

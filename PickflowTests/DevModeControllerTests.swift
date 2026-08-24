@@ -103,13 +103,34 @@ final class DevModeControllerTests: XCTestCase {
         XCTAssertTrue(controller.showsBadge)
     }
 
-    /// 전환해둔 걸 모른 채 QA 하는 상황을 막는 안전장치.
-    func test_기본환경이아니면_토글과무관하게_배지가뜬다() {
-        APIEnvironment.setOverride(.prod)
+    /// 데모 촬영처럼 화면에 남으면 안 되는 상황이 있으므로 토글이 우선한다.
+    func test_기본환경이아니어도_토글을끄면_배지가사라진다() {
+        APIEnvironment.setOverride(.dev)
+        let controller = makeController()
+        controller.isBadgePreferred = true
+
+        controller.isBadgePreferred = false
+
+        XCTAssertTrue(APIEnvironment.isOverridden)
+        XCTAssertFalse(controller.showsBadge)
+    }
+
+    /// 대신 환경을 바꾸는 순간 켜줘서, 모르고 지나칠 일은 없게 한다.
+    func test_기본이아닌환경으로바꾸면_배지가자동으로켜진다() {
+        let controller = makeController()
+        XCTAssertFalse(controller.showsBadge)
+
+        controller.environmentDidChange(to: .dev)
+
+        XCTAssertTrue(controller.showsBadge)
+    }
+
+    func test_기본환경으로되돌리면_배지를켜지않는다() {
         let controller = makeController()
 
-        XCTAssertFalse(controller.isBadgePreferred)
-        XCTAssertTrue(controller.showsBadge)
+        controller.environmentDidChange(to: APIEnvironment.buildDefault)
+
+        XCTAssertFalse(controller.showsBadge)
     }
 
     func test_배지선호값은_저장된다() {
