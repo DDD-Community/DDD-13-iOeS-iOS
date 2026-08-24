@@ -62,11 +62,19 @@ final class DevModeController: ObservableObject {
         requestEntry()
     }
 
-    /// 연타를 채웠거나 배지를 눌렀을 때. 어느 경로든 코드 입력을 거친다.
+    /// 연타로 진입할 때. 코드 입력을 거친다.
     /// 빌드 종류로 갈라두면 개발 중에 관문을 검증할 수 없어, Debug 에서도 똑같이 묻는다.
     func requestEntry() {
         passcodeInput = ""
         isPasscodePromptPresented = true
+    }
+
+    /// 환경 배지로 진입할 때. 코드를 다시 묻지 않는다.
+    ///
+    /// 배지는 Dev Mode 안에서 켜야 뜨거나 환경을 바꿔둔 경우에만 보인다.
+    /// 즉 배지가 보이는 시점에 이미 관문을 한 번 통과한 상태라, 다시 묻는 건 군더더기다.
+    func open() {
+        isPresented = true
     }
 
     func submitPasscode() {

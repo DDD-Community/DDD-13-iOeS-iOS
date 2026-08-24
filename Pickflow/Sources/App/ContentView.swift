@@ -112,7 +112,7 @@ struct ContentView: View {
         .overlay(alignment: .bottomLeading) {
             if devMode.showsBadge {
                 DevModeBadge(environment: APIEnvironment.current) {
-                    devMode.requestEntry()
+                    devMode.open()
                 }
                 .padding(.leading, 16)
                 .padding(.bottom, 12)
