@@ -143,9 +143,13 @@ private final class TransparentRootViewController: UIViewController {
     override var prefersStatusBarHidden: Bool { true }
 }
 
-/// 터치를 관찰만 하고 인식하지 않는 제스처 인식기.
-/// 상태를 바꾸지 않으므로 다른 제스처와 경쟁하지 않는다.
-private final class TouchObservingGestureRecognizer: UIGestureRecognizer {
+/// 터치를 관찰하기 위한 제스처 인식기.
+///
+/// 상태를 바꾸지 않고 `.possible` 에 머무르면, 롱프레스처럼 다른 제스처가 인식되는 순간
+/// 시퀀스의 끝(`touchesEnded`)을 못 받아 원이 화면에 남는다.
+/// 그래서 연속 제스처처럼 정식으로 상태를 전이시키되, 델리게이트로 **모든 제스처와 동시 인식**을
+/// 허용해 기존 동작을 막지 않는다. `cancelsTouchesInView` 도 꺼서 터치는 그대로 뷰로 간다.
+private final class TouchObservingGestureRecognizer: UIGestureRecognizer, UIGestureRecognizerDelegate {
     /// 바뀐 터치만이 아니라 이벤트를 통째로 넘긴다. 수신부가 allTouches 로 전체 상태를 다시 그린다.
     var onEvent: ((UIEvent) -> Void)?
 
@@ -155,6 +159,7 @@ private final class TouchObservingGestureRecognizer: UIGestureRecognizer {
         delaysTouchesBegan = false
         delaysTouchesEnded = false
         requiresExclusiveTouchType = false
+        delegate = self
     }
 
     convenience init() {
@@ -162,18 +167,42 @@ private final class TouchObservingGestureRecognizer: UIGestureRecognizer {
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+        state = .began
         onEvent?(event)
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent) {
+        state = .changed
         onEvent?(event)
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
         onEvent?(event)
+        state = event.allTouches?.contains { $0.phase != .ended && $0.phase != .cancelled } == true
+            ? .changed
+            : .ended
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
         onEvent?(event)
+        state = .cancelled
     }
+
+    // MARK: - UIGestureRecognizerDelegate
+
+    /// 관찰만 하는 인식기라 무엇과도 함께 인식돼야 한다. 하나라도 막으면 앱 조작이 어색해진다.
+    func gestureRecognizer(
+        _: UIGestureRecognizer,
+        shouldRecognizeSimultaneouslyWith _: UIGestureRecognizer
+    ) -> Bool { true }
+
+    func gestureRecognizer(
+        _: UIGestureRecognizer,
+        shouldRequireFailureOf _: UIGestureRecognizer
+    ) -> Bool { false }
+
+    func gestureRecognizer(
+        _: UIGestureRecognizer,
+        shouldBeRequiredToFailBy _: UIGestureRecognizer
+    ) -> Bool { false }
 }
