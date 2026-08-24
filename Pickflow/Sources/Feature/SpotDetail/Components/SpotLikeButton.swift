@@ -8,12 +8,13 @@ struct SpotLikeButton: View {
 
     var body: some View {
         Button(action: action) {
-            AssetImage(named: "icThumbUp", renderingMode: .template, size: 24) {
-                Image(systemName: isLiked ? "hand.thumbsup.fill" : "hand.thumbsup")
-                    .font(.system(size: 20))
-            }
-            .foregroundStyle(isLiked ? UIAsset.Colors.gray0.swiftUIColor : UIAsset.Colors.gray80.swiftUIColor)
-            .frame(width: 56, height: 56)
+            // TODO(PV-40): 디자인 시스템의 ic_thumb_up 에셋을 아직 못 받았다.
+            //              (Figma 컴포넌트 노드에서 export 하면 플레이스홀더 글리프가 나온다.)
+            //              실제 아이콘을 받으면 이 심볼을 교체할 것.
+            Image(systemName: isLiked ? "hand.thumbsup.fill" : "hand.thumbsup")
+                .font(.system(size: 22, weight: .medium))
+                .foregroundStyle(isLiked ? UIAsset.Colors.gray0.swiftUIColor : UIAsset.Colors.gray80.swiftUIColor)
+                .frame(width: 56, height: 56)
         }
         .disabled(!isEnabled)
         .background(isLiked ? UIAsset.Colors.sunsetOrange.swiftUIColor : UIAsset.Colors.gray0.swiftUIColor)

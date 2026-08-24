@@ -33,10 +33,37 @@ struct SpotVisibilityToggle: View {
             Spacer(minLength: 0)
             Toggle("", isOn: $isPublic)
                 .labelsHidden()
-                .tint(UIAsset.Colors.sunsetOrange.swiftUIColor)
+                .toggleStyle(SpotSwitchToggleStyle())
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
         .background(UIAsset.Colors.gray90.swiftUIColor, in: RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+/// 시안 치수(트랙 51x31, 노브 27)에 맞춘 스위치.
+/// 기본 `Toggle` 은 UIKit 백업 컨트롤이라 스냅샷에서 노브가 그려지지 않는다.
+struct SpotSwitchToggleStyle: ToggleStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        Button {
+            configuration.isOn.toggle()
+        } label: {
+            Capsule()
+                .fill(
+                    configuration.isOn
+                        ? UIAsset.Colors.sunsetOrange.swiftUIColor
+                        : UIAsset.Colors.gray70.swiftUIColor
+                )
+                .frame(width: 51, height: 31)
+                .overlay(alignment: configuration.isOn ? .trailing : .leading) {
+                    Circle()
+                        .fill(UIAsset.Colors.gray0.swiftUIColor)
+                        .frame(width: 27, height: 27)
+                        .padding(.horizontal, 2)
+                }
+        }
+        .buttonStyle(.plain)
+        .animation(.easeInOut(duration: 0.2), value: configuration.isOn)
+        .accessibilityAddTraits(configuration.isOn ? [.isButton, .isSelected] : .isButton)
     }
 }
