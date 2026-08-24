@@ -152,7 +152,13 @@ extension SpotDetail {
         theme: SpotTheme = .sunset,
         imageUrl: String? = "https://example.com/spot.jpg",
         comment: String = "걷다 보면 멀리 노을이 번져요.",
-        parkingInfo: String? = "무료 주차장"
+        parkingInfo: String? = "무료 주차장",
+        status: MySpotStatus? = nil,
+        isCurated: Bool? = nil,
+        likeCount: Int? = nil,
+        isLiked: Bool? = nil,
+        isLikeable: Bool? = nil,
+        rejection: SpotRejectionInfo? = nil
     ) -> SpotDetail {
         SpotDetail(
             spotId: spotId,
@@ -176,8 +182,52 @@ extension SpotDetail {
             parkingInfo: isMySpot ? nil : parkingInfo,
             bookmarkCount: bookmarkCount,
             isBookmarked: isBookmarked,
-            isMySpot: isMySpot
+            isMySpot: isMySpot,
+            status: status,
+            isCurated: isCurated,
+            likeCount: likeCount,
+            isLiked: isLiked,
+            isLikeable: isLikeable,
+            rejection: rejection
         )
+    }
+}
+
+final class MockMySpotService: MySpotServiceProtocol, @unchecked Sendable {
+    var updateResult: Result<UpdateMySpotResponse, any Error> = .success(
+        UpdateMySpotResponse(spotId: 1, status: .draft, imageUrl: nil)
+    )
+    var deleteError: (any Error)?
+    var requestOpenResult: Result<OpenMySpotResponse, any Error> = .success(
+        OpenMySpotResponse(spotId: 1, status: .pending)
+    )
+    var cancelPublicationResult: Result<CancelPublicationResponse, any Error> = .success(
+        CancelPublicationResponse(spotId: 1, previousStatus: .pending, status: .draft)
+    )
+
+    private(set) var updatedDrafts: [(spotId: Int64, draft: MySpotUpdateDraft)] = []
+    private(set) var deletedSpotIds: [Int64] = []
+    private(set) var requestedOpenSpotIds: [Int64] = []
+    private(set) var cancelledSpotIds: [Int64] = []
+
+    func updateMySpot(spotId: Int64, draft: MySpotUpdateDraft) async throws -> UpdateMySpotResponse {
+        updatedDrafts.append((spotId, draft))
+        return try updateResult.get()
+    }
+
+    func deleteMySpot(spotId: Int64) async throws {
+        deletedSpotIds.append(spotId)
+        if let deleteError { throw deleteError }
+    }
+
+    func requestOpen(spotId: Int64) async throws -> OpenMySpotResponse {
+        requestedOpenSpotIds.append(spotId)
+        return try requestOpenResult.get()
+    }
+
+    func cancelPublication(spotId: Int64) async throws -> CancelPublicationResponse {
+        cancelledSpotIds.append(spotId)
+        return try cancelPublicationResult.get()
     }
 }
 
