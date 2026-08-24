@@ -144,6 +144,10 @@ struct ContentView: View {
             )
         }
         .animation(.easeInOut(duration: 0.25), value: isTabBarVisible)
+        .task {
+            // 윈도우가 준비된 뒤여야 터치 오버레이를 올릴 수 있다.
+            devMode.applyPersistedSettings()
+        }
         .onChange(of: selectedTab) { _, newValue in
             if newValue == .saved { hasVisitedSaved = true }
         }

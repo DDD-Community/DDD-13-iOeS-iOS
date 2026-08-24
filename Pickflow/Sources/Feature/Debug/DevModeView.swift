@@ -134,26 +134,40 @@ struct DevModeView: View {
 
     private var displaySection: some View {
         section("표시") {
-            Toggle(isOn: $controller.isBadgePreferred) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("환경 배지 띄우기")
-                        .pretendard(.body(.medium(.bold)))
-                        .foregroundStyle(.gray0)
-                    Text("화면 위에 현재 환경을 항상 표시해요.")
-                        .pretendard(.body(.small()))
-                        .foregroundStyle(.gray30)
-                }
-            }
-            .tint(Color(.sunsetOrange))
-            .padding(16)
-            .background(UIAsset.Colors.gray90.swiftUIColor, in: RoundedRectangle(cornerRadius: 8))
+            toggleRow(
+                title: "환경 배지 띄우기",
+                description: "화면 위에 현재 환경을 항상 표시해요.",
+                isOn: $controller.isBadgePreferred
+            )
 
             if APIEnvironment.isOverridden {
                 Text("기본 환경이 아닐 때는 꺼두어도 배지가 표시돼요.")
                     .pretendard(.body(.small()))
                     .foregroundStyle(.gray30)
             }
+
+            toggleRow(
+                title: "터치 표시하기",
+                description: "손가락이 닿는 자리에 원을 그려요. 화면 녹화에도 함께 찍혀요.",
+                isOn: $controller.isTouchIndicatorEnabled
+            )
         }
+    }
+
+    private func toggleRow(title: String, description: String, isOn: Binding<Bool>) -> some View {
+        Toggle(isOn: isOn) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .pretendard(.body(.medium(.bold)))
+                    .foregroundStyle(.gray0)
+                Text(description)
+                    .pretendard(.body(.small()))
+                    .foregroundStyle(.gray30)
+            }
+        }
+        .tint(Color(.sunsetOrange))
+        .padding(16)
+        .background(UIAsset.Colors.gray90.swiftUIColor, in: RoundedRectangle(cornerRadius: 8))
     }
 
     // MARK: - 앱 정보

@@ -16,7 +16,16 @@ final class DevModeController: ObservableObject {
         didSet { UserDefaults.standard.set(isBadgePreferred, forKey: Self.badgeKey) }
     }
 
+    /// 데모 촬영용 터치 표시. 켠 상태로 앱을 다시 열어도 유지된다.
+    @Published var isTouchIndicatorEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(isTouchIndicatorEnabled, forKey: Self.touchIndicatorKey)
+            TouchIndicatorPresenter.shared.setEnabled(isTouchIndicatorEnabled)
+        }
+    }
+
     private static let badgeKey = "devMode.showsEnvironmentBadge"
+    private static let touchIndicatorKey = "devMode.showsTouchIndicator"
 
     private var tapCount = 0
     private var lastTapAt: Date?
@@ -25,6 +34,12 @@ final class DevModeController: ObservableObject {
     init(clock: @escaping @Sendable () -> Date = Date.init) {
         self.clock = clock
         self.isBadgePreferred = UserDefaults.standard.bool(forKey: Self.badgeKey)
+        self.isTouchIndicatorEnabled = UserDefaults.standard.bool(forKey: Self.touchIndicatorKey)
+    }
+
+    /// 저장된 설정을 실제 화면에 반영한다. 앱이 뜬 뒤 윈도우가 준비되고 나서 호출해야 한다.
+    func applyPersistedSettings() {
+        TouchIndicatorPresenter.shared.setEnabled(isTouchIndicatorEnabled)
     }
 
     /// 기본 환경이 아니면 배지를 강제로 띄운다.
