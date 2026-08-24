@@ -39,6 +39,11 @@ final class TouchIndicatorPresenter {
         recognizer.onChange = { [weak self] touches in
             self?.render(touches)
         }
+        // 스크롤처럼 다른 제스처가 인식되면 touchesEnded 대신 reset 만 불린다.
+        // 이때 정리하지 않으면 원이 화면에 남는다.
+        recognizer.onReset = { [weak self] in
+            self?.clearAllDots()
+        }
         keyWindow.addGestureRecognizer(recognizer)
         self.recognizer = recognizer
     }
@@ -69,6 +74,9 @@ final class TouchIndicatorPresenter {
 
             switch touch.phase {
             case .began:
+                // UITouch 인스턴스는 재사용된다. 같은 키에 덮어쓰면 이전 뷰가 화면에 남으므로 먼저 걷어낸다.
+                dots.removeValue(forKey: key)?.removeFromSuperview()
+
                 let dot = makeDot()
                 dot.center = point
                 container.addSubview(dot)
@@ -82,16 +90,27 @@ final class TouchIndicatorPresenter {
 
             case .ended, .cancelled:
                 guard let dot = dots.removeValue(forKey: key) else { continue }
-                UIView.animate(withDuration: 0.18) {
-                    dot.alpha = 0
-                    dot.transform = CGAffineTransform(scaleX: 1.4, y: 1.4)
-                } completion: { _ in
-                    dot.removeFromSuperview()
-                }
+                fadeOut(dot)
 
             default:
                 continue
             }
+        }
+    }
+
+    /// 남아 있는 원을 모두 걷어낸다. 터치 시퀀스가 끝났는데 정리되지 않은 경우의 안전망.
+    private func clearAllDots() {
+        let leftovers = dots.values
+        dots.removeAll()
+        leftovers.forEach { fadeOut($0) }
+    }
+
+    private func fadeOut(_ dot: UIView) {
+        UIView.animate(withDuration: 0.18) {
+            dot.alpha = 0
+            dot.transform = CGAffineTransform(scaleX: 1.4, y: 1.4)
+        } completion: { _ in
+            dot.removeFromSuperview()
         }
     }
 
@@ -128,6 +147,8 @@ private final class TransparentRootViewController: UIViewController {
 /// 상태를 바꾸지 않으므로 다른 제스처와 경쟁하지 않는다.
 private final class TouchObservingGestureRecognizer: UIGestureRecognizer {
     var onChange: ((Set<UITouch>) -> Void)?
+    /// 터치 시퀀스가 끝날 때 항상 불린다. 다른 제스처가 인식돼 touchesEnded 를 못 받는 경우까지 잡는다.
+    var onReset: (() -> Void)?
 
     override init(target: Any?, action: Selector?) {
         super.init(target: target, action: action)
@@ -155,5 +176,10 @@ private final class TouchObservingGestureRecognizer: UIGestureRecognizer {
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
         onChange?(touches)
+    }
+
+    override func reset() {
+        super.reset()
+        onReset?()
     }
 }
