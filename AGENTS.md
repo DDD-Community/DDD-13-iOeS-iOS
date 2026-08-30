@@ -77,7 +77,7 @@ feature/* ──PR──> develop ──[Create Release]──> release/x.y.z
                      │                              ├─ main 을 그 태그로 전진
                      └──────백머지 PR───────────────┘
 
-hotfix/* ──PR──> main ──> 태그 vx.y.z+1 ──> develop 백머지
+main ──cut──> release/x.y.z-hotfix ──> 태그 vx.y.z ──> main 전진 ──> develop 백머지
 ```
 
 - feature 작업 완료 시 `develop` 으로 PR
@@ -96,8 +96,19 @@ hotfix/* ──PR──> main ──> 태그 vx.y.z+1 ──> develop 백머지
 출시 중인 버전에 급한 수정이 필요할 때 갈라져 나올 자리가 필요해서 둔다. `develop` 은
 다음 릴리즈 작업이 이미 쌓여 있어 그대로 핫픽스 베이스로 쓸 수 없다.
 
-- 핫픽스는 `main` 에서 `hotfix/*` 를 따서 작업하고 `main` 으로 PR 한다
-- 배포 후 태그를 달고, `main` 을 `develop` 으로 백머지해 수정분을 회수한다
+핫픽스 브랜치도 **`release/*` 를 그대로 쓴다**. 이름에 `-hotfix` 를 붙여 구분할 뿐,
+그 뒤 절차(버전 상향 커밋 → 배포 → 태그 → `main` 전진 → `develop` 백머지)는 일반
+릴리즈와 완전히 같다. `release/` 로 시작하면 배포가 나가는 브랜치라는 규칙 하나로
+묶인다. CI 트리거(`release/**`)도 그대로 걸린다.
+
+```
+main ──cut──> release/1.1.1-hotfix ──배포──> 태그 v1.1.1 ──> main 전진 ──> develop 백머지
+```
+
+- 자르는 출처만 다르다. 일반 릴리즈는 `develop`, 핫픽스는 `main` 에서 자른다
+- 버전 상향 커밋은 직접 올린다. **Create Release 워크플로는 핫픽스에 쓸 수 없다**
+  (`develop` 을 고정으로 체크아웃하고, 현재 버전보다 낮은 값을 거부한다)
+- 배포는 일반 릴리즈와 같이 **TestFlight Deploy** 를 `branch=release/x.y.z-hotfix` 로 실행
 
 > ⚠️ **릴리즈마다 `main` 을 전진시켜야 한다.** 배포·태깅이 끝나면 `main` 을 그 태그로
 > 옮기는 단계를 빠뜨리지 말 것. 이 단계가 밀리면 `main` 이 옛 버전에 머물러 핫픽스가
