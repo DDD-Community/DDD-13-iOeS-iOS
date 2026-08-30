@@ -153,6 +153,25 @@ struct ArchiveView: View {
             }
             .ignoresSafeArea()
         )
+        // ViewModel 이 열기로 결정한 스팟만 상세로 넘어간다(비공개는 여기로 오지 않는다).
+        .onChange(of: viewModel.openedSpotId) { _, spotId in
+            guard let spotId else { return }
+            selectedSpotId = spotId
+            viewModel.openedSpotId = nil
+        }
+        .overlay {
+            if viewModel.removalCandidate != nil {
+                ZStack {
+                    Color.black.opacity(0.5).ignoresSafeArea()
+                    SavedSpotRemovalPopup(
+                        onCancel: viewModel.cancelRemoveFromSaved,
+                        onConfirm: { Task { await viewModel.confirmRemoveFromSaved() } }
+                    )
+                }
+                .transition(.opacity)
+                .animation(.easeInOut(duration: 0.2), value: viewModel.removalCandidate)
+            }
+        }
         .fullScreenCover(isPresented: Binding(
             get: { selectedSpotId != nil },
             set: { if !$0 { selectedSpotId = nil } }
@@ -337,7 +356,9 @@ struct ArchiveView: View {
                     isBookmarked: true,
                     bookmarkCount: nil,
                     onBookmarkTap: { Task { await viewModel.bookmarkTapped(item.spotId) } },
-                    onCellTap: { selectedSpotId = item.spotId }
+                    // 비공개로 전환된 스팟은 상세 대신 삭제 확인창을 띄운다.
+                    onCellTap: { viewModel.savedSpotTapped(item) },
+                    isPrivate: item.isPrivateSpot
                 )
             }
             .padding(.horizontal, 16)

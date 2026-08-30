@@ -55,6 +55,13 @@ final class ArchiveViewModel: ObservableObject {
     @Published private(set) var withdrawnAccountInfo: WithdrawnAccountInfo?
     @Published private(set) var archiveImageURL: URL?
     @Published var toast: String?
+
+    // MARK: - PV-40 비공개 전환된 저장 스팟
+
+    /// 삭제 확인창에 올라온 항목. nil 이면 확인창이 닫힌 상태.
+    @Published private(set) var removalCandidate: SavedSpotItem?
+    /// 상세로 열어야 할 스팟. 뷰가 소비하고 nil 로 되돌린다.
+    @Published var openedSpotId: Int64?
     @Published var archiveName: String = "나의 보관함"
     @Published var coverImageData: Data?
 
@@ -305,6 +312,29 @@ final class ArchiveViewModel: ObservableObject {
             state = .loaded(items: restored, hasNext: hasNext)
             toast = "북마크 해제에 실패했어요."
         }
+    }
+
+    // MARK: - PV-40 비공개 전환된 저장 스팟
+
+    /// 비공개로 전환된 스팟은 상세를 열 수 없다(서버가 404 로 막는다).
+    /// 대신 저장 목록에서 뺄지 묻는다.
+    func savedSpotTapped(_ item: SavedSpotItem) {
+        if item.isPrivateSpot {
+            removalCandidate = item
+        } else {
+            openedSpotId = item.spotId
+        }
+    }
+
+    func cancelRemoveFromSaved() {
+        removalCandidate = nil
+    }
+
+    /// 저장 목록에서 빼는 것은 북마크 해제와 같은 동작이다.
+    func confirmRemoveFromSaved() async {
+        guard let candidate = removalCandidate else { return }
+        removalCandidate = nil
+        await bookmarkTapped(candidate.spotId)
     }
 
     // MARK: - Debug

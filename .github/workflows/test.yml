@@ -114,6 +114,7 @@ jobs:
             -destination "id=${{ steps.simulator.outputs.device_id }}" \
             -resultBundlePath TestResults.xcresult \
             -skip-testing:PickflowTests/ArchiveSnapshotTests \
+            -skip-testing:PickflowTests/ArchivePrivateSpotSnapshotTests \
             -skip-testing:PickflowTests/LoginViewSnapshotTests \
             -skip-testing:PickflowTests/MapClusteringSnapshotTests \
             -skip-testing:PickflowTests/MyProfileSnapshotTests \

@@ -63,6 +63,27 @@
 | spot-toast-open-submitted-light | SpotPublicationToast | message = "오픈 신청이 접수되었어요." | — | ko_KR / .large | Light | 390pt 고정 | bg `#FFFFFF`, radius 8, padding 8/12, 라벨 17 w600 `#1E2124`, 폭은 텍스트에 맞춰 hug | test_spot_toast_open_submitted_light.1.png |
 | spot-toast-open-submitted-dark | SpotPublicationToast | 위와 동일 | — | ko_KR / .large | Dark | 390pt 고정 | Light과 동일 | test_spot_toast_open_submitted_dark.1.png |
 
+## 보관함 — 저장한 타 유저 스팟이 비공개 전환된 경우
+
+출처: Figma `750-10280`(카드), `740-8442`(삭제 확인 팝업)
+
+| case id | 컴포넌트 | 상태/입력 조건 | 테마 | 언어 / DynamicType | Light/Dark | 디바이스 | 기대 시각 결과 | 스냅샷 파일명 |
+|---|---|---|---|---|---|---|---|---|
+| saved-card-private-light | SpotListCell | isPrivate = true, imageUrl = nil | 윤슬 | ko_KR / .large | Light | 175pt 고정 | 썸네일이 `opacity 0.2` 로 죽고 그 위 중앙에 "등록한 유저가 / 비공개로 전환하였어요" 2줄(13 w600 `#CDD1D5`). 이름·서브타이틀·북마크 아이콘 행은 `opacity 0.28`. 테마·거리 태그는 딤 없이 선명 | test_saved_card_private_light.1.png |
+| saved-card-private-dark | SpotListCell | 위와 동일 | 윤슬 | ko_KR / .large | Dark | 175pt 고정 | Light과 동일 (다크 전용 팔레트) | test_saved_card_private_dark.1.png |
+| saved-card-private-a11y | SpotListCell | 위와 동일 | 윤슬 | ko_KR / .accessibilityExtraLarge | Dark | 175pt 고정 | 안내 문구가 3줄 이상으로 늘어도 썸네일 밖으로 넘치지 않고 잘리지 않는다 | test_saved_card_private_a11y.1.png |
+| saved-card-default-light | SpotListCell | isPrivate = false | 윤슬 | ko_KR / .large | Light | 175pt 고정 | 딤·오버레이 없음. 비공개 케이스와의 대조용 | test_saved_card_default_light.1.png |
+| saved-card-default-dark | SpotListCell | 위와 동일 | 윤슬 | ko_KR / .large | Dark | 175pt 고정 | Light과 동일 | test_saved_card_default_dark.1.png |
+| saved-removal-popup-light | SavedSpotRemovalPopup | — | — | ko_KR / .large | Light | 390pt 고정 | 328x189, bg `#1E2124`, radius 16, padding 24/16/16/16. 타이틀 "저장 목록에서 삭제할까요?" 19 w600, 본문 2줄 15 `#B1B8BE`. 버튼 [취소] 100(hug) + [저장 목록에서 삭제] 188(fill), gap 8, h52 | test_saved_removal_popup_light.1.png |
+| saved-removal-popup-dark | SavedSpotRemovalPopup | — | — | ko_KR / .large | Dark | 390pt 고정 | Light과 동일 | test_saved_removal_popup_dark.1.png |
+| saved-removal-popup-a11y | SavedSpotRemovalPopup | — | — | ko_KR / .accessibilityExtraLarge | Dark | 390pt 고정 | 본문이 늘어 팝업 높이가 자라고, 버튼 두 개가 가로로 유지되며 "저장 목록에서 삭제" 라벨이 잘리지 않는다 | test_saved_removal_popup_a11y.1.png |
+
+### 자기 점검
+- [x] 상태 분기 — 비공개 / 정상 두 가지를 카드에서 대조
+- [x] Light/Dark 각 한 쌍
+- [x] DynamicType — 텍스트가 늘어나 깨지기 쉬운 두 곳(카드 오버레이 문구, 팝업 본문)에 각 1행
+- [x] 삭제됨(`deleted`) 표시는 이번 범위 밖 — 시안 미수령
+
 ## 최소 커버리지 자가 점검
 
 - [x] **상태 4종** — 공개 상태 네 가지(나만보기/검수중/반려/공개)를 헤더·액션 행에서 각각 1행씩 커버. loading/empty/error는 기존 `SpotDetailSnapshotTests`가 이미 다루므로 중복 정의하지 않음
