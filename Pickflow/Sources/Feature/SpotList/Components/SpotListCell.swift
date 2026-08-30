@@ -3,7 +3,7 @@ import SwiftUI
 struct SpotListCell: View {
     let item: SpotListItem
     let isBookmarked: Bool
-    let bookmarkCount: Int?
+    let likeCount: Int?
     let onBookmarkTap: () -> Void
     var onCellTap: () -> Void = {}
     /// PV-40: 상세를 열 수 없는 저장 스팟(삭제·비공개)의 안내 문구.
@@ -151,11 +151,11 @@ struct SpotListCell: View {
                     .pretendard(.body(.small()))
                     .foregroundStyle(.gray10)
             }
-            if let count = bookmarkCount {
+            if let count = likeCount {
                 Text("·")
                 .pretendard(.body(.small()))
                     .foregroundStyle(.gray50)
-                Text("북마크 \(count)")
+                Text("추천 \(count)")
                     .pretendard(.body(.small()))
                     .foregroundStyle(.gray10)
             }
@@ -165,7 +165,7 @@ struct SpotListCell: View {
 
 #Preview {
   let item = allItems[0]
-  SpotListCell(item: item, isBookmarked: true, bookmarkCount: 10) {
+  SpotListCell(item: item, isBookmarked: true, likeCount: 10) {
     
   }
 }

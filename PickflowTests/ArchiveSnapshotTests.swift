@@ -277,7 +277,7 @@ final class ArchiveSnapshotTests: XCTestCase {
                     SpotListCell(
                         item: item,
                         isBookmarked: true,
-                        bookmarkCount: nil,
+                        likeCount: item.likeCount,
                         onBookmarkTap: {}
                     )
                 }

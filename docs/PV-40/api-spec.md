@@ -45,7 +45,7 @@
   - `isLikeable`: 비공개 상태의 유저 스팟이면 false → 추천 버튼 노출 조건으로 그대로 사용 가능
 - **미리보기 신규 필드**: `isCurated`, `likeCount`, `isLiked`, `isLikeable`
 - **리스트**: 정렬 `RECOMMENDED`(기본)가 `bookmark_count` → **`like_count` 기준으로 변경**, 동률은 북마크 수. `likeCount`/`isLiked` 추가. 페이지 6개 단위
-- **저장된 스팟**: 비공개 스팟 제외 필터 제거 → 비공개도 내려옴. `isPrivate` 추가. **비공개면 `imageUrl`이 null로 마스킹**
+- **저장된 스팟**: 비공개 스팟 제외 필터 제거 → 비공개도 내려옴. `isPrivate` 추가. **비공개면 `imageUrl`이 null로 마스킹**. 보관함 카드 지표는 `bookmarkCount` 대신 `likeCount` 로 내려받아 "추천 N" 으로 표시
 
 ### 에러 코드
 | 코드 | HTTP | 의미 | 클라 처리 |
@@ -76,7 +76,7 @@
 3. `SpotDetail`에 `status`/`isCurated`/`likeCount`/`isLiked`/`isLikeable`/`rejection` 추가
 4. `SpotPreviewResponse`에 `isCurated`/`likeCount`/`isLiked`/`isLikeable` 추가
 5. `SpotListItem`에 `likeCount`/`isLiked` 추가, `SpotListSort.recommended.displayName` "북마크 순" → 좋아요/추천 기준 문구로 변경
-6. `SavedSpotItem`에 `isPrivate` 추가 + `imageUrl` null 대응(비공개 플레이스홀더), `deleted`(삭제됨)와 `isPrivate`(비공개 전환됨) UI 분리
+6. `SavedSpotItem`에 `likeCount`/`isPrivate` 추가 + `imageUrl` null 대응(비공개 플레이스홀더), `deleted`(삭제됨)와 `isPrivate`(비공개 전환됨) UI 분리
 7. 신규 엔드포인트 4종 추가 (수정 PUT multipart / 삭제 DELETE / 공개해제 DELETE publications / 오픈신청 POST open-requests) + 좋아요 2종
 8. 에러코드 → 사용자 문구 매핑 (위 표). 현재 `APIErrorHandler`는 전역 alert 하나뿐이라, PV-40은 토스트/인라인 처리라서 호출부에서 `APIError.code`로 분기 필요
 

@@ -354,7 +354,7 @@ struct ArchiveView: View {
                 SpotListCell(
                     item: item.toSpotListItem(),
                     isBookmarked: true,
-                    bookmarkCount: nil,
+                    likeCount: item.likeCount,
                     onBookmarkTap: { Task { await viewModel.bookmarkTapped(item.spotId) } },
                     // 비공개로 전환된 스팟은 상세 대신 삭제 확인창을 띄운다.
                     onCellTap: { viewModel.savedSpotTapped(item) },
@@ -428,7 +428,7 @@ struct ArchiveScreenContent: View {
                 SpotListCell(
                     item: item.toSpotListItem(),
                     isBookmarked: true,
-                    bookmarkCount: nil,
+                    likeCount: item.likeCount,
                     onBookmarkTap: {},
                     unavailableNotice: item.unavailableNotice
                 )

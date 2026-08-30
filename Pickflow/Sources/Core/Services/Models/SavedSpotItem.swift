@@ -8,6 +8,7 @@ struct SavedSpotItem: Decodable, Sendable, Identifiable, Equatable {
     let latitude: Double
     let longitude: Double
     let distanceKm: Double?
+    let likeCount: Int?
     let savedAt: String
     /// 등록자가 스팟 자체를 삭제한 경우.
     let deleted: Bool
@@ -35,7 +36,15 @@ struct SavedSpotItem: Decodable, Sendable, Identifiable, Equatable {
     /// 셀 재사용을 위한 어댑터. 공개 여부·삭제 여부는 이 타입에만 있으므로
     /// 화면에서 필요하면 원본(SavedSpotItem)을 함께 넘겨야 한다.
     func toSpotListItem() -> SpotListItem {
-        SpotListItem(spotId: spotId, name: name, theme: theme, thumbnailUrl: imageUrl, distanceKm: distanceKm, isBookmarked: true)
+        SpotListItem(
+            spotId: spotId,
+            name: name,
+            theme: theme,
+            thumbnailUrl: imageUrl,
+            distanceKm: distanceKm,
+            isBookmarked: true,
+            likeCount: likeCount
+        )
     }
 }
 

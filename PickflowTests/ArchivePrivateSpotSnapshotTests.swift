@@ -75,7 +75,7 @@ final class ArchivePrivateSpotSnapshotTests: XCTestCase {
                 isBookmarked: true
             ),
             isBookmarked: true,
-            bookmarkCount: 34,
+            likeCount: 34,
             onBookmarkTap: {},
             unavailableNotice: notice
         )
