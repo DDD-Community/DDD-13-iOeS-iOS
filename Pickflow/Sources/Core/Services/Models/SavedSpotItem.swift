@@ -8,7 +8,6 @@ struct SavedSpotItem: Decodable, Sendable, Identifiable, Equatable {
     let latitude: Double
     let longitude: Double
     let distanceKm: Double?
-    let likeCount: Int?
     let savedAt: String
     /// 등록자가 스팟 자체를 삭제한 경우.
     let deleted: Bool
@@ -42,8 +41,7 @@ struct SavedSpotItem: Decodable, Sendable, Identifiable, Equatable {
             theme: theme,
             thumbnailUrl: imageUrl,
             distanceKm: distanceKm,
-            isBookmarked: true,
-            likeCount: likeCount
+            isBookmarked: true
         )
     }
 }

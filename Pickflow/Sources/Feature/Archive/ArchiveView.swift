@@ -354,7 +354,8 @@ struct ArchiveView: View {
                 SpotListCell(
                     item: item.toSpotListItem(),
                     isBookmarked: true,
-                    likeCount: item.likeCount,
+                    // 저장된 스팟 목록 응답에는 likeCount 가 없다(docs/PV-40/backlog.md).
+                    likeCount: nil,
                     onBookmarkTap: { Task { await viewModel.bookmarkTapped(item.spotId) } },
                     // 비공개로 전환된 스팟은 상세 대신 삭제 확인창을 띄운다.
                     onCellTap: { viewModel.savedSpotTapped(item) },
@@ -428,7 +429,7 @@ struct ArchiveScreenContent: View {
                 SpotListCell(
                     item: item.toSpotListItem(),
                     isBookmarked: true,
-                    likeCount: item.likeCount,
+                    likeCount: nil,
                     onBookmarkTap: {},
                     unavailableNotice: item.unavailableNotice
                 )

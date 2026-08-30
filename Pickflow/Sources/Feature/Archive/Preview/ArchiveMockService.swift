@@ -57,7 +57,6 @@ func makeSavedSpotItem(
     name: String,
     theme: SpotTheme?,
     distanceKm: Double?,
-    likeCount: Int? = 34,
     deleted: Bool = false,
     isPrivate: Bool? = nil
 ) -> SavedSpotItem {
@@ -69,7 +68,6 @@ func makeSavedSpotItem(
         latitude: 37.5,
         longitude: 127.0,
         distanceKm: distanceKm,
-        likeCount: likeCount,
         savedAt: "2026-08-01T00:00:00Z",
         deleted: deleted,
         isPrivate: isPrivate
