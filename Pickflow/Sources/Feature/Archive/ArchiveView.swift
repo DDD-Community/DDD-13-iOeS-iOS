@@ -425,7 +425,13 @@ struct ArchiveScreenContent: View {
             SpotListLoadingView().padding(.top, 16)
         case let .loaded(items, _):
             MasonryTwoColumn(items: items) { item in
-                SpotListCell(item: item.toSpotListItem(), isBookmarked: true, bookmarkCount: nil, onBookmarkTap: {})
+                SpotListCell(
+                    item: item.toSpotListItem(),
+                    isBookmarked: true,
+                    bookmarkCount: nil,
+                    onBookmarkTap: {},
+                    isPrivate: item.isPrivateSpot
+                )
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 16)
