@@ -10,7 +10,7 @@ struct SpotDeleteLink: View {
                 .pretendard(.body(.medium()))
                 .foregroundStyle(Color.spotDeleteLink)
                 .padding(.vertical, 8)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)
     }

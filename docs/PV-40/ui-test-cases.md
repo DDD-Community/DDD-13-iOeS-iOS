@@ -48,7 +48,7 @@
 | spot-visibility-toggle-on-dark | SpotVisibilityToggle | 위와 동일 | — | ko_KR / .large | Dark | 390pt 고정 | Light과 동일 | test_spot_visibility_toggle_on_dark.1.png |
 | spot-visibility-toggle-off-light | SpotVisibilityToggle | isPublic = false | — | ko_KR / .large | Light | 390pt 고정 | "OFF"가 회색, 설명이 "다른 사용자에게 MY 스팟이 노출되지 않습니다.", 스위치 트랙이 회색이고 노브가 좌측 | test_spot_visibility_toggle_off_light.1.png |
 | spot-visibility-toggle-off-dark | SpotVisibilityToggle | 위와 동일 | — | ko_KR / .large | Dark | 390pt 고정 | Light과 동일 | test_spot_visibility_toggle_off_dark.1.png |
-| spot-delete-link-light | SpotDeleteLink | — | — | ko_KR / .large | Light | 390pt 고정 | "스팟 삭제하기" 15 w400 `#E14B21`, 좌측 정렬, 상하 padding 8 | test_spot_delete_link_light.1.png |
+| spot-delete-link-light | SpotDeleteLink | — | — | ko_KR / .large | Light | 390pt 고정 | "스팟 삭제하기" 15 w400 `#E14B21`, 가운데 정렬, 상하 padding 8 | test_spot_delete_link_light.1.png |
 | spot-delete-link-dark | SpotDeleteLink | — | — | ko_KR / .large | Dark | 390pt 고정 | Light과 동일 | test_spot_delete_link_dark.1.png |
 | spot-sheet-open-request-light | SpotPublicationSheetContent | `.openRequest` | — | ko_KR / .large | Light | 390pt 고정 | 높이 280. 그래버 45x3 `#D9D9D9`. 타이틀 "MY 스팟을 오픈할까요?" 22 w600, 본문 3줄 15 `#B1B8BE`. 버튼 [취소] 118(hug) + [오픈 신청하기] 220(fill), gap 12 | test_spot_sheet_open_request_light.1.png |
 | spot-sheet-open-request-dark | SpotPublicationSheetContent | 위와 동일 | — | ko_KR / .large | Dark | 390pt 고정 | Light과 동일 | test_spot_sheet_open_request_dark.1.png |
