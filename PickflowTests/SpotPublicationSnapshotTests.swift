@@ -184,31 +184,31 @@ final class SpotPublicationSnapshotTests: XCTestCase {
     // MARK: - SpotPublicationSheetContent
 
     func test_spot_sheet_open_request_light() {
-        assert(sheet(.openRequest), width: screenWidth, height: 280, traits: Self.light, padded: false)
+        assert(sheet(.openRequest), width: screenWidth, height: 280, traits: Self.light, padded: false, homeIndicator: true)
     }
 
     func test_spot_sheet_open_request_dark() {
-        assert(sheet(.openRequest), width: screenWidth, height: 280, traits: Self.dark, padded: false)
+        assert(sheet(.openRequest), width: screenWidth, height: 280, traits: Self.dark, padded: false, homeIndicator: true)
     }
 
     func test_spot_sheet_withdraw_light() {
-        assert(sheet(.withdraw), width: screenWidth, height: 238, traits: Self.light, padded: false)
+        assert(sheet(.withdraw), width: screenWidth, height: 238, traits: Self.light, padded: false, homeIndicator: true)
     }
 
     func test_spot_sheet_withdraw_dark() {
-        assert(sheet(.withdraw), width: screenWidth, height: 238, traits: Self.dark, padded: false)
+        assert(sheet(.withdraw), width: screenWidth, height: 238, traits: Self.dark, padded: false, homeIndicator: true)
     }
 
     func test_spot_sheet_delete_light() {
-        assert(sheet(.delete), width: screenWidth, height: 238, traits: Self.light, padded: false)
+        assert(sheet(.delete), width: screenWidth, height: 238, traits: Self.light, padded: false, homeIndicator: true)
     }
 
     func test_spot_sheet_delete_dark() {
-        assert(sheet(.delete), width: screenWidth, height: 238, traits: Self.dark, padded: false)
+        assert(sheet(.delete), width: screenWidth, height: 238, traits: Self.dark, padded: false, homeIndicator: true)
     }
 
     func test_spot_sheet_open_request_a11y() {
-        assert(sheet(.openRequest), width: screenWidth, height: 560, traits: Self.a11yDark, padded: false)
+        assert(sheet(.openRequest), width: screenWidth, height: 560, traits: Self.a11yDark, padded: false, homeIndicator: true)
     }
 
     // MARK: - SpotOpenCompletePopup
@@ -297,11 +297,19 @@ final class SpotPublicationSnapshotTests: XCTestCase {
         height: CGFloat,
         traits: UITraitCollection,
         padded: Bool = true,
+        /// 시트 케이스는 실제 화면처럼 하단 안전영역이 있어야 레이아웃이 같아진다.
+        homeIndicator: Bool = false,
         file: StaticString = #file,
         testName: String = #function,
         line: UInt = #line
     ) {
-        let container = VStack(spacing: 0) { view }
+        let container = VStack(spacing: 0) {
+            if homeIndicator {
+                view.safeAreaInset(edge: .bottom) { Color.clear.frame(height: 34) }
+            } else {
+                view
+            }
+        }
             .padding(.horizontal, padded ? 16 : 0)
             .frame(width: width, height: height, alignment: padded ? .center : .bottom)
             .background(UIAsset.Colors.gray95.swiftUIColor)

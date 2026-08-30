@@ -23,7 +23,9 @@ struct SpotPublicationSheetContent: View {
             buttons
         }
         .padding(.horizontal, 20)
-        .padding(.bottom, 60)
+        // 시안의 하단 60 은 버튼에서 화면 맨 아래까지의 거리이고, 그 안에 홈 인디케이터
+        // 영역이 이미 들어 있다. 시트는 안전영역을 시스템이 채워 주므로 그만큼 뺀다.
+        .padding(.bottom, 26)
         .frame(maxWidth: .infinity)
         .background(UIAsset.Colors.gray95.swiftUIColor)
     }
