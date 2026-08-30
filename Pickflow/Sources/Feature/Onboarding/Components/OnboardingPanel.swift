@@ -43,9 +43,10 @@ struct OnboardingPanel: View {
       let style: PretendardStyle = .heading(.large)
       attributed.font = style.token.font
         attributed.foregroundColor = OnboardingPalette.title
-        if let highlight = page.titleHighlight,
-           let range = attributed.range(of: highlight) {
-            attributed[range].foregroundColor = page.theme.accentColor
+        for highlight in page.titleHighlights {
+            if let range = attributed.range(of: highlight) {
+                attributed[range].foregroundColor = page.theme.accentColor
+            }
         }
         return attributed
     }

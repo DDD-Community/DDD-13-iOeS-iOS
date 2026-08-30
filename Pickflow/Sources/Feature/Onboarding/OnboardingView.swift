@@ -77,11 +77,9 @@ struct OnboardingView: View {
                 ForEach(Array(viewModel.pages.enumerated()), id: \.element.id) { _, page in
                     OnboardingIllustration(
                         page: page,
-                        isCarouselAnimating: isCarouselAnimating,
-                        toastText: page.id == 1 ? viewModel.toast : page.toastText
+                        isCarouselAnimating: isCarouselAnimating
                     )
                     .frame(width: geo.size.width, height: geo.size.height)
-                    .animation(.easeInOut(duration: 0.25), value: viewModel.toast)
                 }
             }
             .offset(x: pagerOffset(width: geo.size.width))

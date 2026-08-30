@@ -29,7 +29,7 @@ final class OnboardingViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.pages.count, 4)
         XCTAssertEqual(viewModel.pages.map(\.id), [0, 1, 2, 3])
         XCTAssertEqual(viewModel.pages.map(\.imageName), [
-            "onboarding_0", "onboarding_1", "onboarding_1", "onboarding_0"
+            "onboarding_0", "onboarding_1", "onboarding_2", "onboarding_3"
         ])
     }
 
