@@ -16,6 +16,8 @@ struct ContentView: View {
     @StateObject private var clusteringViewModel: MapClusteringViewModel
     @StateObject private var myProfileViewModel: MyProfileViewModel
     @StateObject private var archiveViewModel: ArchiveViewModel
+    // 탭바 위에 있으므로 로그인 여부와 무관하게 어느 화면에서든 진입할 수 있다.
+    @StateObject private var devMode = DevModeController()
 
     var onSignedOut: () -> Void = {}
 
@@ -107,13 +109,45 @@ struct ContentView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            if isTabBarVisible {
-                CustomTabBar(selectedTab: $selectedTab)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+        .overlay(alignment: .bottomLeading) {
+            if devMode.showsBadge {
+                DevModeBadge(environment: APIEnvironment.current) {
+                    devMode.open()
+                }
+                .padding(.leading, 16)
+                .padding(.bottom, 12)
             }
         }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if isTabBarVisible {
+                CustomTabBar(
+                    selectedTab: $selectedTab,
+                    onTabTapped: { tab in
+                        guard tab == .my else { return }
+                        devMode.registerMyTabTap()
+                    }
+                )
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .alert("코드를 입력해 주세요", isPresented: $devMode.isPasscodePromptPresented) {
+            TextField("코드", text: $devMode.passcodeInput)
+                .keyboardType(.numberPad)
+            Button("취소", role: .cancel) { devMode.cancelPasscode() }
+            Button("확인") { devMode.submitPasscode() }
+        }
+        .fullScreenCover(isPresented: $devMode.isPresented) {
+            DevModeView(
+                controller: devMode,
+                tokenStore: getTokenStore(),
+                onClose: { devMode.isPresented = false }
+            )
+        }
         .animation(.easeInOut(duration: 0.25), value: isTabBarVisible)
+        .task {
+            // 윈도우가 준비된 뒤여야 터치 오버레이를 올릴 수 있다.
+            devMode.applyPersistedSettings()
+        }
         .onChange(of: selectedTab) { _, newValue in
             if newValue == .saved { hasVisitedSaved = true }
         }

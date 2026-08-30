@@ -3,11 +3,13 @@ import Foundation
 struct SpotDetail: Codable, Sendable, Identifiable, Equatable {
     let spotId: Int64
     let name: String
-    let comment: String
-    let theme: SpotTheme
+    /// 한 줄 코멘트. 등록 시 선택 항목이라 비어 있을 수 있다.
+    let comment: String?
+    @LenientSpotTheme var theme: SpotTheme?
     let latitude: Double
     let longitude: Double
-    let address: String
+    /// 간략 주소(시·구). 서버가 채우지 못하면 null 로 온다.
+    let address: String?
     let imageUrl: String?
     let recordedDate: String?
     let recordedTime: String?
@@ -51,6 +53,7 @@ struct SpotDetail: Codable, Sendable, Identifiable, Equatable {
     }
 }
 
+/// 사진 카테고리. `allCases` 순서가 곧 화면 노출 순서(햇살/윤슬/노을/야경)다.
 enum SpotTheme: String, Sendable, Equatable, CaseIterable {
     case sunlight = "햇살"
     case reflection = "윤슬"
@@ -78,6 +81,8 @@ extension SpotTheme: Codable {
 }
 
 extension SpotTheme {
+    /// 서버 SpotTheme enum 과 1:1. 리스트 응답(`SpotItem.theme`)은 축약 코드로 내려오므로
+    /// `init?(apiCode:)` 에서 양쪽을 모두 받는다. (SS=노을, YS=윤슬, SL=햇살, NV=야경)
     var apiCode: String {
         switch self {
         case .sunlight: "SUNLIGHT"
@@ -95,6 +100,29 @@ extension SpotTheme {
         case "SUNSET", "SS": self = .sunset
         case "NIGHT_VIEW", "NV": self = .nightView
         default: return nil
+        }
+    }
+
+    /// 표시명. rawValue 가 곧 한글 표기다.
+    var displayName: String { rawValue }
+
+    /// 카테고리 아이콘 에셋. 탐색 필터 칩·등록폼 칩·리스트 셀 오버레이가 공유한다.
+    var iconAssetName: String {
+        switch self {
+        case .sunlight: "icon_photo_category_sunlight"
+        case .reflection: "icon_photo_category_reflection"
+        case .sunset: "icon_photo_category_sunset"
+        case .nightView: "icon_photo_category_nightview"
+        }
+    }
+
+    /// 에셋 누락 시 AssetImage 가 쓰는 폴백.
+    var iconEmoji: String {
+        switch self {
+        case .sunlight: "☀️"
+        case .reflection: "🌊"
+        case .sunset: "🌇"
+        case .nightView: "🌙"
         }
     }
 }

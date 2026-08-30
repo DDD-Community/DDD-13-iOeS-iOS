@@ -5,7 +5,7 @@ struct SpotPreviewResponse: Codable, Sendable, Identifiable, Equatable {
     let spotId: Int64
     let name: String
     let isMySpot: Bool
-    let theme: SpotTheme
+    @LenientSpotTheme var theme: SpotTheme?
     let bookmarkCount: Int
     let isBookmarked: Bool
     let distanceKm: Double?

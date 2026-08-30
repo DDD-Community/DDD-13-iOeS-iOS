@@ -68,32 +68,41 @@ struct MySpotListCell: View {
 
     private var aspect: CGFloat { item.spotId.isMultiple(of: 2) ? 1.2 : 0.9 }
 
+    /// 나만보기(DRAFT)와 알 수 없는 상태는 뱃지를 달지 않는다.
+    @ViewBuilder
     private var statusBadge: some View {
-        Text(item.status.displayName)
-            .pretendard(.label(.medium))
-            .foregroundStyle(.gray0)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(statusBackground)
-            .clipShape(Capsule())
+        if let badgeText = item.status.badgeText {
+            Text(badgeText)
+                .pretendard(.label(.medium))
+                .foregroundStyle(.gray0)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(statusBackground)
+                .clipShape(Capsule())
+        }
     }
 
     private var statusBackground: Color {
         switch item.status {
-        case .draft, .pending, .reReviewPending, .unknown: UIAsset.Colors.gray80.swiftUIColor.opacity(0.85)
+        case .pending, .reReviewPending: UIAsset.Colors.gray80.swiftUIColor.opacity(0.85)
         case .published: UIAsset.Colors.sunsetOrange.swiftUIColor.opacity(0.85)
         case .rejected: Color.red.opacity(0.7)
+        case .draft, .unknown: .clear
         }
     }
 
+    /// 해석하지 못한 카테고리면 뱃지를 달지 않는다.
+    @ViewBuilder
     private var moodBadge: some View {
-        Image(item.theme.overlayAssetName)
-            .renderingMode(.original)
-            .resizable()
-            .scaledToFit()
-            .frame(width: 16, height: 16)
-            .padding(4)
-            .grayBackground()
+        if let theme = item.theme {
+            Image(theme.iconAssetName)
+                .renderingMode(.original)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 16, height: 16)
+                .padding(4)
+                .grayBackground()
+        }
     }
 
     private func distanceBadge(_ km: Double) -> some View {

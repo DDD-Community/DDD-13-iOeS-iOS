@@ -16,17 +16,20 @@ struct SpotHeaderSection: View {
                     metric: metric
                 )
             } else {
-                legacyHeader
+                otherSpotHeader
             }
 
-            Text(spot.comment)
-                .pretendard(.body(.medium()))
-                .foregroundStyle(.gray0)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: .infinity)
-                .padding(16)
-                .background(.gray90)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            // 코멘트는 등록 시 선택 항목이라 없을 수 있다. 없으면 빈 말풍선을 띄우지 않는다.
+            if let comment = spot.comment, !comment.isEmpty {
+                Text(comment)
+                    .pretendard(.body(.medium()))
+                    .foregroundStyle(.gray0)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .padding(16)
+                    .background(.gray90)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
         }
     }
 
@@ -35,14 +38,24 @@ struct SpotHeaderSection: View {
         spot.status == .published ? "추천 \(spot.likeCount ?? 0)" : nil
     }
 
-    private var legacyHeader: some View {
+    private var otherSpotHeader: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(spot.name)
                 .pretendard(.heading(.large))
                 .foregroundStyle(.gray0)
-            Text("\(spot.theme.rawValue) · 북마크 \(spot.bookmarkCount)")
-                .pretendard(.body(.small()))
-                .foregroundStyle(.gray30)
+
+            // 해석하지 못한 카테고리면 표기를 빼고 북마크 수만 남긴다.
+            if let subtitle {
+                Text(subtitle)
+                    .pretendard(.body(.small()))
+                    .foregroundStyle(.gray30)
+            }
         }
+    }
+
+    private var subtitle: String? {
+        let theme = spot.theme?.displayName
+        let bookmark = "북마크 \(spot.bookmarkCount)"
+        return [theme, bookmark].compactMap { $0 }.joined(separator: " · ")
     }
 }

@@ -6,6 +6,9 @@ struct CustomTabBar: View {
     static let height: CGFloat = 60
 
     @Binding var selectedTab: Tab
+    /// 탭 버튼이 눌릴 때마다 호출된다. 마이 탭 연타로 Dev Mode 에 진입하는 데 쓴다.
+    /// 탭 전환 자체는 그대로 일어나므로 평소 사용에는 영향이 없다.
+    var onTabTapped: (Tab) -> Void = { _ in }
 
     var body: some View {
         HStack(spacing: 10) {
@@ -24,6 +27,7 @@ struct CustomTabBar: View {
 
         Button {
             selectedTab = tab
+            onTabTapped(tab)
         } label: {
             VStack(spacing: 8) {
                 Image(isSelected ? tab.selectedIconName : tab.iconName)

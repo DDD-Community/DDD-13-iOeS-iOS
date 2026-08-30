@@ -108,11 +108,13 @@ struct SpotDetailSheetContentView: View {
 
     private var themeAndBookmarkRow: some View {
         HStack(spacing: 6) {
-            Text(preview.theme.rawValue)
-                .pretendard(.body(.medium(.regular)))
-                .foregroundStyle(.gray10)
+            if let theme = preview.theme {
+                Text(theme.displayName)
+                    .pretendard(.body(.medium(.regular)))
+                    .foregroundStyle(.gray10)
+            }
             if !preview.isMySpot {
-                dotSeparator
+                if preview.theme != nil { dotSeparator }
                 Text("북마크 \(preview.bookmarkCount)")
                     .pretendard(.body(.medium(.regular)))
                     .foregroundStyle(.gray10)

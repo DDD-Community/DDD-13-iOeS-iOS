@@ -4,8 +4,9 @@ struct SpotThemeChipGroup: View {
     @Binding var selectedCategory: SpotTheme?
 
     var body: some View {
+        // 카테고리 4개(햇살/윤슬/노을/야경)를 한 줄에 담기 위해 칩 간격만 12 → 8 로 좁힌다.
         LabeledSection(title: "사진 카테고리") {
-            HStack(spacing: 12) {
+            HStack(spacing: 8) {
                 ForEach(SpotTheme.allCases, id: \.self) { category in
                     Button {
                         selectedCategory = selectedCategory == category ? nil : category

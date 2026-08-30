@@ -3,7 +3,8 @@ import SwiftUI
 struct SpotPhotoSection: View {
     let imageURL: String?
     let recordedTime: String?
-    let address: String
+    /// 서버가 주소를 채우지 못하면 null 로 온다. 그럴 땐 주소 줄을 통째로 감춘다.
+    let address: String?
 
     @State private var isFullScreenPresented: Bool = false
 
@@ -22,17 +23,19 @@ struct SpotPhotoSection: View {
                         onClose: { isFullScreenPresented = false }
                     )
                 }
-            HStack(spacing: 4) {
-                AssetImage(named: "icLocationOn", size: 16) {
-                    Image(systemName: "location.fill")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.gray50)
+            if let address, !address.isEmpty {
+                HStack(spacing: 4) {
+                    AssetImage(named: "icLocationOn", size: 16) {
+                        Image(systemName: "location.fill")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.gray50)
+                    }
+                    Text(address)
+                        .pretendard(.label(.medium))
+                        .foregroundStyle(.gray30)
+                        .lineLimit(1)
+                    Spacer()
                 }
-                Text(address)
-                    .pretendard(.label(.medium))
-                    .foregroundStyle(.gray30)
-                    .lineLimit(1)
-                Spacer()
             }
         }
     }

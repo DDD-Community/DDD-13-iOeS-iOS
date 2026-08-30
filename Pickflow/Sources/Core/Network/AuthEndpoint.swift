@@ -8,7 +8,7 @@ enum AuthEndpoint: APIEndpoint {
     case logout(refreshToken: String)
     case restoreAccount(restoreToken: String)
 
-    var baseURL: String { AppConfig.baseURL }
+    var baseURL: String { APIBaseURL.current }
 
     var path: String {
         switch self {

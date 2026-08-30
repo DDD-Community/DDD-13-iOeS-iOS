@@ -4,36 +4,6 @@ enum SpotRegistrationCopy {
     static let mockDistanceText = "2.5km"
 }
 
-extension SpotTheme {
-    // TODO(PV-40): 햇살·야경은 전용 카테고리 에셋이 아직 없어 날씨 아이콘(icSunny/icNight)을 재사용한다.
-    //              디자인에서 icon_photo_category_* 로 export 되면 교체할 것.
-    var iconAssetName: String {
-        switch self {
-        case .sunlight:
-            "icSunny"
-        case .reflection:
-            "icon_photo_category_reflection"
-        case .sunset:
-            "icon_photo_category_sunset"
-        case .nightView:
-            "icNight"
-        }
-    }
-
-    var iconEmoji: String {
-        switch self {
-        case .sunlight:
-            "☀️"
-        case .reflection:
-            "🌊"
-        case .sunset:
-            "🌇"
-        case .nightView:
-            "🌃"
-        }
-    }
-}
-
 extension Calendar {
     static let spotRegistrationGregorian: Calendar = {
         var calendar = Calendar(identifier: .gregorian)

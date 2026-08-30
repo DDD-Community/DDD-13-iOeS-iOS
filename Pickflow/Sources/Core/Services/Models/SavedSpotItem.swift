@@ -3,7 +3,7 @@ import Foundation
 struct SavedSpotItem: Decodable, Sendable {
     let spotId: Int64
     let name: String
-    let theme: SpotTheme
+    @LenientSpotTheme var theme: SpotTheme?
     let imageUrl: String?
     let latitude: Double
     let longitude: Double

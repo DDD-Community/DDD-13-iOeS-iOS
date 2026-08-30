@@ -6,6 +6,7 @@ struct MyProfileView: View {
     var onNavigateToSavedSpots: () -> Void = {}
     var onNavigateToRecordedSpots: () -> Void = {}
 
+
     var body: some View {
         ZStack {
             UIAsset.Colors.gray95.color.ignoresSafeArea()
@@ -31,7 +32,8 @@ struct MyProfileView: View {
                     supportEmail: viewModel.supportEmail,
                     onAccountManagementTap: { viewModel.navigateToAccountManagement() },
                     onNoticeTap: { viewModel.navigateToNotice() },
-                    onTermsAndPolicyTap: { viewModel.navigateToTermsAndPolicy() }
+                    onTermsAndPolicyTap: { viewModel.navigateToTermsAndPolicy() },
+                    environmentBadge: APIEnvironment.isOverridden ? APIEnvironment.current.rawValue : nil
                 )
 
             case let .failed(message):

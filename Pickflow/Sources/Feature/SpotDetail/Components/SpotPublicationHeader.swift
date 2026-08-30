@@ -5,7 +5,8 @@ import SwiftUI
 /// 비공개 상태의 내 스팟이면 없다.
 struct SpotPublicationHeader: View {
     let name: String
-    let theme: SpotTheme
+    /// 해석하지 못한 카테고리면 nil 이고, 그 부분만 서브타이틀에서 빠진다.
+    let theme: SpotTheme?
     let status: MySpotStatus?
     let isMySpot: Bool
     let metric: String?
@@ -27,13 +28,17 @@ struct SpotPublicationHeader: View {
 
     private var subtitle: some View {
         HStack(spacing: 4) {
-            Text(theme.displayName)
-                .pretendard(.body(.medium()))
-                .foregroundStyle(UIAsset.Colors.gray30.swiftUIColor)
+            if let theme {
+                Text(theme.displayName)
+                    .pretendard(.body(.medium()))
+                    .foregroundStyle(UIAsset.Colors.gray30.swiftUIColor)
+            }
             if let metric {
-                Circle()
-                    .fill(UIAsset.Colors.gray30.swiftUIColor)
-                    .frame(width: 2, height: 2)
+                if theme != nil {
+                    Circle()
+                        .fill(UIAsset.Colors.gray30.swiftUIColor)
+                        .frame(width: 2, height: 2)
+                }
                 // 축약 표기 없이 원 숫자 그대로 노출한다(기획 3.8).
                 Text(metric)
                     .pretendard(.body(.medium()))
