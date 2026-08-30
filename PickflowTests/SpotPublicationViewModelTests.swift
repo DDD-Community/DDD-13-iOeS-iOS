@@ -262,3 +262,75 @@ final class InMemoryOpenCompleteStore: OpenCompleteAcknowledging, @unchecked Sen
     func hasAcknowledged(spotId: Int64) -> Bool { acknowledged.contains(spotId) }
     func acknowledge(spotId: Int64) { acknowledged.insert(spotId) }
 }
+
+/// PV-40 — 유저 등록 스팟을 북마크할 때의 사전 안내.
+@MainActor
+final class SpotBookmarkNoticeTests: XCTestCase {
+    private var spotService: MockSpotService!
+    private var bookmarkService: MockBookmarkService!
+    private var tokenStore: MockTokenStore!
+
+    override func setUp() async throws {
+        try await super.setUp()
+        spotService = MockSpotService()
+        bookmarkService = MockBookmarkService()
+        tokenStore = MockTokenStore()
+        tokenStore.storedToken = AuthToken(accessToken: "t", refreshToken: "r")
+    }
+
+    override func tearDown() async throws {
+        tokenStore = nil
+        bookmarkService = nil
+        spotService = nil
+        try await super.tearDown()
+    }
+
+    func test_유저등록_스팟을_북마크하면_비공개_전환_가능성을_알린다() async {
+        let viewModel = await makeLoadedViewModel(isCurated: false)
+
+        await viewModel.toggleBookmark()
+
+        XCTAssertEqual(viewModel.toast, "작성자가 언제든 비공개로 전환할 수 있어요")
+    }
+
+    func test_큐레이션_스팟에는_안내하지_않는다() async {
+        let viewModel = await makeLoadedViewModel(isCurated: true)
+
+        await viewModel.toggleBookmark()
+
+        XCTAssertNil(viewModel.toast)
+    }
+
+    func test_북마크를_해제할_때는_안내하지_않는다() async {
+        let viewModel = await makeLoadedViewModel(isCurated: false, isBookmarked: true)
+
+        await viewModel.toggleBookmark()
+
+        XCTAssertNil(viewModel.toast)
+    }
+
+    private func makeLoadedViewModel(isCurated: Bool, isBookmarked: Bool = false) async -> SpotDetailViewModel {
+        spotService.result = .success(
+            .fixture(isBookmarked: isBookmarked, isMySpot: false, status: .published, isCurated: isCurated)
+        )
+        let viewModel = SpotDetailViewModel(
+            spotId: 1,
+            spotService: spotService,
+            mySpotService: MockMySpotService(),
+            bookmarkService: bookmarkService,
+            locationService: MockLocationService(),
+            externalAppLauncher: MockExternalAppLauncher(),
+            shareSheetPresenter: MockShareSheetPresenter(),
+            analyticsLogger: MockAnalyticsLogger(),
+            tokenStore: tokenStore,
+            deviceIdProvider: { "d" },
+            clock: { Date(timeIntervalSince1970: 0) },
+            openCompleteStore: InMemoryOpenCompleteStore()
+        )
+        viewModel.updateDetent(.large)
+        for _ in 0..<100 where viewModel.detailState == .idle || viewModel.detailState == .loading {
+            await Task.yield()
+        }
+        return viewModel
+    }
+}

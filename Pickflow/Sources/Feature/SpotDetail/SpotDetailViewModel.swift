@@ -34,6 +34,8 @@ final class SpotDetailViewModel: ObservableObject {
     @Published private(set) var canLike = false
     @Published var activeSheet: SpotPublicationSheet?
     @Published private(set) var isOpenCompletePresented = false
+    /// 타 유저가 등록한 스팟인지. 큐레이션이거나 판단할 수 없으면 false.
+    private var isUserRegisteredSpot = false
 
     private let spotId: Int64
     private let spotService: SpotServiceProtocol
@@ -156,6 +158,11 @@ final class SpotDetailViewModel: ObservableObject {
                 try await bookmarkService.deleteBookmark(spotId: spotId)
             } else {
                 try await bookmarkService.addBookmark(spotId: spotId)
+                // 유저가 등록한 스팟은 작성자가 언제든 되돌릴 수 있다. 저장해 둔 뒤
+                // 사라진 것처럼 보이지 않도록 저장하는 시점에 미리 알린다(기획 3.9).
+                if isUserRegisteredSpot {
+                    showToast("작성자가 언제든 비공개로 전환할 수 있어요")
+                }
             }
             NotificationCenter.default.post(name: .spotBookmarkDidChange, object: nil)
         } catch BookmarkError.alreadyBookmarked {
@@ -240,6 +247,7 @@ final class SpotDetailViewModel: ObservableObject {
         likeCount = spot.likeCount ?? 0
         isLiked = spot.isLiked ?? false
         canLike = spot.isLikeable ?? (spot.isCurated ?? false)
+        isUserRegisteredSpot = !spot.isMySpot && spot.isCurated == false
 
         let isApprovedMySpot = spot.isMySpot && spot.status == .published
         if isApprovedMySpot, !openCompleteStore.hasAcknowledged(spotId: spotId) {

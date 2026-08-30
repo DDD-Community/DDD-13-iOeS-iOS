@@ -316,10 +316,10 @@ final class ArchiveViewModel: ObservableObject {
 
     // MARK: - PV-40 비공개 전환된 저장 스팟
 
-    /// 비공개로 전환된 스팟은 상세를 열 수 없다(서버가 404 로 막는다).
+    /// 삭제되었거나 비공개로 전환된 스팟은 상세를 열 수 없다(서버가 404 로 막는다).
     /// 대신 저장 목록에서 뺄지 묻는다.
     func savedSpotTapped(_ item: SavedSpotItem) {
-        if item.isPrivateSpot {
+        if item.isUnavailable {
             removalCandidate = item
         } else {
             openedSpotId = item.spotId

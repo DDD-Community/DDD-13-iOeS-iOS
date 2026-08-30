@@ -55,7 +55,7 @@ enum MockScreenCatalog {
             MockScreenEntry(
                 id: "archive-private",
                 title: "보관함 — 비공개 전환된 저장 스팟",
-                description: "두 번째 카드가 비공개 상태. 탭하면 삭제 확인창이 뜬다."
+                description: "두 번째 카드가 비공개, 세 번째가 삭제됨. 탭하면 삭제 확인창이 뜬다."
             ) { ArchiveMockPreviewView() },
 
             MockScreenEntry(

@@ -21,23 +21,31 @@ final class ArchivePrivateSpotSnapshotTests: XCTestCase {
     // MARK: - 카드
 
     func test_saved_card_private_light() {
-        assert(card(isPrivate: true), width: cardWidth, height: 260, traits: Self.light)
+        assert(card(notice: SavedSpotItem.fixture(isPrivate: true).unavailableNotice), width: cardWidth, height: 260, traits: Self.light)
     }
 
     func test_saved_card_private_dark() {
-        assert(card(isPrivate: true), width: cardWidth, height: 260, traits: Self.dark)
+        assert(card(notice: SavedSpotItem.fixture(isPrivate: true).unavailableNotice), width: cardWidth, height: 260, traits: Self.dark)
     }
 
     func test_saved_card_private_a11y() {
-        assert(card(isPrivate: true), width: cardWidth, height: 320, traits: Self.a11yDark)
+        assert(card(notice: SavedSpotItem.fixture(isPrivate: true).unavailableNotice), width: cardWidth, height: 320, traits: Self.a11yDark)
+    }
+
+    func test_saved_card_deleted_light() {
+        assert(card(notice: SavedSpotItem.fixture(deleted: true).unavailableNotice), width: cardWidth, height: 260, traits: Self.light)
+    }
+
+    func test_saved_card_deleted_dark() {
+        assert(card(notice: SavedSpotItem.fixture(deleted: true).unavailableNotice), width: cardWidth, height: 260, traits: Self.dark)
     }
 
     func test_saved_card_default_light() {
-        assert(card(isPrivate: false), width: cardWidth, height: 260, traits: Self.light)
+        assert(card(notice: nil), width: cardWidth, height: 260, traits: Self.light)
     }
 
     func test_saved_card_default_dark() {
-        assert(card(isPrivate: false), width: cardWidth, height: 260, traits: Self.dark)
+        assert(card(notice: nil), width: cardWidth, height: 260, traits: Self.dark)
     }
 
     // MARK: - 삭제 확인 팝업
@@ -56,7 +64,7 @@ final class ArchivePrivateSpotSnapshotTests: XCTestCase {
 
     // MARK: - Builders
 
-    private func card(isPrivate: Bool) -> some View {
+    private func card(notice: String?) -> some View {
         SpotListCell(
             item: SpotListItem(
                 spotId: 1,
@@ -69,7 +77,7 @@ final class ArchivePrivateSpotSnapshotTests: XCTestCase {
             isBookmarked: true,
             bookmarkCount: 34,
             onBookmarkTap: {},
-            isPrivate: isPrivate
+            unavailableNotice: notice
         )
     }
 

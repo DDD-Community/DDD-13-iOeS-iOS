@@ -6,14 +6,15 @@ struct SpotListCell: View {
     let bookmarkCount: Int?
     let onBookmarkTap: () -> Void
     var onCellTap: () -> Void = {}
-    /// PV-40: 등록자가 공개를 해제한 저장 스팟. 썸네일과 메타를 죽이고 안내를 덮는다.
-    var isPrivate: Bool = false
+    /// PV-40: 상세를 열 수 없는 저장 스팟(삭제·비공개)의 안내 문구.
+    /// 값이 있으면 썸네일과 메타를 죽이고 그 위에 문구를 덮는다.
+    var unavailableNotice: String? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             thumbnailBox
             metaRow
-                .opacity(isPrivate ? 0.28 : 1)
+                .opacity(unavailableNotice == nil ? 1 : 0.28)
         }
         .contentShape(Rectangle())
         .onTapGesture { onCellTap() }
@@ -31,10 +32,10 @@ struct SpotListCell: View {
             let h = w * aspect
             ZStack(alignment: .top) {
                 thumbnail(width: w, height: h)
-                    .opacity(isPrivate ? 0.2 : 1)
+                    .opacity(unavailableNotice == nil ? 1 : 0.2)
 
-                if isPrivate {
-                    Text("등록한 유저가\n비공개로 전환하였어요")
+                if let unavailableNotice {
+                    Text(unavailableNotice)
                         .pretendard(.body(.small(.bold)))
                         .foregroundStyle(UIAsset.Colors.gray20.swiftUIColor)
                         .multilineTextAlignment(.center)

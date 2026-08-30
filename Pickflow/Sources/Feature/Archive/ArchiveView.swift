@@ -358,7 +358,7 @@ struct ArchiveView: View {
                     onBookmarkTap: { Task { await viewModel.bookmarkTapped(item.spotId) } },
                     // 비공개로 전환된 스팟은 상세 대신 삭제 확인창을 띄운다.
                     onCellTap: { viewModel.savedSpotTapped(item) },
-                    isPrivate: item.isPrivateSpot
+                    unavailableNotice: item.unavailableNotice
                 )
             }
             .padding(.horizontal, 16)
@@ -430,7 +430,7 @@ struct ArchiveScreenContent: View {
                     isBookmarked: true,
                     bookmarkCount: nil,
                     onBookmarkTap: {},
-                    isPrivate: item.isPrivateSpot
+                    unavailableNotice: item.unavailableNotice
                 )
             }
             .padding(.horizontal, 16)
