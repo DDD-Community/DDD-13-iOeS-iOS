@@ -97,15 +97,26 @@ struct SpotDetailView: View {
                 isClosable: true
             )
         }
-        .sheet(item: $viewModel.activeSheet) { sheet in
-            SpotPublicationSheetContent(
-                sheet: sheet,
-                onCancel: viewModel.dismissSheet,
-                onConfirm: { confirm(sheet) }
-            )
-            .presentationDetents([.height(sheet == .openRequest ? 280 : 238)])
-            .presentationDragIndicator(.hidden)
-            .presentationBackground(UIAsset.Colors.gray95.swiftUIColor)
+        // 시스템 시트를 쓰지 않는다. iOS 26 은 시트를 화면에서 띄운 카드로 그려서
+        // 하단·좌우에 여백이 생기고 네 모서리가 둥글어지는데, 시안은 화면 하단에 붙는
+        // 형태다. 드래그도 detent 전환도 없는 확인용이라 직접 그리는 편이 단순하다.
+        .overlay {
+            if let sheet = viewModel.activeSheet {
+                ZStack(alignment: .bottom) {
+                    Color.black.opacity(0.5)
+                        .ignoresSafeArea()
+                        .onTapGesture { viewModel.dismissSheet() }
+
+                    SpotPublicationSheetContent(
+                        sheet: sheet,
+                        onCancel: viewModel.dismissSheet,
+                        onConfirm: { confirm(sheet) }
+                    )
+                }
+                .ignoresSafeArea(edges: .bottom)
+                .transition(.opacity)
+                .animation(.easeInOut(duration: 0.2), value: viewModel.activeSheet)
+            }
         }
         .overlay {
             if viewModel.isOpenCompletePresented {
