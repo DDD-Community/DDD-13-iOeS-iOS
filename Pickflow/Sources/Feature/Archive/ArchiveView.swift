@@ -333,7 +333,7 @@ struct ArchiveView: View {
                 onAppearItem: { item in Task { await viewModel.loadNextPageIfNeeded(currentItem: item) } }
             ) { item in
                 SpotListCell(
-                    item: item,
+                    item: item.toSpotListItem(),
                     isBookmarked: true,
                     bookmarkCount: nil,
                     onBookmarkTap: { Task { await viewModel.bookmarkTapped(item.spotId) } },
@@ -385,7 +385,7 @@ struct ArchiveScreenContent: View {
 
     private var firstThumbnailURL: URL? {
         guard case let .loaded(items, _) = state,
-              let urlString = items.first?.thumbnailUrl else { return nil }
+              let urlString = items.first?.imageUrl else { return nil }
         return URL(string: urlString)
     }
 
@@ -404,7 +404,7 @@ struct ArchiveScreenContent: View {
             SpotListLoadingView().padding(.top, 16)
         case let .loaded(items, _):
             MasonryTwoColumn(items: items) { item in
-                SpotListCell(item: item, isBookmarked: true, bookmarkCount: nil, onBookmarkTap: {})
+                SpotListCell(item: item.toSpotListItem(), isBookmarked: true, bookmarkCount: nil, onBookmarkTap: {})
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 16)

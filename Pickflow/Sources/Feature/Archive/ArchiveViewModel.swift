@@ -17,7 +17,7 @@ final class ArchiveViewModel: ObservableObject {
     enum LoadState: Equatable {
         case signedOut
         case loading
-        case loaded(items: [SpotListItem], hasNext: Bool)
+        case loaded(items: [SavedSpotItem], hasNext: Bool)
         case empty
         case failed(String)
 
@@ -257,7 +257,7 @@ final class ArchiveViewModel: ObservableObject {
         }
     }
 
-    func loadNextPageIfNeeded(currentItem: SpotListItem) async {
+    func loadNextPageIfNeeded(currentItem: SavedSpotItem) async {
         guard case let .loaded(items, hasNext) = state, hasNext, !isLoadingNextPage else { return }
         let triggerIndex = max(0, items.count - 3)
         guard let index = items.firstIndex(where: { $0.id == currentItem.id }),
@@ -310,7 +310,7 @@ final class ArchiveViewModel: ObservableObject {
     // MARK: - Debug
 
     #if DEBUG
-    func applyLoadedState(items: [SpotListItem]) {
+    func applyLoadedState(items: [SavedSpotItem]) {
         state = .loaded(items: items, hasNext: false)
     }
 

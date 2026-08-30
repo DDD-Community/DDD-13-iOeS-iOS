@@ -55,14 +55,14 @@ final class ArchiveSnapshotTests: XCTestCase {
 
     func test_archive_root_loaded_light() {
         assertSnapshot(
-            of: rootScreen(state: .loaded(items: mockItems, hasNext: false)),
+            of: rootScreen(state: .loaded(items: mockSavedItems, hasNext: false)),
             as: .image(layout: .fixed(width: 393, height: 852), traits: L.light)
         )
     }
 
     func test_archive_root_loaded_dark() {
         assertSnapshot(
-            of: rootScreen(state: .loaded(items: mockItems, hasNext: false)),
+            of: rootScreen(state: .loaded(items: mockSavedItems, hasNext: false)),
             as: .image(layout: .fixed(width: 393, height: 852), traits: L.dark)
         )
     }
@@ -179,14 +179,14 @@ final class ArchiveSnapshotTests: XCTestCase {
 
     func test_archive_myspot_placeholder_light() {
         assertSnapshot(
-            of: rootScreen(state: .loaded(items: mockItems, hasNext: false), selectedTab: .mySpots),
+            of: rootScreen(state: .loaded(items: mockSavedItems, hasNext: false), selectedTab: .mySpots),
             as: .image(layout: .fixed(width: 393, height: 852), traits: L.light)
         )
     }
 
     func test_archive_myspot_placeholder_dark() {
         assertSnapshot(
-            of: rootScreen(state: .loaded(items: mockItems, hasNext: false), selectedTab: .mySpots),
+            of: rootScreen(state: .loaded(items: mockSavedItems, hasNext: false), selectedTab: .mySpots),
             as: .image(layout: .fixed(width: 393, height: 852), traits: L.dark)
         )
     }
@@ -289,6 +289,18 @@ final class ArchiveSnapshotTests: XCTestCase {
     }
 
     // MARK: - Mock Data
+
+    /// 보관함 상태(LoadState)는 SavedSpotItem 을 담는다. 그리드 셀 스냅샷은
+    /// 여전히 SpotListItem 을 직접 그리므로 두 벌을 같은 데이터로 유지한다.
+    private let mockSavedItems: [SavedSpotItem] = (1...8).map { i in
+        SavedSpotItem.fixture(
+            spotId: Int64(i),
+            name: ["한강 노을길", "잠실 윤슬", "응봉산 전망대", "반포 분수", "선유도 일몰", "광나루 윤슬길", "노들섬 노을 뷰", "성수 한강"][i - 1],
+            theme: i.isMultiple(of: 2) ? .reflection : .sunset,
+            imageUrl: nil,
+            distanceKm: Double(i) * 0.8
+        )
+    }
 
     private let mockItems: [SpotListItem] = (1...8).map { i in
         SpotListItem(
