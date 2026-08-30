@@ -311,7 +311,7 @@ final class SpotDetailViewModel: ObservableObject {
         activeSheet = nil
         do {
             let response = try await mySpotService.requestOpen(spotId: spotId)
-            publicationStatus = response.status
+            updatePublicationStatus(response.status)
             showToast("오픈 신청이 접수되었어요.")
         } catch {
             await handlePublicationFailure(error)
@@ -326,10 +326,25 @@ final class SpotDetailViewModel: ObservableObject {
         activeSheet = nil
         do {
             let response = try await mySpotService.cancelPublication(spotId: spotId)
-            publicationStatus = response.status
+            updatePublicationStatus(response.status)
         } catch {
             await handlePublicationFailure(error)
         }
+    }
+
+    private func updatePublicationStatus(_ status: MySpotStatus?) {
+        publicationStatus = status
+
+        guard case var .loaded(spot) = detailState else { return }
+        spot.status = status
+        if status != .rejected {
+            spot.rejection = nil
+        }
+        if status != .published {
+            spot.isLikeable = false
+            canLike = false
+        }
+        detailState = .loaded(spot)
     }
 
     func confirmDelete() async {

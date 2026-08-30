@@ -203,8 +203,7 @@ struct SpotDetailView: View {
                     if spot.status == .rejected, spot.isMySpot, let rejection = spot.rejection {
                         SpotRejectionBanner(
                             rejection: rejection,
-                            // TODO(PV-40): 반려 상태에서 호출할 API 가 서버에 없다. 정책 확정 후 연결.
-                            onWithdraw: {},
+                            onWithdraw: { viewModel.presentSheet(.withdraw) },
                             onResubmit: { resubmissionSpot = spot }
                         )
                     }
@@ -251,4 +250,3 @@ struct SpotDetailView: View {
         }
     }
 }
-

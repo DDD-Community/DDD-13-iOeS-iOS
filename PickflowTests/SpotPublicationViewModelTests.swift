@@ -169,6 +169,33 @@ final class SpotPublicationViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.publicationStatus, .draft)
     }
 
+    func test_cancelPublication_반려상태에서도_공개해제API를_호출하고_배너상태를_지운다() async {
+        await loadDetail(.fixture(
+            isMySpot: true,
+            status: .rejected,
+            rejection: SpotRejectionInfo(
+                reason: "FILTER_MISMATCH",
+                reasonLabel: "카테고리 불일치",
+                guideMessage: "선택하신 카테고리와 사진이 일치하지 않습니다.",
+                detail: nil,
+                rejectedAt: "2026-07-21T10:00:00Z"
+            )
+        ))
+        mySpotService.cancelPublicationResult = .success(
+            CancelPublicationResponse(spotId: 1, previousStatus: .rejected, status: .draft)
+        )
+
+        await viewModel.confirmCancelPublication()
+
+        XCTAssertEqual(mySpotService.cancelledSpotIds, [1])
+        XCTAssertEqual(viewModel.publicationStatus, .draft)
+        guard case let .loaded(spot) = viewModel.detailState else {
+            return XCTFail("상세 상태가 유지되어야 합니다.")
+        }
+        XCTAssertEqual(spot.status, .draft)
+        XCTAssertNil(spot.rejection)
+    }
+
     func test_cancelPublication_직전에_검수가_확정되면_이미처리안내후_상세를_다시_읽는다() async {
         await loadDetail(.fixture(isMySpot: true, status: .pending))
         mySpotService.cancelPublicationResult = .failure(

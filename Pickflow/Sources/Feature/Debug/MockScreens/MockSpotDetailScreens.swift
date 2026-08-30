@@ -42,6 +42,12 @@ final class MockPublicationSpotService: SpotServiceProtocol, @unchecked Sendable
 
 /// 오픈 신청·철회·삭제가 성공한 것처럼 응답한다.
 final class MockMySpotPublicationService: MySpotServiceProtocol, @unchecked Sendable {
+    private let currentStatus: MySpotStatus
+
+    init(currentStatus: MySpotStatus) {
+        self.currentStatus = currentStatus
+    }
+
     func updateMySpot(spotId: Int64, draft _: MySpotUpdateDraft) async throws -> UpdateMySpotResponse {
         UpdateMySpotResponse(spotId: spotId, status: .rejected, imageUrl: nil)
     }
@@ -50,7 +56,7 @@ final class MockMySpotPublicationService: MySpotServiceProtocol, @unchecked Send
         OpenMySpotResponse(spotId: spotId, status: .pending)
     }
     func cancelPublication(spotId: Int64) async throws -> CancelPublicationResponse {
-        CancelPublicationResponse(spotId: spotId, previousStatus: .pending, status: .draft)
+        CancelPublicationResponse(spotId: spotId, previousStatus: currentStatus, status: .draft)
     }
 }
 
@@ -71,6 +77,8 @@ enum MockSpotDetailFactory {
             latitude: 37.5065,
             longitude: 127.0785,
             address: "서울특별시 송파구 올림픽로 240",
+            addressRoad: "서울특별시 송파구 올림픽로 240",
+            addressJibun: "서울특별시 송파구 잠실동 47",
             imageUrl: nil,
             recordedDate: "2026-04-11",
             recordedTime: "18:33",
@@ -113,7 +121,7 @@ enum MockSpotDetailFactory {
             spotService: MockPublicationSpotService(
                 spot: spot(status: status, isMySpot: isMySpot, isCurated: isCurated)
             ),
-            mySpotService: MockMySpotPublicationService(),
+            mySpotService: MockMySpotPublicationService(currentStatus: status),
             bookmarkService: DebugBookmarkService(),
             locationService: DebugLocationService(),
             externalAppLauncher: getExternalAppLauncher(),

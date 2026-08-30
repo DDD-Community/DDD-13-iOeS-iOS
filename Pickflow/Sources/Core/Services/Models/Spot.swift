@@ -10,6 +10,10 @@ struct SpotDetail: Codable, Sendable, Identifiable, Equatable {
     let longitude: Double
     /// 간략 주소(시·구). 서버가 채우지 못하면 null 로 온다.
     let address: String?
+    /// 도로명 주소. 재신청 폼의 기존 주소 표시에 사용한다.
+    let addressRoad: String?
+    /// 지번 주소. 도로명 주소가 없을 때 기존 주소 표시에 사용한다.
+    let addressJibun: String?
     let imageUrl: String?
     let recordedDate: String?
     let recordedTime: String?

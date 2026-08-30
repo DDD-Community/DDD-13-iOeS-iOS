@@ -55,6 +55,8 @@ final class SpotRegistrationViewModel: ObservableObject {
 
     /// 반려된 스팟의 기존 입력값을 폼에 채운다.
     func prefill(from spot: SpotDetail) {
+        let fullAddress = spot.addressRoad ?? spot.addressJibun ?? spot.address ?? ""
+
         spotName = String(spot.name.prefix(20))
         theme = spot.theme
         comment = String((spot.comment ?? "").prefix(50))
@@ -62,9 +64,9 @@ final class SpotRegistrationViewModel: ObservableObject {
         selectedAddress = Address(
             id: String(spot.spotId),
             name: spot.name,
-            fullAddress: spot.address ?? "",
-            roadAddress: nil,
-            jibunAddress: nil,
+            fullAddress: fullAddress,
+            roadAddress: spot.addressRoad,
+            jibunAddress: spot.addressJibun,
             zipCode: nil,
             city: nil,
             district: nil,

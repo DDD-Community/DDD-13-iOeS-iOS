@@ -14,6 +14,8 @@ final class SpotResubmissionViewModelTests: XCTestCase {
         theme: .reflection,
         imageUrl: "https://example.com/old.jpg",
         comment: "노을빛에 반사된 윤슬이 가장 반짝여요.",
+        addressRoad: "서울특별시 송파구 올림픽로 240",
+        addressJibun: "서울특별시 송파구 잠실동 47",
         status: .rejected
     )
 
@@ -43,8 +45,23 @@ final class SpotResubmissionViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.theme, .reflection)
         XCTAssertEqual(viewModel.comment, rejected.comment)
         XCTAssertEqual(viewModel.selectedAddress?.coordinate?.latitude, rejected.latitude)
+        XCTAssertEqual(viewModel.selectedAddress?.fullAddress, rejected.addressRoad)
+        XCTAssertEqual(viewModel.selectedAddress?.roadAddress, rejected.addressRoad)
+        XCTAssertEqual(viewModel.selectedAddress?.jibunAddress, rejected.addressJibun)
         XCTAssertNotNil(viewModel.capturedDate)
         XCTAssertNotNil(viewModel.capturedTime)
+    }
+
+    func test_도로명주소가_없으면_지번주소로_프리필한다() {
+        let spot = SpotDetail.fixture(
+            address: "서울 송파구",
+            addressRoad: nil,
+            addressJibun: "서울특별시 송파구 잠실동 47"
+        )
+
+        viewModel.prefill(from: spot)
+
+        XCTAssertEqual(viewModel.selectedAddress?.fullAddress, spot.addressJibun)
     }
 
     func test_사진을_새로_고르지_않아도_제출할_수_있다() {
