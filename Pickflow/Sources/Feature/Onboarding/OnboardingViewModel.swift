@@ -19,6 +19,15 @@ final class OnboardingViewModel: ObservableObject {
 
     var isOnFirstPage: Bool { currentIndex == 0 }
     var isOnLastPage: Bool { currentIndex == pages.count - 1 }
+    var primaryButtonTitle: String { isOnLastPage ? "시작하기" : "다음으로" }
+
+    func primaryButtonTapped() {
+        if isOnLastPage {
+            finishOnboarding()
+        } else {
+            goToNextPage()
+        }
+    }
 
     func goToNextPage() {
         guard currentIndex < pages.count - 1 else { return }

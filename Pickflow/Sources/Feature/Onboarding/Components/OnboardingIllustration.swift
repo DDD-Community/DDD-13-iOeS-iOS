@@ -3,7 +3,7 @@ import SwiftUI
 /// 페이지별 일러스트. 레이아웃은 `OnboardingPage.layout` switch로 분기.
 /// - `.topAlignedImage` (Step 0): 단일 이미지 상단 정렬, safe area 침범.
 /// - `.bottomAlignedImage` (Step 1): 단일 이미지 하단 정렬 + 좌우 패딩 + 상단 토스트 슬롯.
-/// - `.moodCarousel` (Step 2/3): mood 헤더(`OnboardingMoodHeaderView`) + focused carousel.
+/// - `.taggedMap` (Step 3): 분위기 태그 + 지도 화면.
 /// 상단 `PICKFLOW` 워드마크는 `OnboardingView`가 고정으로 렌더한다.
 struct OnboardingIllustration: View {
     let page: OnboardingPage
@@ -24,7 +24,7 @@ struct OnboardingIllustration: View {
         switch page.layout {
         case .topAlignedImage: topAlignedImage
         case .bottomAlignedImage: bottomAlignedImage
-        case .moodCarousel: moodAndCarousel
+        case .taggedMap: taggedMap
         }
     }
 
@@ -32,16 +32,9 @@ struct OnboardingIllustration: View {
     @ViewBuilder
     private var backgroundLayer: some View {
         switch page.layout {
-        case .topAlignedImage, .bottomAlignedImage:
+        case .topAlignedImage, .bottomAlignedImage, .taggedMap:
             page.gradient.linearGradient
                 .ignoresSafeArea()
-        case .moodCarousel:
-            ZStack {
-                OnboardingPalette.panelBackground
-                    .ignoresSafeArea()
-                page.gradient.linearGradient
-                    .ignoresSafeArea()
-            }
         }
     }
 
@@ -63,7 +56,7 @@ struct OnboardingIllustration: View {
                 .padding(.horizontal, 60)
                 .frame(maxWidth: .infinity, alignment: .bottom)
                 .background(alignment: .top) {
-                    if let toastText {
+                    if let toastText = toastText ?? page.toastText {
                         OnboardingToast(text: toastText)
                             .offset(y: -90)
                             .transition(.offset(y: 180).combined(with: .opacity))
@@ -72,19 +65,43 @@ struct OnboardingIllustration: View {
         }
     }
 
-    private var moodAndCarousel: some View {
+    private var taggedMap: some View {
         VStack(spacing: 0) {
-            Spacer(minLength: 0)
-            VStack(spacing: 20) {
-                if let header = page.moodHeader {
-                    OnboardingMoodHeaderView(header: header)
+            Spacer(minLength: 76)
+
+            HStack(spacing: 8) {
+                ForEach(SpotTheme.allCases, id: \.rawValue) { theme in
+                    HStack(spacing: 4) {
+                        Image(theme.iconAssetName)
+                            .renderingMode(.template)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 16, height: 16)
+                            .foregroundStyle(theme.accentColor)
+                        Text(theme.displayName)
+                            .pretendard(.body(.small()))
+                            .foregroundStyle(.white)
+                    }
+                    .padding(.horizontal, 10)
+                    .frame(height: 32)
+                    .background(
+                        OnboardingPalette.panelBackground,
+                        in: RoundedRectangle(cornerRadius: 6)
+                    )
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(
+                                theme == .sunset ? OnboardingPalette.accentOrange : .clear,
+                                lineWidth: 1
+                            )
+                    }
                 }
-                OnboardingFocusedCarousel(
-                    imageNames: page.carouselImageNames,
-                    isAnimating: isCarouselAnimating
-                )
             }
-            .padding(.bottom, 24)
+
+            phoneImage
+                .padding(.horizontal, 52)
+                .padding(.top, 12)
+                .frame(maxWidth: .infinity, alignment: .bottom)
         }
     }
 
@@ -107,16 +124,13 @@ struct OnboardingIllustration: View {
     )
 }
 
-#Preview("Step 2 (mood + carousel)") {
+#Preview("Step 2 (published spot)") {
     OnboardingIllustration(
         page: OnboardingPage.defaultPages[2],
-        isCarouselAnimating: false
+        toastText: "이 스팟을 추천했어요."
     )
 }
 
-#Preview("Step 3 (mood + carousel)") {
-    OnboardingIllustration(
-        page: OnboardingPage.defaultPages[3],
-        isCarouselAnimating: false
-    )
+#Preview("Step 3 (tagged map)") {
+    OnboardingIllustration(page: OnboardingPage.defaultPages[3])
 }

@@ -4,6 +4,7 @@ struct OnboardingPanel: View {
     let page: OnboardingPage
     let currentIndex: Int
     let pageCount: Int
+    let primaryButtonTitle: String
     let onPrimaryTap: () -> Void
 
     var body: some View {
@@ -22,7 +23,7 @@ struct OnboardingPanel: View {
                 currentIndex: currentIndex
             )
 
-            OnboardingPrimaryButton(title: "시작하기", action: onPrimaryTap)
+            OnboardingPrimaryButton(title: primaryButtonTitle, action: onPrimaryTap)
         }
         .padding(.top, 36)
         .padding(.bottom, 28)

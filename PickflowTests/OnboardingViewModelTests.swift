@@ -29,13 +29,13 @@ final class OnboardingViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.pages.count, 4)
         XCTAssertEqual(viewModel.pages.map(\.id), [0, 1, 2, 3])
         XCTAssertEqual(viewModel.pages.map(\.imageName), [
-            "onboarding_0", "onboarding_1", "onboarding_2", "onboarding_3"
+            "onboarding_0", "onboarding_1", "onboarding_1", "onboarding_0"
         ])
     }
 
-    func test_초기상태_마지막페이지의테마만blue이다() {
+    func test_초기상태_모든페이지가orange테마이다() {
         let themes = viewModel.pages.map(\.theme)
-        XCTAssertEqual(themes, [.orange, .orange, .orange, .blue])
+        XCTAssertEqual(themes, [.orange, .orange, .orange, .orange])
     }
 
     func test_초기상태_isOnFirstPage는true이고_isOnLastPage는false이다() {
@@ -107,6 +107,35 @@ final class OnboardingViewModelTests: XCTestCase {
     func test_finishOnboarding_어느페이지에서호출해도_완료처리된다() {
         viewModel.setPage(1)
         viewModel.finishOnboarding()
+        XCTAssertTrue(viewModel.isFinished)
+        XCTAssertEqual(completionStore.markCallCount, 1)
+    }
+
+    // MARK: - primary CTA
+
+    func test_primaryButtonTitle_마지막페이지전까지_다음으로이다() {
+        XCTAssertEqual(viewModel.primaryButtonTitle, "다음으로")
+        viewModel.setPage(2)
+        XCTAssertEqual(viewModel.primaryButtonTitle, "다음으로")
+    }
+
+    func test_primaryButtonTitle_마지막페이지에서_시작하기이다() {
+        viewModel.setPage(3)
+        XCTAssertEqual(viewModel.primaryButtonTitle, "시작하기")
+    }
+
+    func test_primaryButtonTapped_마지막페이지전에는_다음페이지로이동하고완료하지않는다() {
+        viewModel.primaryButtonTapped()
+
+        XCTAssertEqual(viewModel.currentIndex, 1)
+        XCTAssertFalse(viewModel.isFinished)
+        XCTAssertEqual(completionStore.markCallCount, 0)
+    }
+
+    func test_primaryButtonTapped_마지막페이지에서는_온보딩을완료한다() {
+        viewModel.setPage(3)
+        viewModel.primaryButtonTapped()
+
         XCTAssertTrue(viewModel.isFinished)
         XCTAssertEqual(completionStore.markCallCount, 1)
     }

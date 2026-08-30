@@ -10,11 +10,11 @@ struct OnboardingPage: Identifiable, Hashable, Sendable {
     /// 일러스트 영역의 레이아웃 종류.
     /// - `topAlignedImage`: 단일 이미지를 상단(safe area 침범)에 부착. Step 0.
     /// - `bottomAlignedImage`: 단일 이미지를 하단 정렬 + 좌우 패딩 + 상단 토스트 슬롯. Step 1.
-    /// - `moodCarousel`: mood 헤더(칩+설명) + focused center-mode 캐러셀. Step 2/3.
+    /// - `taggedMap`: 분위기 태그와 지도 화면을 함께 노출. Step 3.
     enum Layout: Sendable, Hashable {
         case topAlignedImage
         case bottomAlignedImage
-        case moodCarousel
+        case taggedMap
     }
 
     let id: Int
@@ -27,6 +27,7 @@ struct OnboardingPage: Identifiable, Hashable, Sendable {
     let carouselImageNames: [String]
     let moodHeader: OnboardingMoodHeader?
     let layout: Layout
+    let toastText: String?
 }
 
 struct OnboardingMoodHeader: Hashable, Sendable {
@@ -50,51 +51,47 @@ extension OnboardingPage {
             gradient: .orangeWarm,
             carouselImageNames: [],
             moodHeader: nil,
-            layout: .topAlignedImage
+            layout: .topAlignedImage,
+            toastText: nil
         ),
         OnboardingPage(
             id: 1,
             imageName: "onboarding_1",
             title: "나만의 스팟을\n기록하고 공유해보세요",
             titleHighlight: "나만의 스팟을",
-            subtitle: "내가 촬영한 스팟을 지도에 남기고\n확인할 수 있어요.",
+            subtitle: "내가 촬영한 스팟을 지도에 남기고,\n기록한 스팟을 공개해보세요.",
             theme: .orange,
             gradient: .orangeWarm,
             carouselImageNames: [],
             moodHeader: nil,
-            layout: .bottomAlignedImage
+            layout: .bottomAlignedImage,
+            toastText: nil
         ),
         OnboardingPage(
             id: 2,
-            imageName: "onboarding_2",
-            title: "하루의 끝자락에서,\n노을이 가장 아름다운 순간",
-            titleHighlight: "노을이 가장 아름다운 순간",
-            subtitle: "노을 태그로,\n그 순간을 담은 스팟을 찾아보세요.",
+            imageName: "onboarding_1",
+            title: "다른 사람의 스팟도\n만나볼 수 있어요",
+            titleHighlight: "다른 사람의 스팟도",
+            subtitle: "다른 유저가 발견한 스팟을 살펴보고,\n마음에 드는 스팟을 추천해보세요.",
             theme: .orange,
-            gradient: .nightWarm,
-            carouselImageNames: ["onboarding_2_pic_0", "onboarding_2_pic_1", "onboarding_2_pic_2"],
-            moodHeader: OnboardingMoodHeader(
-                primary: .sunset,
-                secondary: .reflection,
-                description: "해가 뜨거나 지려고 할 때에\n하늘이 햇빛을 받아 붉게 보이는 현상"
-            ),
-            layout: .moodCarousel
+            gradient: .orangeWarm,
+            carouselImageNames: [],
+            moodHeader: nil,
+            layout: .bottomAlignedImage,
+            toastText: "이 스팟을 추천했어요."
         ),
         OnboardingPage(
             id: 3,
-            imageName: "onboarding_3",
-            title: "물가에 빛이 닿을 때,\n윤슬이 가장 반짝이는 순간",
-            titleHighlight: "윤슬이 가장 반짝이는 순간",
-            subtitle: "윤슬 태그로,\n그 순간을 담은 스팟을 찾아보세요.",
-            theme: .blue,
-            gradient: .nightCool,
-            carouselImageNames: ["onboarding_3_pic_0", "onboarding_3_pic_1", "onboarding_3_pic_2"],
-            moodHeader: OnboardingMoodHeader(
-                primary: .reflection,
-                secondary: .sunset,
-                description: "달빛이나 햇빛에 비치어 반짝이는 잔물결\n"
-            ),
-            layout: .moodCarousel
+            imageName: "onboarding_0",
+            title: "원하는 순간의 스팟을\n찾아보세요",
+            titleHighlight: "원하는 순간의 스팟을",
+            subtitle: "햇살부터 윤슬, 노을, 야경까지\n지금 찍고 싶은 분위기에 맞는 스팟을 찾아보세요.",
+            theme: .orange,
+            gradient: .orangeWarm,
+            carouselImageNames: [],
+            moodHeader: nil,
+            layout: .taggedMap,
+            toastText: nil
         )
     ]
 }

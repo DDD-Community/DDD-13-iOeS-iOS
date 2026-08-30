@@ -51,7 +51,8 @@ struct OnboardingView: View {
                 page: viewModel.pages[viewModel.currentIndex],
                 currentIndex: viewModel.currentIndex,
                 pageCount: viewModel.pages.count,
-                onPrimaryTap: { viewModel.finishOnboarding() }
+                primaryButtonTitle: viewModel.primaryButtonTitle,
+                onPrimaryTap: viewModel.primaryButtonTapped
             )
             .animation(.easeInOut(duration: 0.2), value: viewModel.currentIndex)
         }
@@ -77,7 +78,7 @@ struct OnboardingView: View {
                     OnboardingIllustration(
                         page: page,
                         isCarouselAnimating: isCarouselAnimating,
-                        toastText: page.layout == .bottomAlignedImage ? viewModel.toast : nil
+                        toastText: page.id == 1 ? viewModel.toast : page.toastText
                     )
                     .frame(width: geo.size.width, height: geo.size.height)
                     .animation(.easeInOut(duration: 0.25), value: viewModel.toast)

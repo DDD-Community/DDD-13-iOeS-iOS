@@ -13,14 +13,16 @@ struct AppRootView: View {
         authService: AuthServiceProtocol,
         socialLoginService: SocialLoginServiceProtocol,
         locationService: LocationServiceProtocol,
-        onboardingCompletionStore: OnboardingCompletionStore
+        onboardingCompletionStore: OnboardingCompletionStore,
+        guestModeStore: GuestModeStore
     ) {
         _viewModel = StateObject(
             wrappedValue: AppRootViewModel(
                 authService: authService,
                 socialLoginService: socialLoginService,
                 locationService: locationService,
-                onboardingCompletionStore: onboardingCompletionStore
+                onboardingCompletionStore: onboardingCompletionStore,
+                guestModeStore: guestModeStore
             )
         )
     }
@@ -44,9 +46,10 @@ struct AppRootView: View {
                         socialLoginService: viewModel.socialLoginService
                     ),
                     onSignInSucceeded: viewModel.didCompleteSignIn,
+                    onGuestEntryRequested: viewModel.didEnterGuest,
                     isClosable: false
                 )
-            case .signedIn:
+            case .main:
                 ContentView(onSignedOut: viewModel.didSignOut)
                     .task {
                         viewModel.prepareLocationPermissionIfNeeded()
@@ -68,7 +71,7 @@ final class AppRootViewModel: ObservableObject {
         case loading
         case onboarding
         case signedOut
-        case signedIn
+        case main
     }
 
     @Published private(set) var routeState: AuthRouteState = .loading
@@ -79,6 +82,7 @@ final class AppRootViewModel: ObservableObject {
     let socialLoginService: SocialLoginServiceProtocol
     let locationService: LocationServiceProtocol
     let onboardingCompletionStore: OnboardingCompletionStore
+    let guestModeStore: GuestModeStore
 
     private var didHandleLocationPermission = false
 
@@ -86,12 +90,14 @@ final class AppRootViewModel: ObservableObject {
         authService: AuthServiceProtocol,
         socialLoginService: SocialLoginServiceProtocol,
         locationService: LocationServiceProtocol,
-        onboardingCompletionStore: OnboardingCompletionStore
+        onboardingCompletionStore: OnboardingCompletionStore,
+        guestModeStore: GuestModeStore
     ) {
         self.authService = authService
         self.socialLoginService = socialLoginService
         self.locationService = locationService
         self.onboardingCompletionStore = onboardingCompletionStore
+        self.guestModeStore = guestModeStore
     }
 
     func bootstrap() async {
@@ -99,8 +105,13 @@ final class AppRootViewModel: ObservableObject {
             routeState = .onboarding
             return
         }
-        let state = await authService.currentAuthState()
-        routeState = state.toRoute()
+
+        let authState = await authService.currentAuthState()
+        if case .signedIn = authState {
+            routeState = .main
+        } else {
+            routeState = guestModeStore.hasEnteredAsGuest() ? .main : .signedOut
+        }
     }
 
     func didCompleteOnboarding() {
@@ -111,7 +122,12 @@ final class AppRootViewModel: ObservableObject {
     }
 
     func didCompleteSignIn() {
-        routeState = .signedIn
+        routeState = .main
+    }
+
+    func didEnterGuest() {
+        guestModeStore.markGuestEntry()
+        routeState = .main
     }
 
     func didSignOut() {
@@ -119,7 +135,7 @@ final class AppRootViewModel: ObservableObject {
     }
 
     func prepareLocationPermissionIfNeeded() {
-        guard routeState == .signedIn, !didHandleLocationPermission else { return }
+        guard routeState == .main, !didHandleLocationPermission else { return }
         guard ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1" else { return }
 
         switch locationService.authorizationStatus() {
@@ -139,7 +155,7 @@ private extension AuthState {
     func toRoute() -> AppRootViewModel.AuthRouteState {
         switch self {
         case .signedOut: .signedOut
-        case .signedIn: .signedIn
+        case .signedIn: .main
         }
     }
 }

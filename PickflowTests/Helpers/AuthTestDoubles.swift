@@ -6,6 +6,7 @@ final class MockAuthService: AuthServiceProtocol, @unchecked Sendable {
     var appleResult: Result<TokenResponse, any Error> = .success(.fixture(provider: .apple))
     private(set) var kakaoAccessTokens: [String] = []
     private(set) var appleRequests: [(identityToken: String, user: AppleUserInfo?)] = []
+    var stubbedAuthState: AuthState = .signedOut
 
     func signInWithKakao(accessToken: String) async throws -> TokenResponse {
         kakaoAccessTokens.append(accessToken)
@@ -23,7 +24,7 @@ final class MockAuthService: AuthServiceProtocol, @unchecked Sendable {
 
     func signOut() async throws {}
 
-    func currentAuthState() async -> AuthState { .signedOut }
+    func currentAuthState() async -> AuthState { stubbedAuthState }
 
     func restoreAccount(restoreToken: String) async throws {}
 }
