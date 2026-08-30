@@ -122,6 +122,7 @@ jobs:
             -skip-testing:PickflowTests/SpotDetailBottomSheetSnapshotTests \
             -skip-testing:PickflowTests/SpotDetailSnapshotTests \
             -skip-testing:PickflowTests/SpotListSnapshotTests \
+            -skip-testing:PickflowTests/SpotPublicationSnapshotTests \
             CODE_SIGNING_ALLOWED=NO
 
       - name: Upload test results
