@@ -213,11 +213,9 @@ final class SpotRegistrationViewModel: ObservableObject {
         }
     }
 
-    /// 재신청은 새 스팟을 만들지 않는다. 기존 스팟을 수정한 뒤 다시 오픈 신청한다.
-    /// 등록 API 로 만들면 새 spotId 가 생겨 반려된 원본이 중복으로 남고,
-    /// 좋아요·북마크도 승계되지 않는다.
-    /// - TODO(PV-40): 시안 설명의 "기존 등록 플로우와 동일" 이 API 레벨까지 뜻하는지
-    ///                기획 확인 대기 중. 확인되면 이 메서드만 갈아끼우면 된다.
+    /// 재신청은 새 스팟을 만들지 않는다. 기존 스팟을 수정(PUT)한 뒤 다시 오픈 신청한다.
+    /// updateMySpot 스펙에 "수정으로 스팟 상태가 바뀌지 않는다" 고 명시되어 있어,
+    /// 등록 API 로 새로 만드는 방식과 달리 반려된 원본을 중복 없이 그대로 재사용한다.
     private func resubmit(
         spotId: Int64,
         coordinate: Coordinate,
