@@ -18,6 +18,7 @@ struct ContentView: View {
     @StateObject private var archiveViewModel: ArchiveViewModel
     // 탭바 위에 있으므로 로그인 여부와 무관하게 어느 화면에서든 진입할 수 있다.
     @StateObject private var devMode = DevModeController()
+    @StateObject private var v2Notice = V2UpdateNoticeController()
 
     var onSignedOut: () -> Void = {}
 
@@ -144,9 +145,21 @@ struct ContentView: View {
             )
         }
         .animation(.easeInOut(duration: 0.25), value: isTabBarVisible)
+        .overlay {
+            if v2Notice.isPresented {
+                ZStack {
+                    Color.black.opacity(0.5).ignoresSafeArea()
+                    V2UpdateNoticeModal(onConfirm: v2Notice.acknowledge)
+                }
+                .transition(.opacity)
+                .animation(.easeInOut(duration: 0.25), value: v2Notice.isPresented)
+            }
+        }
         .task {
             // 윈도우가 준비된 뒤여야 터치 오버레이를 올릴 수 있다.
             devMode.applyPersistedSettings()
+            // 서비스 최초 진입 시 1회 노출. 노출 기간이 끝났거나 이미 확인했으면 뜨지 않는다.
+            v2Notice.checkOnLaunch()
         }
         .onChange(of: selectedTab) { _, newValue in
             if newValue == .saved { hasVisitedSaved = true }

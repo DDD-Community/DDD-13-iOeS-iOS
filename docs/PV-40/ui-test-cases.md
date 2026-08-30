@@ -121,6 +121,21 @@
 - [x] DynamicType 1행
 - [x] 지도 핀은 앱 변경이 없어 케이스 없음 — 선택된 유저 스팟 핀이 기존 썸네일 핀 + 주황 링과 동일
 
+## V2 업데이트 안내 모달
+
+출처: Figma `1201-9348`(`Modal-Popup-Update-V2`)
+
+| case id | 컴포넌트 | 상태/입력 조건 | 테마 | 언어 / DynamicType | Light/Dark | 디바이스 | 기대 시각 결과 | 스냅샷 파일명 |
+|---|---|---|---|---|---|---|---|---|
+| v2-notice-modal-light | V2UpdateNoticeModal | — | — | ko_KR / .large | Light | 390pt 고정 | 328 폭, bg `#1E2124`, radius 16, padding 20/16/16/16. 상단 `NEW` 뱃지(bg `#FA6133` 15%, 글자 `#FA6133`, radius 4). 타이틀 "V2 업데이트 안내" 22 w600. 본문 2줄 15 `#B1B8BE` 가운데 정렬. 하단 [확인했어요] 296x52 주황 풀폭 | test_v2_notice_modal_light.1.png |
+| v2-notice-modal-dark | V2UpdateNoticeModal | — | — | ko_KR / .large | Dark | 390pt 고정 | Light과 동일 | test_v2_notice_modal_dark.1.png |
+| v2-notice-modal-a11y | V2UpdateNoticeModal | — | — | ko_KR / .accessibilityExtraLarge | Dark | 390pt 고정 | 본문 두 줄이 각각 여러 줄로 접히며 모달 높이가 자라고, 버튼 라벨이 잘리지 않는다 | test_v2_notice_modal_a11y.1.png |
+
+### 자기 점검
+- [x] 상태 분기 — 모달은 단일 상태(노출 여부는 컨트롤러 단위 테스트가 담당)
+- [x] Light/Dark 한 쌍
+- [x] DynamicType 1행
+
 ## 최소 커버리지 자가 점검
 
 - [x] **상태 4종** — 공개 상태 네 가지(나만보기/검수중/반려/공개)를 헤더·액션 행에서 각각 1행씩 커버. loading/empty/error는 기존 `SpotDetailSnapshotTests`가 이미 다루므로 중복 정의하지 않음
