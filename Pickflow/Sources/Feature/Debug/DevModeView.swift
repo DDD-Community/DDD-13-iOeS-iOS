@@ -30,6 +30,7 @@ struct DevModeView: View {
                     VStack(alignment: .leading, spacing: 32) {
                         apiEnvironmentSection
                         displaySection
+                        mockScreenSection
                         appInfoSection
                     }
                     .padding(20)
@@ -146,6 +147,30 @@ struct DevModeView: View {
                 description: "손가락이 닿는 자리에 원을 그려요. 화면 녹화에도 함께 찍혀요.",
                 isOn: $controller.isTouchIndicatorEnabled
             )
+        }
+    }
+
+    // MARK: - 목 데이터 화면
+
+    /// 서버에 실제 데이터를 만들기 어려운 상태를 목으로 띄워 본다.
+    /// 예: 저장한 스팟이 비공개로 전환되려면 타 계정이 공개 → 검수 → 비공개까지 거쳐야 한다.
+    private var mockScreenSection: some View {
+        section("목 데이터 화면") {
+            NavigationLink {
+                ArchiveMockPreviewView()
+            } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("보관함 — 비공개 전환된 저장 스팟")
+                        .pretendard(.body(.medium(.bold)))
+                        .foregroundStyle(.gray0)
+                    Text("두 번째 카드가 비공개 상태예요. 탭하면 삭제 확인창이 떠요.")
+                        .pretendard(.body(.small()))
+                        .foregroundStyle(.gray30)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(16)
+                .background(UIAsset.Colors.gray90.swiftUIColor, in: RoundedRectangle(cornerRadius: 8))
+            }
         }
     }
 
