@@ -127,7 +127,7 @@
 
 | case id | 컴포넌트 | 상태/입력 조건 | 테마 | 언어 / DynamicType | Light/Dark | 디바이스 | 기대 시각 결과 | 스냅샷 파일명 |
 |---|---|---|---|---|---|---|---|---|
-| v2-notice-modal-light | V2UpdateNoticeModal | — | — | ko_KR / .large | Light | 390pt 고정 | 328 폭, bg `#1E2124`, radius 16, padding 20/16/16/16. 상단 `NEW` 뱃지(bg `#FA6133` 15%, 글자 `#FA6133`, radius 4). 타이틀 "V2 업데이트 안내" 22 w600. 본문 2줄 15 `#B1B8BE` 가운데 정렬. 하단 [확인했어요] 296x52 주황 풀폭 | test_v2_notice_modal_light.1.png |
+| v2-notice-modal-light | V2UpdateNoticeModal | — | — | ko_KR / .large | Light | 390pt 고정 | 328 폭, bg `#1E2124`, radius 16, padding 20/16/16/16. 상단 `NEW` 뱃지(bg `#FA6133` 15%, 글자 `#FA6133`, radius 4). 타이틀 "V2 업데이트 안내" 22 w600. 본문 2줄 15 `#B1B8BE` 가운데 정렬, 기능 이름(`햇살 · 야경 필터`, `스팟을 공개`)만 세미볼드·`#FFFFFF`. 하단 [확인했어요] 296x52 주황 풀폭 | test_v2_notice_modal_light.1.png |
 | v2-notice-modal-dark | V2UpdateNoticeModal | — | — | ko_KR / .large | Dark | 390pt 고정 | Light과 동일 | test_v2_notice_modal_dark.1.png |
 | v2-notice-modal-a11y | V2UpdateNoticeModal | — | — | ko_KR / .accessibilityExtraLarge | Dark | 390pt 고정 | 본문 두 줄이 각각 여러 줄로 접히며 모달 높이가 자라고, 버튼 라벨이 잘리지 않는다 | test_v2_notice_modal_a11y.1.png |
 

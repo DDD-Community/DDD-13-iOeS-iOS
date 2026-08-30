@@ -4,10 +4,25 @@ import SwiftUI
 struct V2UpdateNoticeModal: View {
     let onConfirm: () -> Void
 
-    private let highlights = [
-        "1. 햇살 · 야경 필터가 추가되었어요",
-        "2. 이제 내 스팟을 공개할 수 있어요",
+    /// 각 줄에서 새로 생긴 기능 이름만 세미볼드·흰색으로 강조한다.
+    private let highlights: [Highlight] = [
+        Highlight(prefix: "1. ", emphasis: "햇살 · 야경 필터", suffix: "가 추가되었어요"),
+        Highlight(prefix: "2. 이제 내 ", emphasis: "스팟을 공개", suffix: "할 수 있어요"),
     ]
+
+    private struct Highlight: Hashable {
+        let prefix: String
+        let emphasis: String
+        let suffix: String
+
+        var text: Text {
+            Text(prefix)
+                + Text(emphasis)
+                .font(PretendardStyle.body(.medium(.bold)).token.font)
+                .foregroundColor(UIAsset.Colors.gray0.swiftUIColor)
+                + Text(suffix)
+        }
+    }
 
     var body: some View {
         VStack(spacing: 20) {
@@ -21,7 +36,7 @@ struct V2UpdateNoticeModal: View {
 
                     VStack(spacing: 4) {
                         ForEach(highlights, id: \.self) { line in
-                            Text(line)
+                            line.text
                                 .pretendard(.body(.medium()))
                                 .foregroundStyle(UIAsset.Colors.gray30.swiftUIColor)
                                 .multilineTextAlignment(.center)
