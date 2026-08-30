@@ -41,7 +41,7 @@
 | spot-action-row-published-dark | SpotActionButtons | 위와 동일 | — | ko_KR / .large | Dark | 390pt 고정 | Light과 동일 | test_spot_action_row_published_dark.1.png |
 | spot-action-row-rejected-light | SpotActionButtons | status = .rejected, canLike = false | — | ko_KR / .large | Light | 390pt 고정 | 시안 기준 published와 같은 290+56 배치. 추천 버튼은 비활성(탭 불가) 상태로 노출 | test_spot_action_row_rejected_light.1.png |
 | spot-action-row-rejected-dark | SpotActionButtons | 위와 동일 | — | ko_KR / .large | Dark | 390pt 고정 | Light과 동일 | test_spot_action_row_rejected_dark.1.png |
-| spot-like-button-default-light | SpotLikeButton | isLiked = false | — | ko_KR / .large | Light | 56x56 고정 | 배경 `#FFFFFF`, radius 8, thumb_up 아이콘 `#33363D` | test_spot_like_button_default_light.1.png |
+| spot-like-button-default-light | SpotLikeButton | isLiked = false | — | ko_KR / .large | Light | 56x56 고정 | 배경 `#FFFFFF`, radius 8, `ic_thumb_up`(아웃라인) `#131416`(gray95) | test_spot_like_button_default_light.1.png |
 | spot-like-button-default-dark | SpotLikeButton | 위와 동일 | — | ko_KR / .large | Dark | 56x56 고정 | Light과 동일 | test_spot_like_button_default_dark.1.png |
 | spot-like-button-active-light | SpotLikeButton | isLiked = true | — | ko_KR / .large | Light | 56x56 고정 | 배경 `#FA6133`, thumb_up 벡터 `#FFFFFF` (활성 시안 미수령분 — 프라이머리 반전으로 잠정 구현) | test_spot_like_button_active_light.1.png |
 | spot-like-button-active-dark | SpotLikeButton | 위와 동일 | — | ko_KR / .large | Dark | 56x56 고정 | Light과 동일 | test_spot_like_button_active_dark.1.png |
@@ -173,6 +173,4 @@
 표에 포함했지만 시안·정책이 확정되면 기대 결과가 바뀔 수 있는 행:
 
 - `spot-action-row-rejected-*` — 반려 상태에 추천 버튼이 실제로 노출되는 게 맞는지 확인 필요 (기획 3.8은 "버튼 자체 없음", 시안엔 있음)
-- `spot-like-button-active-*` — 추천 버튼 눌린 상태 시안 미수령. 프라이머리 반전으로 잠정 구현
-- 추천 아이콘 — 디자인 시스템의 `ic_thumb_up` 에셋을 아직 못 받아 SF Symbol `hand.thumbsup` 을 쓰고 있다. Figma 컴포넌트 노드에서 export 하면 실제 아이콘이 아니라 플레이스홀더 글리프가 나온다
 - `spot-rejection-banner-*` 의 [스팟 오픈 철회] — 호출할 API가 없어 액션 미연결 (버튼은 그린다)
