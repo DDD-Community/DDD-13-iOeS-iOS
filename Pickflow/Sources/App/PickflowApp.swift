@@ -22,7 +22,8 @@ struct PickflowApp: App {
                     authService: getAuthService(),
                     socialLoginService: getSocialLoginService(),
                     locationService: getLocationService(),
-                    onboardingCompletionStore: getOnboardingCompletionStore()
+                    onboardingCompletionStore: getOnboardingCompletionStore(),
+                    guestModeStore: getGuestModeStore()
                 )
             }
             .apiErrorAlert(apiErrorHandler)

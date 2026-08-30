@@ -41,14 +41,14 @@ final class OnboardingPageGradientTests: XCTestCase {
         XCTAssertEqual(pages[0].gradient, pages[1].gradient)
     }
 
-    func test_defaultPages_step2와step3의_그라데이션이_다르다() {
+    func test_defaultPages_step2와step3의_그라데이션이_동일하다() {
         let pages = OnboardingPage.defaultPages
-        XCTAssertNotEqual(pages[2].gradient, pages[3].gradient)
+        XCTAssertEqual(pages[2].gradient, pages[3].gradient)
     }
 
-    func test_defaultPages_step0과step2의_그라데이션이_다르다() {
+    func test_defaultPages_step0과step2의_그라데이션이_동일하다() {
         let pages = OnboardingPage.defaultPages
-        XCTAssertNotEqual(pages[0].gradient, pages[2].gradient)
+        XCTAssertEqual(pages[0].gradient, pages[2].gradient)
     }
 
     func test_defaultPages_모든페이지가_최소2개의stop을가진다() {
