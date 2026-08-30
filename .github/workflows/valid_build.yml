@@ -6,6 +6,8 @@ on:
       - develop
       # 릴리즈 브랜치로 들어가는 QA 수정도 검증한다. 빠뜨리면 배포 직전 변경이 무검증으로 머지된다.
       - "release/**"
+      # main 으로 들어가는 핫픽스도 같은 이유로 검증한다.
+      - main
   workflow_dispatch:
 
 jobs:

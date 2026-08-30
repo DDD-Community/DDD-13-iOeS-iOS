@@ -66,7 +66,7 @@ container.register(AuthServiceProtocol.self) { AuthService() }
 
 ### Workflow
 
-`develop` 이 trunk 다. `main` 은 쓰지 않는다.
+`develop` 이 trunk 다. `main` 은 **현재 출시본을 가리키는 포인터**로만 쓴다.
 
 ```
 feature/* ──PR──> develop ──[Create Release]──> release/x.y.z
@@ -74,7 +74,10 @@ feature/* ──PR──> develop ──[Create Release]──> release/x.y.z
                      │                              ├─ QA 수정 PR
                      │                              ├─ TestFlight 배포
                      │                              ├─ 태그 vx.y.z
+                     │                              ├─ main 을 그 태그로 전진
                      └──────백머지 PR───────────────┘
+
+hotfix/* ──PR──> main ──> 태그 vx.y.z+1 ──> develop 백머지
 ```
 
 - feature 작업 완료 시 `develop` 으로 PR
@@ -85,7 +88,20 @@ feature/* ──PR──> develop ──[Create Release]──> release/x.y.z
 - release 브랜치가 열려 있어도 다음 기능은 `develop` 에 계속 쌓는다 (동시 릴리즈 대응)
 - 1인 1피처 기준
 
-> `develop` 과 `release/**` 로 향하는 PR 에서 CI(유닛 테스트·빌드 검증)가 돈다.
+> `develop`, `release/**`, `main` 으로 향하는 PR 에서 CI(유닛 테스트·빌드 검증)가 돈다.
+
+### main 과 핫픽스
+
+`main` 은 **지금 스토어에 나가 있는 커밋**을 가리킨다. 개발은 여기서 하지 않는다.
+출시 중인 버전에 급한 수정이 필요할 때 갈라져 나올 자리가 필요해서 둔다. `develop` 은
+다음 릴리즈 작업이 이미 쌓여 있어 그대로 핫픽스 베이스로 쓸 수 없다.
+
+- 핫픽스는 `main` 에서 `hotfix/*` 를 따서 작업하고 `main` 으로 PR 한다
+- 배포 후 태그를 달고, `main` 을 `develop` 으로 백머지해 수정분을 회수한다
+
+> ⚠️ **릴리즈마다 `main` 을 전진시켜야 한다.** 배포·태깅이 끝나면 `main` 을 그 태그로
+> 옮기는 단계를 빠뜨리지 말 것. 이 단계가 밀리면 `main` 이 옛 버전에 머물러 핫픽스가
+> 엉뚱한 코드에서 갈라진다. 예전에 `main` 이 방치돼 쓰이지 않게 된 것도 같은 이유였다.
 
 ### Commit Message
 
@@ -163,7 +179,8 @@ PR·승인·룰셋 bypass 가 필요 없다.** 워크플로가 브랜치를 만�
 1. QA 중 나온 수정은 `release/x.y.z` 로 PR (CI 가 돈다)
 2. **TestFlight Deploy** 워크플로를 `branch=release/x.y.z` 로 실행
 3. 배포 확정 후 태그 `vx.y.z`
-4. `release/x.y.z` → `develop` 백머지 PR
+4. `main` 을 태그 `vx.y.z` 로 전진 (핫픽스 베이스 갱신)
+5. `release/x.y.z` → `develop` 백머지 PR
 
 현재 버전과 같거나 낮은 값, 이미 태그가 있는 값, 이미 있는 브랜치는 워크플로가 거부한다.
 
