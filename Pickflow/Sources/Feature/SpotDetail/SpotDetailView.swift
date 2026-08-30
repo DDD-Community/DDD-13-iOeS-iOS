@@ -80,7 +80,10 @@ struct SpotDetailView: View {
             NavigationStack {
                 SpotRegistrationView(
                     viewModel: makeResubmissionViewModel(for: spot),
-                    onRegistered: { _ in resubmissionSpot = nil }
+                    onRegistered: { _ in
+                        resubmissionSpot = nil
+                        viewModel.showResubmissionSuccessToast()
+                    }
                 )
             }
         }

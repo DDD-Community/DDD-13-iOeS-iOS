@@ -36,6 +36,9 @@ final class SpotRegistrationViewModel: ObservableObject {
     @Published private(set) var dismissRequested = false
     /// 재신청 제출이 끝났음을 뷰에 알린다.
     @Published private(set) var didResubmit = false
+    /// 재신청이 성공한 스팟. `onRegistered` 콜백 없이도 뷰가 "성공적으로 끝났다" 를
+    /// registeredSpotId 와 같은 방식으로 관찰할 수 있게 신규 등록과 구분해 둔다.
+    @Published private(set) var resubmitSuccessSpotId: SpotId?
 
     let mode: Mode
 
@@ -236,6 +239,7 @@ final class SpotRegistrationViewModel: ObservableObject {
         )
         _ = try await mySpotService.updateMySpot(spotId: spotId, draft: draft)
         _ = try await mySpotService.requestOpen(spotId: spotId)
+        resubmitSuccessSpotId = SpotId(rawValue: String(spotId))
         didResubmit = true
         NotificationCenter.default.post(name: .spotDidRegister, object: nil)
     }

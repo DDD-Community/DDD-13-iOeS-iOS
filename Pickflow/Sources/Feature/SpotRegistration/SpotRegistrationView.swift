@@ -219,7 +219,13 @@ struct SpotRegistrationView: View {
             if isRequested { dismiss() }
         }
         .onChange(of: viewModel.didResubmit) { _, didFinish in
-            if didFinish { dismiss() }
+            guard didFinish else { return }
+            // 신규 등록과 같은 신호(onRegistered)로 성공을 알린다. 값 자체는 두 모드에서
+            // 다른 의미(신규 spotId vs 기존 spotId)라 호출부는 값을 쓰지 않고 완료 신호로만 쓴다.
+            if let spotId = viewModel.resubmitSuccessSpotId {
+                onRegistered(spotId)
+            }
+            dismiss()
         }
         .overlay {
             if viewModel.isExitConfirmPresented {

@@ -380,6 +380,12 @@ final class SpotDetailViewModel: ObservableObject {
         await reloadDetail()
     }
 
+    /// 재신청 제출이 성공했을 때만 부른다. 시안이 신규 등록과 같은 문구를 쓰라고
+    /// 명시했다("[등록] 선택 시 기존 등록 플로우와 동일, success toast").
+    func showResubmissionSuccessToast() {
+        showToast("나만의 스팟이 등록되었어요!")
+    }
+
     /// 서버 상태가 바뀐 게 확실할 때 상세를 강제로 다시 읽는다.
     private func reloadDetail() async {
         detailLoadTask?.cancel()
