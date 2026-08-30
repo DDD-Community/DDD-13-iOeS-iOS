@@ -116,6 +116,22 @@ final class SpotPublicationSnapshotTests: XCTestCase {
         assert(actionRow(status: .rejected, canLike: false), width: screenWidth, height: 94, traits: Self.dark)
     }
 
+    func test_spot_detail_header_user_registered_light() {
+        assert(userRegisteredHeader, width: screenWidth, height: 100, traits: Self.light)
+    }
+
+    func test_spot_detail_header_user_registered_dark() {
+        assert(userRegisteredHeader, width: screenWidth, height: 100, traits: Self.dark)
+    }
+
+    func test_spot_action_row_other_spot_light() {
+        assert(otherSpotActionRow, width: screenWidth, height: 94, traits: Self.light)
+    }
+
+    func test_spot_action_row_other_spot_dark() {
+        assert(otherSpotActionRow, width: screenWidth, height: 94, traits: Self.dark)
+    }
+
     // MARK: - SpotLikeButton
 
     func test_spot_like_button_default_light() {
@@ -248,6 +264,31 @@ final class SpotPublicationSnapshotTests: XCTestCase {
             status: status,
             isMySpot: true,
             metric: likeCount.map { "추천 \($0)" }
+        )
+    }
+
+    /// 타 유저가 등록해 공개한 스팟. 타이틀 옆 "유저 등록" 뱃지와 추천 수가 붙는다.
+    private var userRegisteredHeader: some View {
+        SpotPublicationHeader(
+            name: "석촌호수 산책길",
+            theme: .reflection,
+            status: nil,
+            isMySpot: false,
+            isUserRegistered: true,
+            metric: "추천 34"
+        )
+    }
+
+    /// 타인 스팟은 길 안내 + 북마크 + 추천 세 버튼이다.
+    private var otherSpotActionRow: some View {
+        SpotActionButtons(
+            isMine: false,
+            isBookmarked: false,
+            onRoute: {},
+            onBookmark: {},
+            onOpenSpot: {},
+            canLike: true,
+            isLiked: false
         )
     }
 

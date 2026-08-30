@@ -29,6 +29,10 @@
 | spot-detail-header-published-light | SpotPublicationHeader | status = .published, likeCount = 0 | 윤슬 | ko_KR / .large | Light | 390pt 고정 | 뱃지 "MY 스팟"(주황 라인). 서브타이틀이 "윤슬 · 추천 0" — 구분점은 2x2 원 `#B1B8BE`, 좌우 gap 4 | test_spot_detail_header_published_light.1.png |
 | spot-detail-header-published-dark | SpotPublicationHeader | 위와 동일 | 윤슬 | ko_KR / .large | Dark | 390pt 고정 | Light과 동일 | test_spot_detail_header_published_dark.1.png |
 | spot-detail-header-published-a11y | SpotPublicationHeader | status = .published, likeCount = 1234 | 윤슬 | ko_KR / .accessibilityExtraLarge | Dark | 390pt 고정 | 타이틀이 2줄로 접히고 뱃지는 첫 줄 우측에 붙어 잘리지 않는다. "추천 1234"가 축약 없이 원 숫자로 표시 | test_spot_detail_header_published_a11y.1.png |
+| spot-detail-header-user-registered-light | SpotPublicationHeader | isMySpot = false, isUserRegistered = true, metric = "추천 34" | 윤슬 | ko_KR / .large | Light | 390pt 고정 | 타이틀 옆 `유저 등록` 뱃지(테두리·글자 `#FFA100`). 서브타이틀 "윤슬 · 추천 34" | test_spot_detail_header_user_registered_light.1.png |
+| spot-detail-header-user-registered-dark | SpotPublicationHeader | 위와 동일 | 윤슬 | ko_KR / .large | Dark | 390pt 고정 | Light과 동일 | test_spot_detail_header_user_registered_dark.1.png |
+| spot-action-row-other-spot-light | SpotActionButtons | isMine = false, canLike = true | — | ko_KR / .large | Light | 390pt 고정 | [길 안내 받기](주황, 남는 폭) + 북마크 56x56 + 추천 56x56, gap 12, 높이 56 | test_spot_action_row_other_spot_light.1.png |
+| spot-action-row-other-spot-dark | SpotActionButtons | 위와 동일 | — | ko_KR / .large | Dark | 390pt 고정 | Light과 동일 | test_spot_action_row_other_spot_dark.1.png |
 | spot-action-row-draft-light | SpotActionButtons | status = .draft | — | ko_KR / .large | Light | 390pt 고정 | 높이 52. [길 안내 받기](주황 `#FA6133`, near_me 아이콘) 173 + [내 스팟 오픈하기](흰 `#FFFFFF`, 라벨 `#33363D`) 173, gap 12 | test_spot_action_row_draft_light.1.png |
 | spot-action-row-draft-dark | SpotActionButtons | 위와 동일 | — | ko_KR / .large | Dark | 390pt 고정 | Light과 동일 | test_spot_action_row_draft_dark.1.png |
 | spot-action-row-review-light | SpotActionButtons | status = .pending | — | ko_KR / .large | Light | 390pt 고정 | 우측 버튼 라벨만 "스팟 오픈 철회"로 교체, 크기·색 동일 | test_spot_action_row_review_light.1.png |

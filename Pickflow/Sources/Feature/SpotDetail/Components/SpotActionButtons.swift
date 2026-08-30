@@ -53,6 +53,11 @@ struct SpotActionButtons: View {
             }
             .background(.gray0)
             .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            // 추천은 공개된 스팟에만 붙는다. 큐레이션·타 유저 공개 스팟 모두 해당한다.
+            if canLike {
+                SpotLikeButton(isLiked: isLiked, action: onLike)
+            }
         }
     }
 

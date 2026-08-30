@@ -9,6 +9,8 @@ struct SpotPublicationHeader: View {
     let theme: SpotTheme?
     let status: MySpotStatus?
     let isMySpot: Bool
+    /// 다른 유저가 등록해 공개한 스팟. 타이틀 옆에 "유저 등록" 뱃지가 붙는다.
+    var isUserRegistered: Bool = false
     let metric: String?
 
     var body: some View {
@@ -19,6 +21,8 @@ struct SpotPublicationHeader: View {
                     .foregroundStyle(Color.spotPublicationTitle)
                 if let badge = SpotStatusBadge(status: status, isMySpot: isMySpot) {
                     badge
+                } else if isUserRegistered {
+                    SpotStatusBadge(style: .userRegistered)
                 }
             }
             subtitle

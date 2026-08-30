@@ -9,12 +9,15 @@ struct SpotStatusBadge: View {
         case underReview
         /// 오픈 반려
         case rejected
+        /// 다른 유저가 등록해 공개한 스팟
+        case userRegistered
 
         var text: String {
             switch self {
             case .mySpot: "MY 스팟"
             case .underReview: "검수 중"
             case .rejected: "오픈 반려"
+            case .userRegistered: "유저 등록"
             }
         }
 
@@ -22,6 +25,8 @@ struct SpotStatusBadge: View {
             switch self {
             case .mySpot: UIAsset.Colors.sunsetOrange.swiftUIColor
             case .underReview, .rejected: UIAsset.Colors.gray20.swiftUIColor
+            // MY 스팟(주황)과 구분되도록 앰버를 쓴다.
+            case .userRegistered: Color.spotUserRegistered
             }
         }
 
@@ -29,7 +34,7 @@ struct SpotStatusBadge: View {
         var fill: Color? {
             switch self {
             case .underReview: UIAsset.Colors.gray20.swiftUIColor.opacity(0.15)
-            case .mySpot, .rejected: nil
+            case .mySpot, .rejected, .userRegistered: nil
             }
         }
 
@@ -37,6 +42,7 @@ struct SpotStatusBadge: View {
             switch self {
             case .mySpot: UIAsset.Colors.sunsetOrange.swiftUIColor
             case .rejected: UIAsset.Colors.gray20.swiftUIColor
+            case .userRegistered: Color.spotUserRegistered
             case .underReview: nil
             }
         }
