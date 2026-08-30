@@ -62,7 +62,7 @@ struct NeverAcknowledgedStore: OpenCompleteAcknowledging {
 
 @MainActor
 enum MockSpotDetailFactory {
-    static func spot(status: MySpotStatus, isMySpot: Bool = true) -> SpotDetail {
+    static func spot(status: MySpotStatus, isMySpot: Bool = true, isCurated: Bool = false) -> SpotDetail {
         SpotDetail(
             spotId: 1,
             name: "석촌호수 산책길",
@@ -87,7 +87,7 @@ enum MockSpotDetailFactory {
             isBookmarked: false,
             isMySpot: isMySpot,
             status: status,
-            isCurated: false,
+            isCurated: isCurated,
             likeCount: status == .published ? 34 : nil,
             isLiked: false,
             isLikeable: status == .published,
@@ -103,10 +103,16 @@ enum MockSpotDetailFactory {
         )
     }
 
-    static func makeViewModel(status: MySpotStatus) -> SpotDetailViewModel {
+    static func makeViewModel(
+        status: MySpotStatus,
+        isMySpot: Bool = true,
+        isCurated: Bool = false
+    ) -> SpotDetailViewModel {
         SpotDetailViewModel(
             spotId: 1,
-            spotService: MockPublicationSpotService(spot: spot(status: status)),
+            spotService: MockPublicationSpotService(
+                spot: spot(status: status, isMySpot: isMySpot, isCurated: isCurated)
+            ),
             mySpotService: MockMySpotPublicationService(),
             bookmarkService: DebugBookmarkService(),
             locationService: DebugLocationService(),
@@ -126,10 +132,18 @@ extension SpotDetail {
 /// 목 데이터로 띄우는 스팟 상세.
 struct MockSpotDetailScreen: View {
     let status: MySpotStatus
+    var isMySpot: Bool = true
+    var isCurated: Bool = false
 
     var body: some View {
         MockScreenContainer {
-            SpotDetailView(viewModel: MockSpotDetailFactory.makeViewModel(status: status))
+            SpotDetailView(
+                viewModel: MockSpotDetailFactory.makeViewModel(
+                    status: status,
+                    isMySpot: isMySpot,
+                    isCurated: isCurated
+                )
+            )
         }
     }
 }

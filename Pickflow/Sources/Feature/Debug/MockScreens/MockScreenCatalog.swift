@@ -47,6 +47,18 @@ enum MockScreenCatalog {
             ) { MockSpotDetailScreen(status: .published) },
 
             MockScreenEntry(
+                id: "detail-other-user",
+                title: "스팟 상세 — 타 유저 등록",
+                description: "유저 등록 뱃지, 추천 수, 길 안내 + 북마크 + 추천 세 버튼."
+            ) { MockSpotDetailScreen(status: .published, isMySpot: false) },
+
+            MockScreenEntry(
+                id: "detail-curated",
+                title: "스팟 상세 — 큐레이션",
+                description: "뱃지 없이 추천만. 출처 표기 줄은 시안·API 대기 중이라 아직 없다."
+            ) { MockSpotDetailScreen(status: .published, isMySpot: false, isCurated: true) },
+
+            MockScreenEntry(
                 id: "preview-user-spot",
                 title: "지도 미리보기 — 타 유저 등록 스팟",
                 description: "타이틀 옆 유저 등록 뱃지와 추천 수."
