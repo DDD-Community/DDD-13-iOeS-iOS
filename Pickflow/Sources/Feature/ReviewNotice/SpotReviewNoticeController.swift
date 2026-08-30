@@ -68,8 +68,12 @@ struct UserDefaultsSpotReviewSeenStore: SpotReviewSeenStoring {
 ///
 /// 서버에 "검수 결과를 확인했는지" 를 나타내는 플래그가 없어서, 내 스팟 목록의 상태를
 /// 로컬에 기록해 두고 다음에 읽은 값과 비교해 결과 도착을 감지한다.
-/// - TODO(PV-40): 서버가 미확인 플래그를 내려주면 그쪽을 단일 진실 소스로 삼을 것.
-///   지금 방식은 앱을 지웠다 깔거나 기기를 바꾸면 결과 안내를 놓친다.
+/// - TODO(PV-40): 서버가 검수 결과 알림 API 를 만들면 그쪽을 단일 진실 소스로 삼을 것.
+///   호출 시점은 논의 중이며 백로그에 정리해 뒀다(docs/PV-40/backlog.md).
+///   지금 방식의 한계는 두 가지다.
+///   1. 앱을 지웠다 깔거나 기기를 바꾸면 기록이 없어 결과 안내를 놓친다.
+///   2. my-spots 는 6 개 단위 페이징인데 첫 페이지만 읽는다. 등록한 스팟이 7 개 이상이면
+///      뒤쪽 스팟의 결과를 잡지 못한다. 전체 페이지를 도는 대신 전용 API 를 기다린다.
 @MainActor
 final class SpotReviewNoticeController: ObservableObject {
     @Published private(set) var notice: SpotReviewNotice?
