@@ -6,6 +6,8 @@ struct SpotDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var isReportSheetPresented = false
     @State private var isLoginViewPresented = false
+    /// 반려 배너의 [수정 후 재신청] 로 여는 프리필 폼.
+    @State private var resubmissionSpot: SpotDetail?
 
     var body: some View {
         ZStack {
@@ -74,6 +76,20 @@ struct SpotDetailView: View {
                 .animation(.easeInOut(duration: 0.25), value: viewModel.isLoginRequired)
             }
         }
+        .fullScreenCover(item: $resubmissionSpot) { spot in
+            NavigationStack {
+                SpotRegistrationView(
+                    viewModel: makeResubmissionViewModel(for: spot),
+                    onRegistered: { _ in resubmissionSpot = nil }
+                )
+            }
+        }
+        .onChange(of: resubmissionSpot) { previous, current in
+            // 폼이 닫히면 상태가 바뀌었을 수 있으므로 상세를 다시 읽는다.
+            if previous != nil, current == nil {
+                Task { await viewModel.refreshAfterResubmission() }
+            }
+        }
         .fullScreenCover(isPresented: $isLoginViewPresented) {
             LoginView(
                 viewModel: LoginViewModel(socialLoginService: getSocialLoginService()),
@@ -137,6 +153,15 @@ struct SpotDetailView: View {
         )
     }
 
+    private func makeResubmissionViewModel(for spot: SpotDetail) -> SpotRegistrationViewModel {
+        let vm = SpotRegistrationViewModel(
+            spotService: getSpotService(),
+            mode: .resubmit(spotId: spot.spotId)
+        )
+        vm.prefill(from: spot)
+        return vm
+    }
+
     private func confirm(_ sheet: SpotPublicationSheet) {
         Task {
             switch sheet {
@@ -169,7 +194,7 @@ struct SpotDetailView: View {
                             rejection: rejection,
                             // TODO(PV-40): 반려 상태에서 호출할 API 가 서버에 없다. 정책 확정 후 연결.
                             onWithdraw: {},
-                            onResubmit: {}
+                            onResubmit: { resubmissionSpot = spot }
                         )
                     }
                     SpotHeaderSection(spot: spot)

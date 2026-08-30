@@ -352,6 +352,11 @@ final class SpotDetailViewModel: ObservableObject {
         }
     }
 
+    /// 재신청 폼을 닫은 뒤 최신 상태(검수중)로 화면을 맞춘다.
+    func refreshAfterResubmission() async {
+        await reloadDetail()
+    }
+
     /// 서버 상태가 바뀐 게 확실할 때 상세를 강제로 다시 읽는다.
     private func reloadDetail() async {
         detailLoadTask?.cancel()

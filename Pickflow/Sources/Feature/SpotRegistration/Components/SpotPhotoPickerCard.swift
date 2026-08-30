@@ -4,6 +4,8 @@ import UIKit
 
 struct SpotPhotoPickerCard: View {
     @Binding var photoData: Data?
+    /// 재신청처럼 이미 서버에 이미지가 있는 경우. 새로 고르기 전까지 이걸 보여준다.
+    var existingImageUrl: String?
 
     @State private var selectedItem: PhotosPickerItem?
 
@@ -21,6 +23,13 @@ struct SpotPhotoPickerCard: View {
                                 .resizable()
                                 .scaledToFill()
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        } else if let existingImageUrl, let url = URL(string: existingImageUrl) {
+                            AsyncImage(url: url) { image in
+                                image.resizable().scaledToFill()
+                            } placeholder: {
+                                SpotPhotoPlaceholder()
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                         } else {
                             SpotPhotoPlaceholder()
                         }

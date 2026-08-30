@@ -84,6 +84,24 @@
 - [x] DynamicType — 텍스트가 늘어나 깨지기 쉬운 두 곳(카드 오버레이 문구, 팝업 본문)에 각 1행
 - [x] 삭제됨(`deleted`) 표시는 이번 범위 밖 — 시안 미수령
 
+## 반려 스팟 재신청 폼
+
+출처: Figma `733-14000`(`Add-Filled-01`), `733-14037`(`Add-ExitConfirm`)
+
+| case id | 컴포넌트 | 상태/입력 조건 | 테마 | 언어 / DynamicType | Light/Dark | 디바이스 | 기대 시각 결과 | 스냅샷 파일명 |
+|---|---|---|---|---|---|---|---|---|
+| resubmit-form-prefilled-light | SpotRegistrationView | mode = .resubmit, 반려 스팟으로 prefill, photoData = nil | 윤슬 | ko_KR / .large | Light | 393x852 | 이름·카테고리(윤슬 선택)·촬영 기록·코멘트가 채워진 상태. 사진 칸은 기존 이미지 자리(URL 로딩 전 플레이스홀더). 우상단 [등록]이 활성(주황) | test_resubmit_form_prefilled_light.1.png |
+| resubmit-form-prefilled-dark | SpotRegistrationView | 위와 동일 | 윤슬 | ko_KR / .large | Dark | 393x852 | Light과 동일 (다크 전용 팔레트) | test_resubmit_form_prefilled_dark.1.png |
+| resubmit-exit-popup-light | SpotRegistrationExitConfirmPopup | — | — | ko_KR / .large | Light | 390pt 고정 | 328 폭, bg `#1E2124`, radius 16. "이대로 나갈까요?" 19 w600 / "등록하지 않은 내용은 사라져요." 15 `#B1B8BE`. 버튼 [계속하기](흰) + [나가기](주황) 균등 분할, gap 8, h52 | test_resubmit_exit_popup_light.1.png |
+| resubmit-exit-popup-dark | SpotRegistrationExitConfirmPopup | — | — | ko_KR / .large | Dark | 390pt 고정 | Light과 동일 | test_resubmit_exit_popup_dark.1.png |
+| resubmit-exit-popup-a11y | SpotRegistrationExitConfirmPopup | — | — | ko_KR / .accessibilityExtraLarge | Dark | 390pt 고정 | 본문이 늘어 팝업 높이가 자라고 버튼 두 개가 가로로 유지되며 라벨이 잘리지 않는다 | test_resubmit_exit_popup_a11y.1.png |
+
+### 자기 점검
+- [x] 상태 분기 — 프리필된 재신청 폼 / 이탈 확인 팝업
+- [x] Light/Dark 각 한 쌍
+- [x] DynamicType — 텍스트 비중이 큰 이탈 확인 팝업에 1행
+- [x] 신규 등록 폼(빈 상태)은 기존 동작이라 이번 표에서 다루지 않음
+
 ## 최소 커버리지 자가 점검
 
 - [x] **상태 4종** — 공개 상태 네 가지(나만보기/검수중/반려/공개)를 헤더·액션 행에서 각각 1행씩 커버. loading/empty/error는 기존 `SpotDetailSnapshotTests`가 이미 다루므로 중복 정의하지 않음

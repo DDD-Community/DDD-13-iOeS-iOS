@@ -65,7 +65,7 @@ struct SpotRegistrationView: View {
     private var headerView: some View {
         HStack {
             Button {
-                dismiss()
+                viewModel.backTapped()
             } label: {
                 Group {
                     AssetImage(named: "icon_back_arrow", renderingMode: .template, size: 28) {
@@ -121,7 +121,7 @@ struct SpotRegistrationView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                SpotPhotoPickerCard(photoData: $viewModel.photoData)
+                SpotPhotoPickerCard(photoData: $viewModel.photoData, existingImageUrl: viewModel.existingImageUrl)
 
                 if let selectedAddress = viewModel.selectedAddress,
                    let selectedAddressName = viewModel.selectedAddressName {
@@ -214,6 +214,25 @@ struct SpotRegistrationView: View {
         .onChange(of: viewModel.registeredSpotId) { _, newValue in
             guard let newValue else { return }
             onRegistered(newValue)
+        }
+        .onChange(of: viewModel.dismissRequested) { _, isRequested in
+            if isRequested { dismiss() }
+        }
+        .onChange(of: viewModel.didResubmit) { _, didFinish in
+            if didFinish { dismiss() }
+        }
+        .overlay {
+            if viewModel.isExitConfirmPresented {
+                ZStack {
+                    Color.black.opacity(0.5).ignoresSafeArea()
+                    SpotRegistrationExitConfirmPopup(
+                        onContinue: viewModel.cancelExit,
+                        onLeave: viewModel.confirmExit
+                    )
+                }
+                .transition(.opacity)
+                .animation(.easeInOut(duration: 0.2), value: viewModel.isExitConfirmPresented)
+            }
         }
     }
 }
