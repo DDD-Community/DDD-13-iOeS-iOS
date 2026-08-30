@@ -102,6 +102,25 @@
 - [x] DynamicType — 텍스트 비중이 큰 이탈 확인 팝업에 1행
 - [x] 신규 등록 폼(빈 상태)은 기존 동작이라 이번 표에서 다루지 않음
 
+## 지도 미리보기 시트 — 타 유저 등록 스팟
+
+출처: Figma `764-10474`(`Explore-Map-Select-User`)
+
+| case id | 컴포넌트 | 상태/입력 조건 | 테마 | 언어 / DynamicType | Light/Dark | 디바이스 | 기대 시각 결과 | 스냅샷 파일명 |
+|---|---|---|---|---|---|---|---|---|
+| preview-sheet-user-spot-light | SpotDetailSheetContentView | isMySpot = false, isCurated = false, likeCount = 34 | 햇살 | ko_KR / .large | Light | 390pt 고정 | 타이틀 옆에 `유저 등록` 뱃지(테두리·글자 `#FFA100`, radius 4, padding 4/8). 서브라인 "햇살 · 추천 34" | test_preview_sheet_user_spot_light.1.png |
+| preview-sheet-user-spot-dark | SpotDetailSheetContentView | 위와 동일 | 햇살 | ko_KR / .large | Dark | 390pt 고정 | Light과 동일 | test_preview_sheet_user_spot_dark.1.png |
+| preview-sheet-curated-light | SpotDetailSheetContentView | isMySpot = false, isCurated = true, likeCount = 34 | 햇살 | ko_KR / .large | Light | 390pt 고정 | 뱃지 없음. 서브라인은 동일하게 "햇살 · 추천 34" | test_preview_sheet_curated_light.1.png |
+| preview-sheet-curated-dark | SpotDetailSheetContentView | 위와 동일 | 햇살 | ko_KR / .large | Dark | 390pt 고정 | Light과 동일 | test_preview_sheet_curated_dark.1.png |
+| preview-sheet-my-spot-light | SpotDetailSheetContentView | isMySpot = true | 햇살 | ko_KR / .large | Light | 390pt 고정 | 기존대로 `MY 스팟` 뱃지(주황 `#FA6133`), 지표 없음 | test_preview_sheet_my_spot_light.1.png |
+| preview-sheet-user-spot-a11y | SpotDetailSheetContentView | isCurated = false, likeCount = 34 | 햇살 | ko_KR / .accessibilityExtraLarge | Dark | 390pt 고정 | 타이틀이 접히고 뱃지가 잘리지 않으며 서브라인이 넘치지 않는다 | test_preview_sheet_user_spot_a11y.1.png |
+
+### 자기 점검
+- [x] 상태 분기 — 유저 등록 / 큐레이션 / 내 스팟 세 가지
+- [x] Light/Dark 쌍 (내 스팟은 기존 동작이라 Light 1행만)
+- [x] DynamicType 1행
+- [x] 지도 핀은 앱 변경이 없어 케이스 없음 — 선택된 유저 스팟 핀이 기존 썸네일 핀 + 주황 링과 동일
+
 ## 최소 커버리지 자가 점검
 
 - [x] **상태 4종** — 공개 상태 네 가지(나만보기/검수중/반려/공개)를 헤더·액션 행에서 각각 1행씩 커버. loading/empty/error는 기존 `SpotDetailSnapshotTests`가 이미 다루므로 중복 정의하지 않음

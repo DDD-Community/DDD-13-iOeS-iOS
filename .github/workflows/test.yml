@@ -124,6 +124,7 @@ jobs:
             -skip-testing:PickflowTests/SpotDetailSnapshotTests \
             -skip-testing:PickflowTests/SpotListSnapshotTests \
             -skip-testing:PickflowTests/SpotPublicationSnapshotTests \
+            -skip-testing:PickflowTests/SpotPreviewSheetSnapshotTests \
             -skip-testing:PickflowTests/SpotResubmissionSnapshotTests \
             CODE_SIGNING_ALLOWED=NO
 

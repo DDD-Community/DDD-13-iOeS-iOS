@@ -36,6 +36,8 @@ struct SpotDetailSheetContentView: View {
                         .foregroundStyle(.gray5)
                     if preview.isMySpot {
                         mySpotBadge
+                    } else if isUserRegistered {
+                        userRegisteredBadge
                     }
                     Spacer(minLength: 0)
 
@@ -113,9 +115,10 @@ struct SpotDetailSheetContentView: View {
                     .pretendard(.body(.medium(.regular)))
                     .foregroundStyle(.gray10)
             }
-            if !preview.isMySpot {
+            if !preview.isMySpot, let likeCount = preview.likeCount {
                 if preview.theme != nil { dotSeparator }
-                Text("북마크 \(preview.bookmarkCount)")
+                // 축약 없이 원 숫자 그대로 노출한다(기획 3.8).
+                Text("추천 \(likeCount)")
                     .pretendard(.body(.medium(.regular)))
                     .foregroundStyle(.gray10)
             }
@@ -231,6 +234,24 @@ struct SpotDetailSheetContentView: View {
         .clipped()                           // scaledToFill 오버플로 영역을 hit 까지 자른다
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .contentShape(Rectangle())           // hit shape 명시 (외부 제스처 침범 방지)
+    }
+
+    /// 관리자 큐레이션이 아닌, 다른 유저가 등록해 공개한 스팟.
+    /// isCurated 를 아직 안 내려주는 서버에서는 뱃지를 달지 않는다.
+    private var isUserRegistered: Bool {
+        preview.isCurated == false
+    }
+
+    private var userRegisteredBadge: some View {
+        Text("유저 등록")
+            .pretendard(.body(.small(.bold)))
+            .foregroundStyle(Color.spotUserRegistered)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(Color.spotUserRegistered, lineWidth: 1)
+            )
     }
 
     private var mySpotBadge: some View {

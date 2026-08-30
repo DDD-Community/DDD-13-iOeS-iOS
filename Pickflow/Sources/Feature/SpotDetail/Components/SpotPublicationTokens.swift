@@ -7,6 +7,8 @@ extension Color {
     static let spotPublicationTitle = Color(red: 244 / 255, green: 244 / 255, blue: 241 / 255)
     /// "스팟 삭제하기" 링크 (#E14B21)
     static let spotDeleteLink = Color(red: 225 / 255, green: 75 / 255, blue: 33 / 255)
+    /// "유저 등록" 뱃지 (#FFA100). MY 스팟 뱃지의 주황(#FA6133)과 구분된다.
+    static let spotUserRegistered = Color(red: 255 / 255, green: 161 / 255, blue: 0 / 255)
     /// 반려 배너 위에 얹는 붉은 오버레이 (#B83311, 12%)
     static let spotRejectionOverlay = Color(red: 184 / 255, green: 51 / 255, blue: 17 / 255)
 }

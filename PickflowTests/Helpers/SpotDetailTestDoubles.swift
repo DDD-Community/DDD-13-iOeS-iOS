@@ -243,7 +243,11 @@ extension SpotPreviewResponse {
         imageUrl: String? = "https://example.com/spot.jpg",
         addressSimple: String = "서울 동작구",
         addressRoad: String? = nil,
-        addressJibun: String? = nil
+        addressJibun: String? = nil,
+        isCurated: Bool? = nil,
+        likeCount: Int? = nil,
+        isLiked: Bool? = nil,
+        isLikeable: Bool? = nil
     ) -> SpotPreviewResponse {
         SpotPreviewResponse(
             spotId: spotId,
@@ -256,7 +260,11 @@ extension SpotPreviewResponse {
             imageUrl: imageUrl,
             addressSimple: addressSimple,
             addressRoad: addressRoad,
-            addressJibun: addressJibun
+            addressJibun: addressJibun,
+            isCurated: isCurated,
+            likeCount: likeCount,
+            isLiked: isLiked,
+            isLikeable: isLikeable
         )
     }
 }
