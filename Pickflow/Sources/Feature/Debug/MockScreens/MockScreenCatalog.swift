@@ -59,6 +59,12 @@ enum MockScreenCatalog {
             ) { ArchiveMockPreviewView() },
 
             MockScreenEntry(
+                id: "review-snackbar",
+                title: "검수 결과 스낵바",
+                description: "승인·반려 두 종류. 자동으로 사라지지 않는다."
+            ) { MockReviewSnackbarScreen() },
+
+            MockScreenEntry(
                 id: "v2-notice",
                 title: "V2 업데이트 안내 모달",
                 description: "업데이트 후 최초 진입 시 1회 노출되는 모달."

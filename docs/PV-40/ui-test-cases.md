@@ -138,6 +138,24 @@
 - [x] Light/Dark 한 쌍
 - [x] DynamicType 1행
 
+## 검수 결과 스낵바
+
+출처: Figma `Snackbar-SpotApproved` / `Snackbar-SpotRejected`
+
+| case id | 컴포넌트 | 상태/입력 조건 | 테마 | 언어 / DynamicType | Light/Dark | 디바이스 | 기대 시각 결과 | 스냅샷 파일명 |
+|---|---|---|---|---|---|---|---|---|
+| review-snackbar-approved-light | SpotReviewSnackbar | kind = .approved | — | ko_KR / .large | Light | 390pt 고정 | 흰 배경 radius 8. 좌측 "MY 스팟이 오픈됐어요!" 15 w600 + "신청한 스팟이 등록되었어요." 13 회색. 우측 "바로 가기"(주황) + 닫기(✕) | test_review_snackbar_approved_light.1.png |
+| review-snackbar-approved-dark | SpotReviewSnackbar | 위와 동일 | — | ko_KR / .large | Dark | 390pt 고정 | Light과 동일 (스낵바는 흰 배경 고정) | test_review_snackbar_approved_dark.1.png |
+| review-snackbar-rejected-light | SpotReviewSnackbar | kind = .rejected | — | ko_KR / .large | Light | 390pt 고정 | "MY 스팟 오픈이 반려되었어요" + "반려 사유를 확인해 주세요." / 액션 "확인하기" | test_review_snackbar_rejected_light.1.png |
+| review-snackbar-rejected-dark | SpotReviewSnackbar | 위와 동일 | — | ko_KR / .large | Dark | 390pt 고정 | Light과 동일 | test_review_snackbar_rejected_dark.1.png |
+| review-snackbar-rejected-a11y | SpotReviewSnackbar | kind = .rejected | — | ko_KR / .accessibilityExtraLarge | Light | 390pt 고정 | 제목·본문이 여러 줄로 늘어나고 액션·닫기 버튼이 잘리지 않는다 | test_review_snackbar_rejected_a11y.1.png |
+
+### 자기 점검
+- [x] 상태 분기 — 승인 / 반려
+- [x] Light/Dark 한 쌍 (스낵바는 흰 배경 고정이라 결과가 같다)
+- [x] DynamicType 1행
+- [x] 저장 탭 인디케이터는 탭바 위 5pt 점이라 별도 케이스를 두지 않고 노출 조건은 단위 테스트가 담당
+
 ## 최소 커버리지 자가 점검
 
 - [x] **상태 4종** — 공개 상태 네 가지(나만보기/검수중/반려/공개)를 헤더·액션 행에서 각각 1행씩 커버. loading/empty/error는 기존 `SpotDetailSnapshotTests`가 이미 다루므로 중복 정의하지 않음

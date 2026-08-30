@@ -170,6 +170,30 @@ struct MockUserSpotPreviewSheet: View {
     }
 }
 
+/// 검수 결과 스낵바. 승인·반려를 나란히 본다.
+struct MockReviewSnackbarScreen: View {
+    var body: some View {
+        MockScreenContainer {
+            ZStack {
+                UIAsset.Colors.gray80.swiftUIColor.ignoresSafeArea()
+                VStack(spacing: 20) {
+                    SpotReviewSnackbar(
+                        notice: SpotReviewNotice(spotId: 1, kind: .approved),
+                        onAction: {},
+                        onClose: {}
+                    )
+                    SpotReviewSnackbar(
+                        notice: SpotReviewNotice(spotId: 2, kind: .rejected),
+                        onAction: {},
+                        onClose: {}
+                    )
+                }
+                .padding(.horizontal, 16)
+            }
+        }
+    }
+}
+
 /// V2 업데이트 안내 모달.
 struct MockV2NoticeScreen: View {
     var body: some View {

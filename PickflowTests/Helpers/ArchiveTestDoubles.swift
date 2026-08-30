@@ -106,3 +106,26 @@ extension SavedSpotItem {
         )
     }
 }
+
+extension MySpotListItem {
+    static func fixture(
+        spotId: Int64 = 1,
+        name: String = "석촌호수 산책길",
+        theme: SpotTheme? = .reflection,
+        status: MySpotStatus = .draft,
+        distanceKm: Double? = 1.2
+    ) -> MySpotListItem {
+        MySpotListItem(
+            spotId: spotId,
+            name: name,
+            theme: theme,
+            imageUrl: nil,
+            latitude: 37.5,
+            longitude: 127.0,
+            distanceKm: distanceKm,
+            createdAt: "2026-04-11",
+            status: status,
+            bookmarkCount: 0
+        )
+    }
+}
