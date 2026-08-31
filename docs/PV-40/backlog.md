@@ -70,7 +70,6 @@
 
 | 항목 | 내용 |
 |---|---|
-| V2 안내 모달 종료 시각 | `V2UpdateNotice.endDate` 가 앱에 박혀 있다. `/v1/app/config/ios` 에 옵셔널 필드로 내려받는 편이 안전하다. **현재 값은 임시이므로 배포일 확정 시 반드시 교체** |
 | `ArchiveScreenContent` 사본 | `ArchiveView` 본문을 옮겨 둔 사본이고 스냅샷 테스트에서만 쓰인다. 실제 뷰를 고칠 때 사본도 같이 고치지 않으면 검증 대상과 어긋난다(이번에 실제로 한 번 어긋났다) |
 | `test.yml` 스냅샷 스킵 목록 | 클래스를 이름으로 하나씩 나열해 새 클래스를 만들 때마다 손이 간다. `*SnapshotTests` 패턴으로 한 번에 거르는 편이 낫다 |
 | CI 에 릴리즈 빌드 없음 | `valid_build` 가 `-configuration Debug` 로만 빌드한다. `#if DEBUG` 누락으로 릴리즈 빌드가 깨진 적이 있는데 CI 가 잡지 못했다 |

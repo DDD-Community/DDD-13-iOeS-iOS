@@ -215,17 +215,4 @@ struct MockReviewSnackbarScreen: View {
         }
     }
 }
-
-/// V2 업데이트 안내 모달.
-struct MockV2NoticeScreen: View {
-    var body: some View {
-        MockScreenContainer {
-            ZStack {
-                UIAsset.Colors.gray80.swiftUIColor.ignoresSafeArea()
-                Color.black.opacity(0.5).ignoresSafeArea()
-                V2UpdateNoticeModal(onConfirm: {})
-            }
-        }
-    }
-}
 #endif
