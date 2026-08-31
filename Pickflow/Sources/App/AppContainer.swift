@@ -51,7 +51,9 @@ final class AppContainer {
         container.register(CrashReporterProtocol.self, scope: .container) { FirebaseCrashlyticsReporter() }
         container.register(OnboardingCompletionStore.self, scope: .container) { UserDefaultsOnboardingCompletionStore() }
         container.register(ReviewRequestStore.self, scope: .container) { UserDefaultsReviewRequestStore() }
-        container.register(NewFeatureGuideStore.self, scope: .container) { UserDefaultsNewFeatureGuideStore() }
+        container.register(NewFeatureGuideStore.self, scope: .container) {
+            UserDefaultsNewFeatureGuideStore(remoteConfigProvider: FirebaseNewFeatureRemoteConfigProvider())
+        }
         container.register(ReviewRequestServiceProtocol.self, scope: .container) { ReviewRequestService() }
     }
 }

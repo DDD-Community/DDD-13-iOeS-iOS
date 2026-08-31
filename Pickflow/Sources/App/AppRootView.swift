@@ -66,10 +66,6 @@ struct AppRootView: View {
         .task {
             await viewModel.bootstrap()
         }
-        .onChange(of: viewModel.routeState) { _, newState in
-            guard newState == .signedIn else { return }
-            viewModel.presentV2UpdateGuideIfNeeded()
-        }
     }
 }
 
@@ -118,22 +114,36 @@ final class AppRootViewModel: ObservableObject {
             return
         }
         let state = await authService.currentAuthState()
-        routeState = state.toRoute()
-        if routeState == .signedIn {
+        let nextRouteState = state.toRoute()
+        if nextRouteState == .signedIn {
+            await newFeatureGuideStore.refreshFeatureConfig()
+            routeState = nextRouteState
             presentV2UpdateGuideIfNeeded()
+        } else {
+            routeState = nextRouteState
         }
     }
 
     func didCompleteOnboarding() {
         Task { @MainActor in
             let state = await authService.currentAuthState()
-            routeState = state.toRoute()
+            let nextRouteState = state.toRoute()
+            if nextRouteState == .signedIn {
+                await newFeatureGuideStore.refreshFeatureConfig()
+                routeState = nextRouteState
+                presentV2UpdateGuideIfNeeded()
+            } else {
+                routeState = nextRouteState
+            }
         }
     }
 
     func didCompleteSignIn() {
         routeState = .signedIn
-        presentV2UpdateGuideIfNeeded()
+        Task {
+            await newFeatureGuideStore.refreshFeatureConfig()
+            presentV2UpdateGuideIfNeeded()
+        }
     }
 
     func didSignOut() {

@@ -23,9 +23,10 @@ struct HomeMapView: View {
     @State private var showAddPlaceLoginPrompt: Bool = false
     @State private var isAddPlaceLoginViewPresented: Bool = false
     @State private var showLocationPermissionPopup: Bool = false
-    @State private var showsNewThemeIndicators = getNewFeatureGuideStore().shouldShowNewThemeIndicators(now: Date())
+    @State private var showsNewThemeIndicators = false
     private let tokenStore = getTokenStore()
     private let locationService = getLocationService()
+    private let newFeatureGuideStore = getNewFeatureGuideStore()
 
     var body: some View {
         NavigationStack {
@@ -128,6 +129,7 @@ struct HomeMapView: View {
             }
             .task {
                 await refreshUserLocation()
+                await refreshNewThemeIndicators()
             }
             .onChange(of: selectedThemes) { _, themes in
                 Task { await clusteringViewModel.themeChanged(themes) }
@@ -367,6 +369,11 @@ struct HomeMapView: View {
         if let coordinate = try? await locationService.currentLocation() {
             userLocation = coordinate
         }
+    }
+
+    private func refreshNewThemeIndicators() async {
+        await newFeatureGuideStore.refreshFeatureConfig()
+        showsNewThemeIndicators = newFeatureGuideStore.shouldShowNewThemeIndicators()
     }
 
 }
