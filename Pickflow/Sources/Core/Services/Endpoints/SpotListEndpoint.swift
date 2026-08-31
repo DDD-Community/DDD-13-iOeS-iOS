@@ -7,6 +7,8 @@ struct SpotListEndpoint: APIEndpoint {
     let sort: SpotListSort?
     let latitude: Double?
     let longitude: Double?
+    // TODO(BE-API, PV-64): 파라미터명 확정되면 갱신.
+    let regionId: Int?
 
     var baseURL: String { APIBaseURL.current }
     var path: String { "/v1/spots" }
@@ -28,6 +30,9 @@ struct SpotListEndpoint: APIEndpoint {
         }
         if let longitude {
             parameters["longitude"] = r(longitude)
+        }
+        if let regionId {
+            parameters["regionId"] = regionId
         }
         return parameters
     }

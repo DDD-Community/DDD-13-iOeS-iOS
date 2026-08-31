@@ -14,6 +14,7 @@ final class MapClusteringViewModel: ObservableObject {
     @Published private(set) var selectedSpotId: Int64?
 
     private let clusteringService: ClusteringServiceProtocol
+    private let regionSelectionStore: RegionSelectionStore
     private let debounceMillis: Int
     private var lastViewport: Viewport?
     private var currentThemes: Set<SpotTheme> = []
@@ -21,8 +22,13 @@ final class MapClusteringViewModel: ObservableObject {
 
     /// 지도 카메라 이동/초기 진입 시 viewportChanged 가 짧은 간격으로 중복 발사되는 것을
     /// 마지막 호출 1회만 fetch 되도록 디바운스. 테스트에선 0ms 로 즉시 fetch.
-    init(clusteringService: ClusteringServiceProtocol, debounceMillis: Int = 300) {
+    init(
+        clusteringService: ClusteringServiceProtocol,
+        regionSelectionStore: RegionSelectionStore,
+        debounceMillis: Int = 300
+    ) {
         self.clusteringService = clusteringService
+        self.regionSelectionStore = regionSelectionStore
         self.debounceMillis = debounceMillis
     }
 
@@ -47,6 +53,12 @@ final class MapClusteringViewModel: ObservableObject {
         await fetch(viewport: viewport, themes: themes)
     }
 
+    /// 지역 필터(대전/서울) 적용 시 마지막 viewport 기준으로 재조회.
+    func regionChanged() async {
+        guard let viewport = lastViewport else { return }
+        await fetch(viewport: viewport, themes: currentThemes)
+    }
+
     func spotMarkerTapped(_ spotId: Int64) {
         selectedSpotId = spotId
     }
@@ -57,9 +69,17 @@ final class MapClusteringViewModel: ObservableObject {
     }
 
     private func fetch(viewport: Viewport, themes: Set<SpotTheme>) async {
+        // 스플래시 단계에서 선점 로드가 시작되므로 대부분 즉시 반환되고, 드물게 아직 진행 중이면 여기서 기다린다.
+        await regionSelectionStore.loadIfNeeded()
+        let regionId = regionSelectionStore.selectedRegion?.id
+
         // viewport 1회 호출로 curation/mySpots 동시 수신 — 동일 엔드포인트를 2번 때리는 문제 제거.
         do {
-            let (curation, mine) = try await clusteringService.fetchSpots(viewport: viewport, themes: themes)
+            let (curation, mine) = try await clusteringService.fetchSpots(
+                viewport: viewport,
+                themes: themes,
+                regionId: regionId
+            )
             state = .loaded(spots: curation)
             mySpots = mine
         } catch {

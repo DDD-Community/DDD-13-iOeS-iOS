@@ -260,7 +260,8 @@ final class SpotListViewModelTests: XCTestCase {
             spotListService: spotListService,
             bookmarkService: bookmarkService,
             locationService: locationService,
-            tokenStore: tokenStore
+            tokenStore: tokenStore,
+            regionSelectionStore: .fixture()
         )
     }
 }

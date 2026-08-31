@@ -9,7 +9,11 @@ final class MapClusteringViewModelTests: XCTestCase {
     override func setUp() async throws {
         try await super.setUp()
         clusteringService = MockClusteringService()
-        viewModel = MapClusteringViewModel(clusteringService: clusteringService, debounceMillis: 0)
+        viewModel = MapClusteringViewModel(
+            clusteringService: clusteringService,
+            regionSelectionStore: .fixture(),
+            debounceMillis: 0
+        )
     }
 
     override func tearDown() async throws {
@@ -67,7 +71,11 @@ final class MapClusteringViewModelTests: XCTestCase {
 
     func test_viewportChanged_짧은시간내연속호출_마지막호출만fetch된다() async throws {
         // debounceMillis > 0 으로 별도 인스턴스 사용. 처음 3건은 취소되고 마지막 1건만 살아남는다.
-        let debouncedVM = MapClusteringViewModel(clusteringService: clusteringService, debounceMillis: 30)
+        let debouncedVM = MapClusteringViewModel(
+            clusteringService: clusteringService,
+            regionSelectionStore: .fixture(),
+            debounceMillis: 30
+        )
         let viewportA = Viewport.fixture(topLeft: Coordinate(latitude: 1, longitude: 1))
         let viewportB = Viewport.fixture(topLeft: Coordinate(latitude: 2, longitude: 2))
         let viewportC = Viewport.fixture(topLeft: Coordinate(latitude: 3, longitude: 3))

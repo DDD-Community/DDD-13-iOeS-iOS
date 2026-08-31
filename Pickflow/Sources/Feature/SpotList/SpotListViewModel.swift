@@ -25,6 +25,7 @@ final class SpotListViewModel: ObservableObject {
     private let bookmarkService: BookmarkServiceProtocol
     private let locationService: LocationServiceProtocol
     private let tokenStore: TokenStoreProtocol
+    private let regionSelectionStore: RegionSelectionStore
 
     private var currentPage: Int = 0
     private var hasNext: Bool = false
@@ -36,16 +37,23 @@ final class SpotListViewModel: ObservableObject {
         bookmarkService: BookmarkServiceProtocol,
         locationService: LocationServiceProtocol,
         tokenStore: TokenStoreProtocol,
+        regionSelectionStore: RegionSelectionStore,
         initialThemes: Set<SpotTheme> = []
     ) {
         self.spotListService = spotListService
         self.bookmarkService = bookmarkService
         self.locationService = locationService
         self.tokenStore = tokenStore
+        self.regionSelectionStore = regionSelectionStore
         self.selectedThemes = initialThemes
     }
 
     func onAppear() async {
+        await reload()
+    }
+
+    /// 지역 필터(대전/서울) 적용 시 첫 페이지부터 재조회.
+    func regionChanged() async {
         await reload()
     }
 
@@ -98,7 +106,8 @@ final class SpotListViewModel: ObservableObject {
                 themes: selectedThemes,
                 sort: sort,
                 latitude: currentCoordinate?.latitude,
-                longitude: currentCoordinate?.longitude
+                longitude: currentCoordinate?.longitude,
+                regionId: regionSelectionStore.selectedRegion?.id
             )
             currentPage = response.page
             self.hasNext = response.hasNext
@@ -161,6 +170,9 @@ final class SpotListViewModel: ObservableObject {
     }
 
     private func reload() async {
+        // 스플래시 단계에서 선점 로드가 시작되므로 대부분 즉시 반환되고, 드물게 아직 진행 중이면 여기서 기다린다.
+        await regionSelectionStore.loadIfNeeded()
+
         let permitted = hasLocationPermission
         if !hasInitializedSort {
             hasInitializedSort = true
@@ -185,7 +197,8 @@ final class SpotListViewModel: ObservableObject {
                 themes: selectedThemes,
                 sort: sort,
                 latitude: coordinate?.latitude,
-                longitude: coordinate?.longitude
+                longitude: coordinate?.longitude,
+                regionId: regionSelectionStore.selectedRegion?.id
             )
             currentPage = response.page
             hasNext = response.hasNext

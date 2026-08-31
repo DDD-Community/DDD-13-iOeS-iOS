@@ -39,7 +39,8 @@ struct ContentView: View {
         ))
       
         _clusteringViewModel = StateObject(wrappedValue: clusteringViewModel ?? MapClusteringViewModel(
-            clusteringService: getClusteringService())
+            clusteringService: getClusteringService(),
+            regionSelectionStore: getRegionSelectionStore())
         )
       
         _archiveViewModel = StateObject(wrappedValue: archiveViewModel ?? ArchiveViewModel(

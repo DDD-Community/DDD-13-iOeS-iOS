@@ -14,8 +14,11 @@ struct HomeMapView: View {
         spotListService: getSpotListService(),
         bookmarkService: getBookmarkService(),
         locationService: getLocationService(),
-        tokenStore: getTokenStore()
+        tokenStore: getTokenStore(),
+        regionSelectionStore: getRegionSelectionStore()
     )
+    @StateObject private var regionSelectionStore = getRegionSelectionStore()
+    @State private var isRegionSheetPresented = false
     @State private var topBarHeight: CGFloat = 0
     @State private var isSortExpanded: Bool = false
     @State private var cameraMoveRequest: CameraMoveRequest?
@@ -127,6 +130,26 @@ struct HomeMapView: View {
             }
             .task {
                 await refreshUserLocation()
+            }
+            .task {
+                // 보통 부팅 시퀀스(ForceUpdate 이후)에서 이미 로드가 끝나 있거나 진행 중이라 즉시 반환된다.
+                await regionSelectionStore.loadIfNeeded()
+            }
+            .sheet(isPresented: $isRegionSheetPresented) {
+                RegionSelectionSheet(
+                    regions: regionSelectionStore.regions,
+                    appliedRegion: regionSelectionStore.selectedRegion,
+                    onApply: { region in
+                        isRegionSheetPresented = false
+                        guard region != regionSelectionStore.selectedRegion else { return }
+                        regionSelectionStore.select(region)
+                        Task {
+                            await clusteringViewModel.regionChanged()
+                            await spotList.regionChanged()
+                        }
+                    },
+                    onCancel: { isRegionSheetPresented = false }
+                )
             }
             .onChange(of: selectedThemes) { _, themes in
                 Task { await clusteringViewModel.themeChanged(themes) }
@@ -280,7 +303,9 @@ struct HomeMapView: View {
     private var topBar: some View {
         VStack(alignment: .leading, spacing: 14) {
           HStack(alignment: .center) {
-              PickflowWorkMarkLogo()
+              RegionPickerHeader(regionName: regionSelectionStore.selectedRegion?.name ?? "") {
+                  isRegionSheetPresented = true
+              }
 
                 Spacer()
 
@@ -400,7 +425,10 @@ extension View {
     HomeMapView(
         isAddPlacePresented: .constant(false),
         isSpotDetailPresented: .constant(false),
-        clusteringViewModel: MapClusteringViewModel(clusteringService: getClusteringService())
+        clusteringViewModel: MapClusteringViewModel(
+            clusteringService: getClusteringService(),
+            regionSelectionStore: getRegionSelectionStore()
+        )
     )
     .environmentObject(DeepLinkRouter())
 }
