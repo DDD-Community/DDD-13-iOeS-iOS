@@ -24,11 +24,9 @@ struct V2UpdateGuideModal: View {
                         .multilineTextAlignment(.center)
 
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("1. 햇살 · 야경 필터가 추가되었어요")
-                        Text("2. 이제 내 스팟을 공개할 수 있어요")
+                        guideText(prefix: "1. ", highlighted: "햇살 · 야경 필터", suffix: "가 추가되었어요")
+                        guideText(prefix: "2. 이제 내 ", highlighted: "스팟을 공개", suffix: "할 수 있어요")
                     }
-                    .pretendard(.body(.medium()))
-                    .foregroundStyle(.gray30)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 30)
                 }
@@ -48,6 +46,25 @@ struct V2UpdateGuideModal: View {
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .padding(.horizontal, 32)
         }
+    }
+
+    private func guideText(prefix: String, highlighted: String, suffix: String) -> Text {
+        regularGuideText(prefix)
+            + highlightedGuideText(highlighted)
+            + regularGuideText(suffix)
+    }
+
+    private func regularGuideText(_ text: String) -> Text {
+        Text(text)
+            .font(PretendardStyle.body(.medium()).token.font)
+            .tracking(PretendardStyle.body(.medium()).token.kerning)
+            .foregroundColor(UIAsset.Colors.gray30.swiftUIColor)
+    }
+
+    private func highlightedGuideText(_ text: String) -> Text {
+        Text(text)
+            .font(PretendardToken(size: 15, lineHeight: 21, kerning: 0, weight: .semiBold).font)
+            .foregroundColor(UIAsset.Colors.gray0.swiftUIColor)
     }
 }
 
