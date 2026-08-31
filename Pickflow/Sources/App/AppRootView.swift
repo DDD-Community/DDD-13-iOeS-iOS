@@ -13,14 +13,16 @@ struct AppRootView: View {
         authService: AuthServiceProtocol,
         socialLoginService: SocialLoginServiceProtocol,
         locationService: LocationServiceProtocol,
-        onboardingCompletionStore: OnboardingCompletionStore
+        onboardingCompletionStore: OnboardingCompletionStore,
+        newFeatureGuideStore: NewFeatureGuideStore
     ) {
         _viewModel = StateObject(
             wrappedValue: AppRootViewModel(
                 authService: authService,
                 socialLoginService: socialLoginService,
                 locationService: locationService,
-                onboardingCompletionStore: onboardingCompletionStore
+                onboardingCompletionStore: onboardingCompletionStore,
+                newFeatureGuideStore: newFeatureGuideStore
             )
         )
     }
@@ -53,9 +55,20 @@ struct AppRootView: View {
                     }
             }
         }
+        .overlay {
+            if viewModel.isV2UpdateGuidePresented {
+                V2UpdateGuideModal(onConfirm: viewModel.didConfirmV2UpdateGuide)
+                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
+            }
+        }
         .animation(.easeInOut(duration: 0.25), value: viewModel.routeState)
+        .animation(.easeInOut(duration: 0.2), value: viewModel.isV2UpdateGuidePresented)
         .task {
             await viewModel.bootstrap()
+        }
+        .onChange(of: viewModel.routeState) { _, newState in
+            guard newState == .signedIn else { return }
+            viewModel.presentV2UpdateGuideIfNeeded()
         }
     }
 }
@@ -72,6 +85,7 @@ final class AppRootViewModel: ObservableObject {
     }
 
     @Published private(set) var routeState: AuthRouteState = .loading
+    @Published private(set) var isV2UpdateGuidePresented = false
 
     /// 하위 ViewModel(LoginViewModel, OnboardingViewModel 등) 생성 시 주입용으로 노출.
     /// AppContainer에서 1회 resolve한 인스턴스를 재사용한다.
@@ -79,19 +93,23 @@ final class AppRootViewModel: ObservableObject {
     let socialLoginService: SocialLoginServiceProtocol
     let locationService: LocationServiceProtocol
     let onboardingCompletionStore: OnboardingCompletionStore
+    private let newFeatureGuideStore: NewFeatureGuideStore
 
     private var didHandleLocationPermission = false
+    private var didEvaluateV2UpdateGuide = false
 
     init(
         authService: AuthServiceProtocol,
         socialLoginService: SocialLoginServiceProtocol,
         locationService: LocationServiceProtocol,
-        onboardingCompletionStore: OnboardingCompletionStore
+        onboardingCompletionStore: OnboardingCompletionStore,
+        newFeatureGuideStore: NewFeatureGuideStore
     ) {
         self.authService = authService
         self.socialLoginService = socialLoginService
         self.locationService = locationService
         self.onboardingCompletionStore = onboardingCompletionStore
+        self.newFeatureGuideStore = newFeatureGuideStore
     }
 
     func bootstrap() async {
@@ -101,6 +119,9 @@ final class AppRootViewModel: ObservableObject {
         }
         let state = await authService.currentAuthState()
         routeState = state.toRoute()
+        if routeState == .signedIn {
+            presentV2UpdateGuideIfNeeded()
+        }
     }
 
     func didCompleteOnboarding() {
@@ -112,10 +133,13 @@ final class AppRootViewModel: ObservableObject {
 
     func didCompleteSignIn() {
         routeState = .signedIn
+        presentV2UpdateGuideIfNeeded()
     }
 
     func didSignOut() {
         routeState = .signedOut
+        didEvaluateV2UpdateGuide = false
+        isV2UpdateGuidePresented = false
     }
 
     func prepareLocationPermissionIfNeeded() {
@@ -132,6 +156,17 @@ final class AppRootViewModel: ObservableObject {
         }
 
         didHandleLocationPermission = true
+    }
+
+    func presentV2UpdateGuideIfNeeded(now: Date = Date()) {
+        guard routeState == .signedIn, !didEvaluateV2UpdateGuide else { return }
+        didEvaluateV2UpdateGuide = true
+        isV2UpdateGuidePresented = newFeatureGuideStore.shouldShowV2UpdateModal(now: now)
+    }
+
+    func didConfirmV2UpdateGuide() {
+        newFeatureGuideStore.markV2UpdateModalSeen()
+        isV2UpdateGuidePresented = false
     }
 }
 

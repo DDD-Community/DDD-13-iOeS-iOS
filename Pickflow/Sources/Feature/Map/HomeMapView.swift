@@ -23,6 +23,7 @@ struct HomeMapView: View {
     @State private var showAddPlaceLoginPrompt: Bool = false
     @State private var isAddPlaceLoginViewPresented: Bool = false
     @State private var showLocationPermissionPopup: Bool = false
+    @State private var showsNewThemeIndicators = getNewFeatureGuideStore().shouldShowNewThemeIndicators(now: Date())
     private let tokenStore = getTokenStore()
     private let locationService = getLocationService()
 
@@ -292,7 +293,10 @@ struct HomeMapView: View {
                 }
             }
 
-            SpotThemeFilterBar(selectedThemes: $selectedThemes)
+            SpotThemeFilterBar(
+                selectedThemes: $selectedThemes,
+                showsNewIndicators: showsNewThemeIndicators
+            )
         }
     }
 

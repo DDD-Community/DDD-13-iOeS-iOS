@@ -8,6 +8,7 @@ final class ArchiveViewModelTests: XCTestCase {
     private var authService: MockAuthServiceForArchive!
     private var socialLoginService: MockSocialLoginService!
     private var locationService: MockLocationService!
+    private var newFeatureGuideStore: FakeNewFeatureGuideStore!
     private var viewModel: ArchiveViewModel!
 
     override func setUp() async throws {
@@ -17,12 +18,14 @@ final class ArchiveViewModelTests: XCTestCase {
         authService = MockAuthServiceForArchive()
         socialLoginService = MockSocialLoginService()
         locationService = MockLocationService()
+        newFeatureGuideStore = FakeNewFeatureGuideStore()
         viewModel = makeViewModel()
     }
 
     override func tearDown() async throws {
         viewModel = nil
         locationService = nil
+        newFeatureGuideStore = nil
         socialLoginService = nil
         authService = nil
         bookmarkService = nil
@@ -155,6 +158,47 @@ final class ArchiveViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.selectedTab, .savedSpots)
     }
 
+    func test_mySpots탭진입_기록한스팟이있고안내미확인상태면_오픈안내를노출한다() async {
+        authService.stubbedAuthState = .signedIn(.fixture())
+        archiveService.mySpotsResponder = { _ in
+            .success(MySpotListPage(spots: [.fixture()], page: 0, hasNext: false))
+        }
+        newFeatureGuideStore.shouldShowSpotOpenGuideValue = true
+
+        await viewModel.onAppear()
+        viewModel.tabChanged(.mySpots)
+
+        XCTAssertTrue(viewModel.isSpotOpenGuidePresented)
+    }
+
+    func test_mySpots탭진입_기록한스팟이없으면_오픈안내를노출하지않는다() async {
+        authService.stubbedAuthState = .signedIn(.fixture())
+        archiveService.mySpotsResponder = { _ in
+            .success(MySpotListPage(spots: [], page: 0, hasNext: false))
+        }
+        newFeatureGuideStore.shouldShowSpotOpenGuideValue = true
+
+        await viewModel.onAppear()
+        viewModel.tabChanged(.mySpots)
+
+        XCTAssertFalse(viewModel.isSpotOpenGuidePresented)
+    }
+
+    func test_dismissSpotOpenGuide_유저키로확인상태를저장하고_시트를닫는다() async {
+        authService.stubbedAuthState = .signedIn(.fixture())
+        archiveService.mySpotsResponder = { _ in
+            .success(MySpotListPage(spots: [.fixture()], page: 0, hasNext: false))
+        }
+        newFeatureGuideStore.shouldShowSpotOpenGuideValue = true
+        await viewModel.onAppear()
+        viewModel.tabChanged(.mySpots)
+
+        viewModel.dismissSpotOpenGuide()
+
+        XCTAssertFalse(viewModel.isSpotOpenGuidePresented)
+        XCTAssertEqual(newFeatureGuideStore.markedSpotOpenGuideUserKeys.count, 1)
+    }
+
     // MARK: - loadNextPageIfNeeded
 
     func test_loadNextPageIfNeeded_hasNext가false면호출하지않는다() async {
@@ -267,7 +311,8 @@ final class ArchiveViewModelTests: XCTestCase {
             bookmarkService: bookmarkService,
             authService: authService,
             socialLoginService: socialLoginService,
-            locationService: locationService
+            locationService: locationService,
+            newFeatureGuideStore: newFeatureGuideStore
         )
     }
 }
@@ -275,5 +320,33 @@ final class ArchiveViewModelTests: XCTestCase {
 private extension AuthToken {
     static func fixture() -> AuthToken {
         AuthToken(accessToken: "access", refreshToken: "refresh")
+    }
+}
+
+private extension MySpotListItem {
+    static func fixture(
+        spotId: Int64 = 10,
+        name: String = "테스트 스팟",
+        theme: SpotTheme? = .sunset,
+        imageUrl: String? = nil,
+        latitude: Double = 37.5,
+        longitude: Double = 127.0,
+        distanceKm: Double? = 1.0,
+        createdAt: String = "2026-08-31T00:00:00Z",
+        status: MySpotStatus = .draft,
+        bookmarkCount: Int = 0
+    ) -> MySpotListItem {
+        MySpotListItem(
+            spotId: spotId,
+            name: name,
+            theme: theme,
+            imageUrl: imageUrl,
+            latitude: latitude,
+            longitude: longitude,
+            distanceKm: distanceKm,
+            createdAt: createdAt,
+            status: status,
+            bookmarkCount: bookmarkCount
+        )
     }
 }

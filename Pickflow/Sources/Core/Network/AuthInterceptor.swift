@@ -63,6 +63,10 @@ final class AuthInterceptor: RequestInterceptor, @unchecked Sendable {
         }
 
         let decoded = try JSONDecoder().decode(ApiResponse<TokenResponse>.self, from: data)
-        return AuthToken(accessToken: decoded.data.accessToken, refreshToken: decoded.data.refreshToken)
+        return AuthToken(
+            accessToken: decoded.data.accessToken,
+            refreshToken: decoded.data.refreshToken,
+            userId: decoded.data.profile.userId
+        )
     }
 }
