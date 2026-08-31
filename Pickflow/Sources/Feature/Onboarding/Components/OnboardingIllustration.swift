@@ -41,12 +41,16 @@ struct OnboardingIllustration: View {
     }
 
     /// 그라데이션·UI가 모두 하나의 이미지로 합성되어 있다(Figma `swipe` 프레임 export).
+    /// 원본 에셋 비율(390×500)이 실제 일러스트 영역 높이보다 작을 수 있어, `scaledToFit`으로
+    /// 두면 이미지 아래에 배경 그라데이션만 남는 빈 틈이 생긴다. 영역 전체를 채우도록
+    /// `scaledToFill` + 상단 정렬 + 클리핑으로 이미지가 항상 패널 상단까지 이어지게 한다.
     private var fullBleedImage: some View {
-        VStack(spacing: 0) {
+        GeometryReader { geo in
             Image(page.imageName)
                 .resizable()
-                .scaledToFit()
-            Spacer(minLength: 0)
+                .scaledToFill()
+                .frame(width: geo.size.width, height: geo.size.height, alignment: .top)
+                .clipped()
         }
         .ignoresSafeArea(edges: .top)
     }
