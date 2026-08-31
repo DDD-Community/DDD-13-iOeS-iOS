@@ -6,6 +6,7 @@ struct HomeMapView: View {
     @State private var mapListMode: MapListMode = .map
     @Binding var isAddPlacePresented: Bool
     @Binding var isSpotDetailPresented: Bool
+    @Binding var isRegionSheetPresented: Bool
     @StateObject var clusteringViewModel: MapClusteringViewModel
     @State private var isSpotDetailSheetPresented = false
     @State private var selectedSpotVM: SpotDetailViewModel?
@@ -18,7 +19,6 @@ struct HomeMapView: View {
         regionSelectionStore: getRegionSelectionStore()
     )
     @StateObject private var regionSelectionStore = getRegionSelectionStore()
-    @State private var isRegionSheetPresented = false
     @State private var topBarHeight: CGFloat = 0
     @State private var isSortExpanded: Bool = false
     @State private var cameraMoveRequest: CameraMoveRequest?
@@ -135,21 +135,29 @@ struct HomeMapView: View {
                 // 보통 부팅 시퀀스(ForceUpdate 이후)에서 이미 로드가 끝나 있거나 진행 중이라 즉시 반환된다.
                 await regionSelectionStore.loadIfNeeded()
             }
-            .sheet(isPresented: $isRegionSheetPresented) {
-                RegionSelectionSheet(
-                    regions: regionSelectionStore.regions,
-                    appliedRegion: regionSelectionStore.selectedRegion,
-                    onApply: { region in
-                        isRegionSheetPresented = false
-                        guard region != regionSelectionStore.selectedRegion else { return }
-                        regionSelectionStore.select(region)
-                        Task {
-                            await clusteringViewModel.regionChanged()
-                            await spotList.regionChanged()
+            .overlay {
+                if isRegionSheetPresented {
+                    RegionSelectionOverlay(
+                        regions: regionSelectionStore.regions,
+                        appliedRegion: regionSelectionStore.selectedRegion,
+                        onApply: { region in
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                isRegionSheetPresented = false
+                            }
+                            guard region != regionSelectionStore.selectedRegion else { return }
+                            regionSelectionStore.select(region)
+                            // 지도는 이 지역의 bounds로 카메라를 이동시키면 idle 콜백으로 새 viewport가
+                            // 자동 보고되어 clusteringViewModel이 그 지역 기준으로 재조회한다.
+                            cameraMoveRequest = CameraMoveRequest(southWest: region.southWest, northEast: region.northEast)
+                            Task { await spotList.regionChanged() }
+                        },
+                        onCancel: {
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                isRegionSheetPresented = false
+                            }
                         }
-                    },
-                    onCancel: { isRegionSheetPresented = false }
-                )
+                    )
+                }
             }
             .onChange(of: selectedThemes) { _, themes in
                 Task { await clusteringViewModel.themeChanged(themes) }
@@ -304,7 +312,9 @@ struct HomeMapView: View {
         VStack(alignment: .leading, spacing: 14) {
           HStack(alignment: .center) {
               RegionPickerHeader(regionName: regionSelectionStore.selectedRegion?.name ?? "") {
-                  isRegionSheetPresented = true
+                  withAnimation(.easeInOut(duration: 0.25)) {
+                      isRegionSheetPresented = true
+                  }
               }
 
                 Spacer()
@@ -425,6 +435,7 @@ extension View {
     HomeMapView(
         isAddPlacePresented: .constant(false),
         isSpotDetailPresented: .constant(false),
+        isRegionSheetPresented: .constant(false),
         clusteringViewModel: MapClusteringViewModel(
             clusteringService: getClusteringService(),
             regionSelectionStore: getRegionSelectionStore()

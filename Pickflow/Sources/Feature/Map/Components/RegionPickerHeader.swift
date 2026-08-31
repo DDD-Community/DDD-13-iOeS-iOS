@@ -7,11 +7,11 @@ struct RegionPickerHeader: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 4) {
+            HStack(spacing: 6) {
                 PickflowWorkMarkLogo()
                 if !regionName.isEmpty {
                     Text(regionName)
-                        .pretendard(.body(.large(.bold)))
+                        .pretendard(.heading(.medium))
                         .foregroundStyle(.white)
                     Image(systemName: "chevron.down")
                         .font(.system(size: 12, weight: .semibold))

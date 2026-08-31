@@ -10,6 +10,7 @@ struct ContentView: View {
     @State private var hasVisitedSaved: Bool
     @State private var isExploreAddPlacePresented = false
     @State private var isExploreSpotDetailPresented = false
+    @State private var isExploreRegionSheetPresented = false
     @State private var savedPath = NavigationPath()
     // 회원탈퇴 완료 화면은 마이 탭의 하단 탭바가 보이는 상태로 노출되어야 한다.
     @State private var isWithdrawalComplete = false
@@ -54,7 +55,7 @@ struct ContentView: View {
 
     private var isTabBarVisible: Bool {
         switch selectedTab {
-        case .explore: !isExploreAddPlacePresented && !isExploreSpotDetailPresented
+        case .explore: !isExploreAddPlacePresented && !isExploreSpotDetailPresented && !isExploreRegionSheetPresented
         case .saved: savedPath.isEmpty
         case .my:
             // 계정 관리·공지사항·약관 등 마이 하위 상세 화면에서는 탭바를 숨긴다.
@@ -73,6 +74,7 @@ struct ContentView: View {
                 HomeMapView(
                     isAddPlacePresented: $isExploreAddPlacePresented,
                     isSpotDetailPresented: $isExploreSpotDetailPresented,
+                    isRegionSheetPresented: $isExploreRegionSheetPresented,
                     clusteringViewModel: clusteringViewModel
                 )
             case .saved:

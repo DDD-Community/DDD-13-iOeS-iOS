@@ -53,12 +53,6 @@ final class MapClusteringViewModel: ObservableObject {
         await fetch(viewport: viewport, themes: themes)
     }
 
-    /// 지역 필터(대전/서울) 적용 시 마지막 viewport 기준으로 재조회.
-    func regionChanged() async {
-        guard let viewport = lastViewport else { return }
-        await fetch(viewport: viewport, themes: currentThemes)
-    }
-
     func spotMarkerTapped(_ spotId: Int64) {
         selectedSpotId = spotId
     }
