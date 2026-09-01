@@ -76,17 +76,27 @@ struct SpotDetailView: View {
                 .animation(.easeInOut(duration: 0.25), value: viewModel.isLoginRequired)
             }
         }
-        .fullScreenCover(item: $resubmissionSpot) { spot in
-            NavigationStack {
-                SpotRegistrationView(
-                    viewModel: makeResubmissionViewModel(for: spot),
-                    onRegistered: { _ in
-                        resubmissionSpot = nil
-                        viewModel.showResubmissionSuccessToast()
-                    }
-                )
+        // 이 화면(SpotDetailView) 자체가 이미 fullScreenCover 로 떠 있는 상태라,
+        // 여기서 또 시스템 fullScreenCover 를 겹쳐 띄우면(2중 프레젠테이션) iOS 26 에서
+        // 진짜 화면 전체를 덮지 못하고 밑에 있던 탭바가 비쳐 보인다(스팟 오픈 철회
+        // 바텀시트 때 겪은 것과 같은 종류의 렌더링 문제). overlay 로 직접 그려서 우회한다.
+        .overlay {
+            if let spot = resubmissionSpot {
+                NavigationStack {
+                    SpotRegistrationView(
+                        viewModel: makeResubmissionViewModel(for: spot),
+                        onRegistered: { _ in
+                            resubmissionSpot = nil
+                            viewModel.showResubmissionSuccessToast()
+                        },
+                        // 커스텀 overlay 라 @Environment(\.dismiss) 가 안 먹는다.
+                        onDismiss: { resubmissionSpot = nil }
+                    )
+                }
+                .transition(.move(edge: .bottom))
             }
         }
+        .animation(.easeInOut(duration: 0.25), value: resubmissionSpot)
         .onChange(of: resubmissionSpot) { previous, current in
             // 폼이 닫히면 상태가 바뀌었을 수 있으므로 상세를 다시 읽는다.
             if previous != nil, current == nil {

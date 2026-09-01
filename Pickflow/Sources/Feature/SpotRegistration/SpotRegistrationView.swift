@@ -8,13 +8,27 @@ struct SpotRegistrationView: View {
     @State private var isTimeSheetPresented = false
     @State private var isSpotSearchPresented = false
     private let onRegistered: @MainActor (SpotId) -> Void
+    /// 이 화면이 NavigationStack push 가 아니라 커스텀 overlay 로 떠 있는 경우
+    /// (재신청) `@Environment(\.dismiss)` 가 아무 것도 닫지 못한다. 그런 호출부는
+    /// 이 클로저로 직접 닫는다. push 로 띄운 경우(신규 등록)는 nil 로 두면 된다.
+    private let onDismiss: (() -> Void)?
 
     init(
         viewModel: SpotRegistrationViewModel,
-        onRegistered: @escaping @MainActor (SpotId) -> Void
+        onRegistered: @escaping @MainActor (SpotId) -> Void,
+        onDismiss: (() -> Void)? = nil
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.onRegistered = onRegistered
+        self.onDismiss = onDismiss
+    }
+
+    private func close() {
+        if let onDismiss {
+            onDismiss()
+        } else {
+            dismiss()
+        }
     }
 
     private var spotNameBinding: Binding<String> {
@@ -216,7 +230,7 @@ struct SpotRegistrationView: View {
             onRegistered(newValue)
         }
         .onChange(of: viewModel.dismissRequested) { _, isRequested in
-            if isRequested { dismiss() }
+            if isRequested { close() }
         }
         .onChange(of: viewModel.didResubmit) { _, didFinish in
             guard didFinish else { return }
@@ -225,7 +239,7 @@ struct SpotRegistrationView: View {
             if let spotId = viewModel.resubmitSuccessSpotId {
                 onRegistered(spotId)
             }
-            dismiss()
+            close()
         }
         .overlay {
             if viewModel.isExitConfirmPresented {
