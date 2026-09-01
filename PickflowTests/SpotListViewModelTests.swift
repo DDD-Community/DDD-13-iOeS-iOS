@@ -284,6 +284,35 @@ final class SpotListViewModelTests: XCTestCase {
         XCTAssertNil(items.first(where: { $0.spotId == 1 })?.likeCount)
     }
 
+    func test_spotBookmarkDidChange_알림을받으면_bookmarkStates만_갱신된다() async {
+        spotListService.responder = { _ in
+            .success(SpotListPage(spots: [.fixture(spotId: 5, isBookmarked: false)], page: 0, hasNext: false))
+        }
+        await viewModel.onAppear()
+        XCTAssertFalse(viewModel.isBookmarked(5))
+
+        NotificationCenter.default.post(
+            name: .spotBookmarkDidChange,
+            object: SpotBookmarkChange(spotId: 5, isBookmarked: true)
+        )
+        await Task.yield()
+
+        XCTAssertTrue(viewModel.isBookmarked(5))
+    }
+
+    func test_spotBookmarkDidChange_페이로드가없는알림은_무시한다() async {
+        spotListService.responder = { _ in
+            .success(SpotListPage(spots: [.fixture(spotId: 5, isBookmarked: false)], page: 0, hasNext: false))
+        }
+        await viewModel.onAppear()
+
+        // 보관함/마이페이지용으로 object 없이 posting 하는 기존 호출부와의 호환성 확인.
+        NotificationCenter.default.post(name: .spotBookmarkDidChange, object: nil)
+        await Task.yield()
+
+        XCTAssertFalse(viewModel.isBookmarked(5))
+    }
+
     // MARK: - Helpers
 
     private func makeViewModel() -> SpotListViewModel {

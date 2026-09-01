@@ -164,10 +164,16 @@ final class SpotDetailViewModel: ObservableObject {
                     showToast("작성자가 언제든 비공개로 전환할 수 있어요")
                 }
             }
-            NotificationCenter.default.post(name: .spotBookmarkDidChange, object: nil)
+            NotificationCenter.default.post(
+                name: .spotBookmarkDidChange,
+                object: SpotBookmarkChange(spotId: spotId, isBookmarked: isBookmarked)
+            )
         } catch BookmarkError.alreadyBookmarked {
             isBookmarked = true
-            NotificationCenter.default.post(name: .spotBookmarkDidChange, object: nil)
+            NotificationCenter.default.post(
+                name: .spotBookmarkDidChange,
+                object: SpotBookmarkChange(spotId: spotId, isBookmarked: true)
+            )
         } catch let e as APIError {
             isBookmarked = previousValue
             e.post()
