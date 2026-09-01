@@ -11,6 +11,10 @@ protocol NewFeatureGuideStore: Sendable {
     func shouldShowNewThemeIndicators(now: Date) -> Bool
 }
 
+extension Notification.Name {
+    static let newFeatureGuideConfigDidChange = Notification.Name("newFeatureGuideConfigDidChange")
+}
+
 final class UserDefaultsNewFeatureGuideStore: NewFeatureGuideStore, @unchecked Sendable {
     private static let baseKey = "newFeatureGuide.v2"
     private static let v2UpdateModalFeatureKey = "v2_update_modal"
@@ -120,6 +124,7 @@ final class UserDefaultsNewFeatureGuideStore: NewFeatureGuideStore, @unchecked S
     private func saveRemoteConfig(_ config: NewFeatureRemoteConfig) {
         guard let data = try? JSONEncoder().encode(config) else { return }
         defaults.set(data, forKey: remoteConfigCacheKey)
+        NotificationCenter.default.post(name: .newFeatureGuideConfigDidChange, object: nil)
     }
 
     private func isFeatureActive(

@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 
 struct HomeMapView: View {
@@ -379,11 +380,13 @@ private final class NewThemeIndicatorViewModel: ObservableObject {
     @Published private(set) var showsIndicators: Bool
 
     private let newFeatureGuideStore: NewFeatureGuideStore
+    private var cancellables = Set<AnyCancellable>()
 
     init(newFeatureGuideStore: NewFeatureGuideStore = getNewFeatureGuideStore()) {
         self.newFeatureGuideStore = newFeatureGuideStore
         newFeatureGuideStore.refreshActivatedFeatureConfig()
         showsIndicators = newFeatureGuideStore.shouldShowNewThemeIndicators(now: Date())
+        observeConfigChanges()
     }
 
     func refresh() async {
@@ -395,6 +398,15 @@ private final class NewThemeIndicatorViewModel: ObservableObject {
 
     private func updateShowsIndicators() {
         showsIndicators = newFeatureGuideStore.shouldShowNewThemeIndicators(now: Date())
+    }
+
+    private func observeConfigChanges() {
+        NotificationCenter.default.publisher(for: .newFeatureGuideConfigDidChange)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.updateShowsIndicators()
+            }
+            .store(in: &cancellables)
     }
 }
 
