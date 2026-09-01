@@ -129,6 +129,8 @@ struct HomeMapView: View {
             }
             .task {
                 await refreshUserLocation()
+            }
+            .task {
                 await refreshNewThemeIndicators()
             }
             .onChange(of: selectedThemes) { _, themes in
@@ -372,6 +374,7 @@ struct HomeMapView: View {
     }
 
     private func refreshNewThemeIndicators() async {
+        showsNewThemeIndicators = newFeatureGuideStore.shouldShowNewThemeIndicators(now: Date())
         await newFeatureGuideStore.refreshFeatureConfig()
         showsNewThemeIndicators = newFeatureGuideStore.shouldShowNewThemeIndicators(now: Date())
     }

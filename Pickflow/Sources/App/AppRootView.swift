@@ -116,9 +116,9 @@ final class AppRootViewModel: ObservableObject {
         let state = await authService.currentAuthState()
         let nextRouteState = state.toRoute()
         if nextRouteState == .signedIn {
-            await newFeatureGuideStore.refreshFeatureConfig()
             routeState = nextRouteState
             presentV2UpdateGuideIfNeeded()
+            refreshFeatureConfigAndPresentV2UpdateGuide()
         } else {
             routeState = nextRouteState
         }
@@ -129,9 +129,9 @@ final class AppRootViewModel: ObservableObject {
             let state = await authService.currentAuthState()
             let nextRouteState = state.toRoute()
             if nextRouteState == .signedIn {
-                await newFeatureGuideStore.refreshFeatureConfig()
                 routeState = nextRouteState
                 presentV2UpdateGuideIfNeeded()
+                refreshFeatureConfigAndPresentV2UpdateGuide()
             } else {
                 routeState = nextRouteState
             }
@@ -140,8 +140,14 @@ final class AppRootViewModel: ObservableObject {
 
     func didCompleteSignIn() {
         routeState = .signedIn
+        presentV2UpdateGuideIfNeeded()
+        refreshFeatureConfigAndPresentV2UpdateGuide()
+    }
+
+    private func refreshFeatureConfigAndPresentV2UpdateGuide() {
         Task {
             await newFeatureGuideStore.refreshFeatureConfig()
+            didEvaluateV2UpdateGuide = false
             presentV2UpdateGuideIfNeeded()
         }
     }

@@ -133,7 +133,7 @@ final class ArchiveViewModel: ObservableObject {
             return
         }
         currentUserGuideKey = token.newFeatureGuideUserKey
-        await newFeatureGuideStore.refreshFeatureConfig()
+        refreshFeatureConfigAndEvaluateSpotOpenGuide()
         // 이미 표시할 데이터가 있으면(탭 재진입 등) 로딩 스켈레톤 없이 조용히 갱신해
         // 화면이 매번 깜빡이며 리프레시되는 현상을 막는다. (@StateObject 라 이전 상태 유지)
         // 최초 진입·재시도·로그인 직후엔 데이터가 없으므로 로딩을 노출한다.
@@ -455,5 +455,14 @@ final class ArchiveViewModel: ObservableObject {
             userKey: currentUserGuideKey,
             now: now
         )
+    }
+
+    private func refreshFeatureConfigAndEvaluateSpotOpenGuide() {
+        evaluateSpotOpenGuidePresentation()
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            await self.newFeatureGuideStore.refreshFeatureConfig()
+            self.evaluateSpotOpenGuidePresentation()
+        }
     }
 }
