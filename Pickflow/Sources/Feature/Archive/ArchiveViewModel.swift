@@ -112,10 +112,10 @@ final class ArchiveViewModel: ObservableObject {
                 await self.fetchArchive(silent: true)
             }
         }
-        // 스팟 등록 완료 시 나만의 스팟 목록을 조용히 갱신한다.
-        // (보관함 밖/안 어디서 등록하든 반영 — 빈 상태 placeholder 등록 후 pop 시에도 갱신)
+        // 등록/재신청/삭제 등으로 나만의 스팟 목록 구성이 바뀌면 조용히 갱신한다.
+        // (보관함 밖/안 어디서 일어나든 반영 — 빈 상태 placeholder 등록 후 pop 시에도 갱신)
         let registerObserver = NotificationCenter.default.addObserver(
-            forName: .spotDidRegister,
+            forName: .mySpotListDidChange,
             object: nil,
             queue: .main
         ) { [weak self] _ in

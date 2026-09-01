@@ -376,7 +376,9 @@ final class SpotDetailViewModel: ObservableObject {
         activeSheet = nil
         do {
             try await mySpotService.deleteMySpot(spotId: spotId)
-            NotificationCenter.default.post(name: .spotBookmarkDidChange, object: nil)
+            // 잘못된 알림(.spotBookmarkDidChange)을 보내고 있었다 — 그건 보관함의
+            // "저장" 탭을 갱신할 뿐, 삭제된 스팟이 사라져야 할 "나의 스팟" 탭은 그대로였다.
+            NotificationCenter.default.post(name: .mySpotListDidChange, object: nil)
             dismissRequested = true
         } catch {
             await handlePublicationFailure(error)

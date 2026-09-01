@@ -5,7 +5,8 @@ extension Notification.Name {
     static let userDidSignOut = Notification.Name("pickflow.userDidSignOut")
     static let userDidWithdraw = Notification.Name("pickflow.userDidWithdraw")
     static let spotBookmarkDidChange = Notification.Name("pickflow.spotBookmarkDidChange")
-    static let spotDidRegister = Notification.Name("pickflow.spotDidRegister")
+    /// 등록/재신청/삭제 등 "나의 스팟" 목록 구성 자체가 바뀌는 모든 경우에 posting.
+    static let mySpotListDidChange = Notification.Name("pickflow.mySpotListDidChange")
     static let spotLikeDidChange = Notification.Name("pickflow.spotLikeDidChange")
 }
 

@@ -233,6 +233,19 @@ final class SpotPublicationViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.dismissRequested)
     }
 
+    func test_deleteMySpot_성공하면_나의스팟목록갱신알림을_보낸다() async {
+        await loadDetail(.fixture(isMySpot: true, status: .draft))
+        var received: Notification.Name?
+        let observer = NotificationCenter.default.addObserver(
+            forName: .mySpotListDidChange, object: nil, queue: nil
+        ) { received = $0.name }
+        defer { NotificationCenter.default.removeObserver(observer) }
+
+        await viewModel.confirmDelete()
+
+        XCTAssertEqual(received, .mySpotListDidChange)
+    }
+
     func test_deleteMySpot_검수중이라_거절되면_철회안내_토스트가_뜬다() async {
         await loadDetail(.fixture(isMySpot: true, status: .pending))
         mySpotService.deleteError = APIError(

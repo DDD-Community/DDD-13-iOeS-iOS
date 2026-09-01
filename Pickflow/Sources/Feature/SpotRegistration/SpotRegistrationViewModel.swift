@@ -194,7 +194,7 @@ final class SpotRegistrationViewModel: ObservableObject {
                     comment: trimmedComment.isEmpty ? nil : trimmedComment
                 )
                 registeredSpotId = try await spotService.registerSpot(draft: draft)
-                NotificationCenter.default.post(name: .spotDidRegister, object: nil)
+                NotificationCenter.default.post(name: .mySpotListDidChange, object: nil)
 
             case let .resubmit(spotId):
                 try await resubmit(
@@ -239,7 +239,7 @@ final class SpotRegistrationViewModel: ObservableObject {
         _ = try await mySpotService.requestOpen(spotId: spotId)
         resubmitSuccessSpotId = SpotId(rawValue: String(spotId))
         didResubmit = true
-        NotificationCenter.default.post(name: .spotDidRegister, object: nil)
+        NotificationCenter.default.post(name: .mySpotListDidChange, object: nil)
     }
 
     private func clampedTime(_ time: Date, for date: Date?) -> Date {

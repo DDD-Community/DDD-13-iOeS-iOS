@@ -156,7 +156,7 @@ final class MyProfileViewModel: ObservableObject {
         let refreshTriggers: [Notification.Name] = [
             .userProfileDidUpdate,
             .spotBookmarkDidChange,
-            .spotDidRegister,
+            .mySpotListDidChange,
         ]
         let signOutTriggers: [Notification.Name] = [
             .userDidSignOut,
