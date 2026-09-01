@@ -3,17 +3,56 @@ import Foundation
 
 final class MockClusteringService: ClusteringServiceProtocol, @unchecked Sendable {
     var result: Result<[ClusterableSpot], any Error> = .success([])
-    private(set) var requests: [(viewport: Viewport, themes: Set<SpotTheme>)] = []
+    private(set) var requests: [(viewport: Viewport, themes: Set<SpotTheme>, regionId: Int?)] = []
 
     var mySpotsResult: Result<[MySpot], any Error> = .success([])
     private(set) var mySpotsRequests: [Viewport] = []
 
-    func fetchSpots(viewport: Viewport, themes: Set<SpotTheme>) async throws -> (curation: [ClusterableSpot], mySpots: [MySpot]) {
-        requests.append((viewport, themes))
+    func fetchSpots(
+        viewport: Viewport,
+        themes: Set<SpotTheme>,
+        regionId: Int?
+    ) async throws -> (curation: [ClusterableSpot], mySpots: [MySpot]) {
+        requests.append((viewport, themes, regionId))
         mySpotsRequests.append(viewport)
         let curation = try result.get()
         let mine = (try? mySpotsResult.get()) ?? []
         return (curation, mine)
+    }
+}
+
+extension RegionServiceProtocol where Self == MockRegionService {
+    static func mock(regions: [Region] = Region.fallbackRegions) -> MockRegionService {
+        MockRegionService(regions: regions)
+    }
+}
+
+final class MockRegionService: RegionServiceProtocol, @unchecked Sendable {
+    var regions: [Region]
+    var error: (any Error)?
+    private(set) var fetchCallCount = 0
+
+    init(regions: [Region] = Region.fallbackRegions) {
+        self.regions = regions
+    }
+
+    func fetchActiveRegions() async throws -> [Region] {
+        fetchCallCount += 1
+        if let error { throw error }
+        return regions
+    }
+}
+
+@MainActor
+extension RegionSelectionStore {
+    static func fixture(regions: [Region] = Region.fallbackRegions) -> RegionSelectionStore {
+        RegionSelectionStore(regionService: MockRegionService(regions: regions), defaults: .makeEphemeral())
+    }
+}
+
+private extension UserDefaults {
+    static func makeEphemeral() -> UserDefaults {
+        UserDefaults(suiteName: "RegionSelectionStoreTests.\(UUID().uuidString)")!
     }
 }
 

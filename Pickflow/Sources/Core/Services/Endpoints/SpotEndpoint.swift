@@ -41,6 +41,8 @@ enum SpotEndpoint: APIEndpoint {
 struct SpotViewportEndpoint: APIEndpoint {
     let viewport: Viewport
     let themes: Set<SpotTheme>
+    // TODO(BE-API, PV-64): 파라미터명 확정되면 갱신. 큐레이션 스팟만 필터링되고 내 MY스팟은 지역 무관 항상 포함되어야 한다(BE 확인 완료).
+    let regionId: Int?
 
     var baseURL: String { APIBaseURL.current }
     var path: String { "/v1/spots/viewport" }
@@ -62,6 +64,9 @@ struct SpotViewportEndpoint: APIEndpoint {
         ]
         if let themeValues = SpotThemeQuery.values(for: themes) {
             p[SpotThemeQuery.parameterName] = themeValues
+        }
+        if let regionId {
+            p["regionId"] = regionId
         }
         return p
     }

@@ -11,7 +11,8 @@ protocol SpotListServiceProtocol: Sendable {
         themes: Set<SpotTheme>,
         sort: SpotListSort,
         latitude: Double?,
-        longitude: Double?
+        longitude: Double?,
+        regionId: Int?
     ) async throws -> SpotListPage
 }
 

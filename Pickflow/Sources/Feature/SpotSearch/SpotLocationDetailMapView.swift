@@ -87,9 +87,11 @@ final class SpotLocationDetailMapViewController: UIViewController, @preconcurren
     func applyCameraMoveRequest(_ request: CameraMoveRequest) {
         guard request.id != lastAppliedCameraRequestId else { return }
         guard let mapView = naverMapView?.mapView else { return }
+        // 이 화면(주소 선택)은 단일 좌표 이동만 쓴다 — 지역(bounds) 이동은 탐색 지도 전용.
+        guard case let .point(coordinate, zoom, _) = request.target else { return }
         lastAppliedCameraRequestId = request.id
-        let latlng = NMGLatLng(lat: request.coordinate.latitude, lng: request.coordinate.longitude)
-        let position = NMFCameraPosition(latlng, zoom: request.zoom ?? mapView.zoomLevel)
+        let latlng = NMGLatLng(lat: coordinate.latitude, lng: coordinate.longitude)
+        let position = NMFCameraPosition(latlng, zoom: zoom ?? mapView.zoomLevel)
         let update = NMFCameraUpdate(position: position)
         update.animation = .easeOut
         mapView.moveCamera(update)

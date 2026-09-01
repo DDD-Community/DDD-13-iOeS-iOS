@@ -45,7 +45,8 @@ final class SpotThemeQueryTests: XCTestCase {
             themes: [.sunlight, .sunset],
             sort: nil,
             latitude: nil,
-            longitude: nil
+            longitude: nil,
+            regionId: nil
         )
 
         let query = try encodedQuery(of: endpoint)
@@ -56,7 +57,7 @@ final class SpotThemeQueryTests: XCTestCase {
     }
 
     func test_지도_다중선택이_반복파라미터로직렬화된다() throws {
-        let endpoint = SpotViewportEndpoint(viewport: .fixture(), themes: [.reflection, .nightView])
+        let endpoint = SpotViewportEndpoint(viewport: .fixture(), themes: [.reflection, .nightView], regionId: nil)
 
         let query = try encodedQuery(of: endpoint)
 
@@ -66,7 +67,7 @@ final class SpotThemeQueryTests: XCTestCase {
     }
 
     func test_선택이없으면_theme파라미터가아예빠진다() throws {
-        let endpoint = SpotListEndpoint(page: 0, themes: [], sort: nil, latitude: nil, longitude: nil)
+        let endpoint = SpotListEndpoint(page: 0, themes: [], sort: nil, latitude: nil, longitude: nil, regionId: nil)
 
         let query = try encodedQuery(of: endpoint)
 

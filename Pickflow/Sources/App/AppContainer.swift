@@ -33,6 +33,14 @@ final class AppContainer {
         container.register(SpotListServiceProtocol.self) { SpotListService(networkManager: networkManager) }
         container.register(ArchiveServiceProtocol.self) { ArchiveService(networkManager: networkManager) }
         container.register(ClusteringServiceProtocol.self) { ClusteringService(networkManager: networkManager) }
+        container.register(RegionServiceProtocol.self) { RegionService(networkManager: networkManager) }
+        container.register(RegionSelectionStore.self, scope: .container) { [container] in
+            // AppContainer.init()은 항상 MainActor(@MainActor final class AppContainer)에서 실행되지만,
+            // register(factory:) 클로저 타입은 @Sendable(non-isolated)이라 컴파일러가 이를 증명하지 못한다.
+            MainActor.assumeIsolated {
+                RegionSelectionStore(regionService: container.resolve(RegionServiceProtocol.self)!)
+            }
+        }
         container.register(BookmarkServiceProtocol.self) { BookmarkService(networkManager: networkManager) }
         container.register(NoticeServiceProtocol.self) { NoticeService(networkManager: networkManager) }
         container.register(ShareIntentServiceProtocol.self) { ShareIntentService(networkManager: networkManager) }
