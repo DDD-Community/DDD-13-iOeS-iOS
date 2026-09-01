@@ -18,6 +18,10 @@ final class MockSpotService: SpotServiceProtocol, @unchecked Sendable {
     private(set) var registerDrafts: [SpotRegistrationDraft] = []
     private(set) var reportedSpotIds: [Int64] = []
     private(set) var reportedContents: [String] = []
+    var likeResult: Result<SpotLikeResponse, any Error> = .success(SpotLikeResponse(likeCount: 1, isLiked: true))
+    var unlikeResult: Result<SpotLikeResponse, any Error> = .success(SpotLikeResponse(likeCount: 0, isLiked: false))
+    private(set) var likedSpotIds: [Int64] = []
+    private(set) var unlikedSpotIds: [Int64] = []
 
     func fetchSpotDetail(id: Int64, latitude: Double?, longitude: Double?) async throws -> SpotDetail {
         requests.append((id, latitude, longitude))
@@ -38,6 +42,16 @@ final class MockSpotService: SpotServiceProtocol, @unchecked Sendable {
         reportedSpotIds.append(id)
         reportedContents.append(content)
         if let reportError { throw reportError }
+    }
+
+    func likeSpot(id: Int64) async throws -> SpotLikeResponse {
+        likedSpotIds.append(id)
+        return try likeResult.get()
+    }
+
+    func unlikeSpot(id: Int64) async throws -> SpotLikeResponse {
+        unlikedSpotIds.append(id)
+        return try unlikeResult.get()
     }
 }
 
@@ -138,7 +152,16 @@ extension SpotDetail {
         theme: SpotTheme = .sunset,
         imageUrl: String? = "https://example.com/spot.jpg",
         comment: String = "걷다 보면 멀리 노을이 번져요.",
-        parkingInfo: String? = "무료 주차장"
+        address: String? = "서울 동작구",
+        addressRoad: String? = nil,
+        addressJibun: String? = nil,
+        parkingInfo: String? = "무료 주차장",
+        status: MySpotStatus? = nil,
+        isCurated: Bool? = nil,
+        likeCount: Int? = nil,
+        isLiked: Bool? = nil,
+        isLikeable: Bool? = nil,
+        rejection: SpotRejectionInfo? = nil
     ) -> SpotDetail {
         SpotDetail(
             spotId: spotId,
@@ -147,7 +170,9 @@ extension SpotDetail {
             theme: theme,
             latitude: 37.501,
             longitude: 126.951,
-            address: "서울 동작구",
+            address: address,
+            addressRoad: addressRoad,
+            addressJibun: addressJibun,
             imageUrl: imageUrl,
             recordedDate: "2026-05-23",
             recordedTime: "19:30",
@@ -162,8 +187,52 @@ extension SpotDetail {
             parkingInfo: isMySpot ? nil : parkingInfo,
             bookmarkCount: bookmarkCount,
             isBookmarked: isBookmarked,
-            isMySpot: isMySpot
+            isMySpot: isMySpot,
+            status: status,
+            isCurated: isCurated,
+            likeCount: likeCount,
+            isLiked: isLiked,
+            isLikeable: isLikeable,
+            rejection: rejection
         )
+    }
+}
+
+final class MockMySpotService: MySpotServiceProtocol, @unchecked Sendable {
+    var updateResult: Result<UpdateMySpotResponse, any Error> = .success(
+        UpdateMySpotResponse(spotId: 1, status: .draft, imageUrl: nil)
+    )
+    var deleteError: (any Error)?
+    var requestOpenResult: Result<OpenMySpotResponse, any Error> = .success(
+        OpenMySpotResponse(spotId: 1, status: .pending)
+    )
+    var cancelPublicationResult: Result<CancelPublicationResponse, any Error> = .success(
+        CancelPublicationResponse(spotId: 1, previousStatus: .pending, status: .draft)
+    )
+
+    private(set) var updatedDrafts: [(spotId: Int64, draft: MySpotUpdateDraft)] = []
+    private(set) var deletedSpotIds: [Int64] = []
+    private(set) var requestedOpenSpotIds: [Int64] = []
+    private(set) var cancelledSpotIds: [Int64] = []
+
+    func updateMySpot(spotId: Int64, draft: MySpotUpdateDraft) async throws -> UpdateMySpotResponse {
+        updatedDrafts.append((spotId, draft))
+        return try updateResult.get()
+    }
+
+    func deleteMySpot(spotId: Int64) async throws {
+        deletedSpotIds.append(spotId)
+        if let deleteError { throw deleteError }
+    }
+
+    func requestOpen(spotId: Int64) async throws -> OpenMySpotResponse {
+        requestedOpenSpotIds.append(spotId)
+        return try requestOpenResult.get()
+    }
+
+    func cancelPublication(spotId: Int64) async throws -> CancelPublicationResponse {
+        cancelledSpotIds.append(spotId)
+        return try cancelPublicationResult.get()
     }
 }
 
@@ -179,7 +248,11 @@ extension SpotPreviewResponse {
         imageUrl: String? = "https://example.com/spot.jpg",
         addressSimple: String = "서울 동작구",
         addressRoad: String? = nil,
-        addressJibun: String? = nil
+        addressJibun: String? = nil,
+        isCurated: Bool? = nil,
+        likeCount: Int? = nil,
+        isLiked: Bool? = nil,
+        isLikeable: Bool? = nil
     ) -> SpotPreviewResponse {
         SpotPreviewResponse(
             spotId: spotId,
@@ -192,7 +265,11 @@ extension SpotPreviewResponse {
             imageUrl: imageUrl,
             addressSimple: addressSimple,
             addressRoad: addressRoad,
-            addressJibun: addressJibun
+            addressJibun: addressJibun,
+            isCurated: isCurated,
+            likeCount: likeCount,
+            isLiked: isLiked,
+            isLikeable: isLikeable
         )
     }
 }

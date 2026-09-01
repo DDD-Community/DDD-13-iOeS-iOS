@@ -228,14 +228,6 @@ final class SpotDetailViewModelTests: XCTestCase {
         XCTAssertTrue(spotService.reportedSpotIds.isEmpty)
     }
 
-    func test_notifyUpdateRequested_분석이벤트로깅과_토스트가설정된다() {
-        viewModel.notifyUpdateRequested()
-
-        XCTAssertEqual(viewModel.updateNotificationToast, "추후 업데이트 시, 가장 먼저 알림 보내드릴게요!")
-        XCTAssertEqual(analyticsLogger.loggedEvents.count, 1)
-        XCTAssertEqual(analyticsLogger.loggedEvents.first?.name, ShareFakedoorAnalyticsEvent.notifyButtonTap.name)
-    }
-
     private func makeViewModel() -> SpotDetailViewModel {
         SpotDetailViewModel(
             spotId: 1,

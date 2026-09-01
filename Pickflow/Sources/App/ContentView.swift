@@ -18,6 +18,10 @@ struct ContentView: View {
     @StateObject private var archiveViewModel: ArchiveViewModel
     // 탭바 위에 있으므로 로그인 여부와 무관하게 어느 화면에서든 진입할 수 있다.
     @StateObject private var devMode = DevModeController()
+    @StateObject private var reviewNotice = SpotReviewNoticeController(
+        archiveService: getArchiveService(),
+        tokenStore: getTokenStore()
+    )
 
     var onSignedOut: () -> Void = {}
 
@@ -125,7 +129,8 @@ struct ContentView: View {
                     onTabTapped: { tab in
                         guard tab == .my else { return }
                         devMode.registerMyTabTap()
-                    }
+                    },
+                    indicatedTabs: reviewNotice.showsSavedTabIndicator ? [.saved] : []
                 )
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
@@ -144,9 +149,33 @@ struct ContentView: View {
             )
         }
         .animation(.easeInOut(duration: 0.25), value: isTabBarVisible)
+        // 스낵바는 탭바 바로 위에 뜬다. 어느 탭에 있든 같은 자리다.
+        .overlay(alignment: .bottom) {
+            if reviewNotice.isNoticeVisible, let notice = reviewNotice.notice {
+                SpotReviewSnackbar(
+                    notice: notice,
+                    onAction: {
+                        if let spotId = reviewNotice.openNoticeTarget() {
+                            deepLinkRouter.pendingSpotId = spotId
+                        }
+                    },
+                    onClose: reviewNotice.dismissNotice
+                )
+                .padding(.horizontal, 16)
+                .padding(.bottom, 12)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .animation(.easeInOut(duration: 0.2), value: reviewNotice.isNoticeVisible)
+            }
+        }
+        .onChange(of: isExploreSpotDetailPresented) { _, isPresented in
+            // 스팟 바텀시트가 떠 있는 동안에는 가린다. 소멸이 아니라 일시 숨김이다.
+            reviewNotice.setSpotSheetPresented(isPresented)
+        }
         .task {
             // 윈도우가 준비된 뒤여야 터치 오버레이를 올릴 수 있다.
             devMode.applyPersistedSettings()
+            // 검수 결과가 나와 있으면 첫 진입 시점부터 스낵바를 띄운다.
+            await reviewNotice.refresh()
         }
         .onChange(of: selectedTab) { _, newValue in
             if newValue == .saved { hasVisitedSaved = true }

@@ -30,6 +30,8 @@ final class SpotListViewModel: ObservableObject {
     private var hasNext: Bool = false
     private var currentCoordinate: Coordinate?
     private var hasInitializedSort: Bool = false
+    nonisolated(unsafe) private var likeObserver: NSObjectProtocol?
+    nonisolated(unsafe) private var bookmarkObserver: NSObjectProtocol?
 
     init(
         spotListService: SpotListServiceProtocol,
@@ -43,6 +45,49 @@ final class SpotListViewModel: ObservableObject {
         self.locationService = locationService
         self.tokenStore = tokenStore
         self.selectedThemes = initialThemes
+        setupLikeObserver()
+        setupBookmarkObserver()
+    }
+
+    deinit {
+        likeObserver.map(NotificationCenter.default.removeObserver)
+        bookmarkObserver.map(NotificationCenter.default.removeObserver)
+    }
+
+    /// 스팟 상세에서 추천을 바꾸면, 여기서는 전체 재조회 대신 해당 아이템만 갱신한다.
+    /// 전체 재조회는 로딩 스피너와 스크롤/정렬 초기화를 동반해 되돌아올 때마다 화면이 튄다.
+    private func setupLikeObserver() {
+        likeObserver = NotificationCenter.default.addObserver(
+            forName: .spotLikeDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let change = notification.object as? SpotLikeChange else { return }
+            self?.applyLikeChange(change)
+        }
+    }
+
+    private func applyLikeChange(_ change: SpotLikeChange) {
+        guard case let .loaded(items, hasNext) = state else { return }
+        guard let index = items.firstIndex(where: { $0.spotId == change.spotId }) else { return }
+        var updated = items
+        updated[index].likeCount = change.likeCount
+        updated[index].isLiked = change.isLiked
+        state = .loaded(items: updated, hasNext: hasNext)
+    }
+
+    /// 상세 화면 등 다른 곳에서 북마크를 바꾸면, 보관함처럼 전체를 다시 불러오는 대신
+    /// `bookmarkStates` 만 갱신한다. 리스트는 북마크 여부와 무관하게 아이템이 그대로 남으니
+    /// 필드 갱신만으로 충분하다(자기 자신이 보낸 알림도 다시 받지만 같은 값을 대입할 뿐이라 무해하다).
+    private func setupBookmarkObserver() {
+        bookmarkObserver = NotificationCenter.default.addObserver(
+            forName: .spotBookmarkDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let change = notification.object as? SpotBookmarkChange else { return }
+            self?.bookmarkStates[change.spotId] = change.isBookmarked
+        }
     }
 
     func onAppear() async {
@@ -127,10 +172,16 @@ final class SpotListViewModel: ObservableObject {
             } else {
                 try await bookmarkService.addBookmark(spotId: spotId)
             }
-            NotificationCenter.default.post(name: .spotBookmarkDidChange, object: nil)
+            NotificationCenter.default.post(
+                name: .spotBookmarkDidChange,
+                object: SpotBookmarkChange(spotId: spotId, isBookmarked: !wasBookmarked)
+            )
         } catch BookmarkError.alreadyBookmarked {
             bookmarkStates[spotId] = true
-            NotificationCenter.default.post(name: .spotBookmarkDidChange, object: nil)
+            NotificationCenter.default.post(
+                name: .spotBookmarkDidChange,
+                object: SpotBookmarkChange(spotId: spotId, isBookmarked: true)
+            )
         } catch let e as APIError {
             bookmarkStates[spotId] = wasBookmarked
             e.post()

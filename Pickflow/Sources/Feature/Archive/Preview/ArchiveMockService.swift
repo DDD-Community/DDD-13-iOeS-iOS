@@ -20,16 +20,16 @@ final class ArchiveMockService: ArchiveServiceProtocol, Sendable {
         return ArchiveInfo(archiveName: "나의 보관함", archiveImageUrl: nil)
     }
 
-    func fetchSavedSpots(page: Int, latitude: Double?, longitude: Double?) async throws -> SpotListPage {
+    func fetchSavedSpots(page: Int, latitude: Double?, longitude: Double?) async throws -> SavedSpotPage {
         try await Task.sleep(for: .milliseconds(400))
 
         let start = page * Self.pageSize
         guard start < Self.allItems.count else {
-            return SpotListPage(spots: [], page: page, hasNext: false)
+            return SavedSpotPage(spots: [], page: page, hasNext: false)
         }
         let end = min(start + Self.pageSize, Self.allItems.count)
         let slice = Array(Self.allItems[start..<end])
-        return SpotListPage(spots: slice, page: page, hasNext: end < Self.allItems.count)
+        return SavedSpotPage(spots: slice, page: page, hasNext: end < Self.allItems.count)
     }
 
     func fetchMySpots(page: Int, latitude: Double?, longitude: Double?) async throws -> MySpotListPage {
@@ -37,16 +37,39 @@ final class ArchiveMockService: ArchiveServiceProtocol, Sendable {
         return MySpotListPage(spots: [], page: page, hasNext: false)
     }
 
-    private static let allItems: [SpotListItem] = [
-        SpotListItem(spotId: 1, name: "한강 노을길", theme: .sunset, thumbnailUrl: nil, distanceKm: 0.4, isBookmarked: false),
-        SpotListItem(spotId: 2, name: "잠실 윤슬", theme: .reflection, thumbnailUrl: nil, distanceKm: 1.2, isBookmarked: false),
-        SpotListItem(spotId: 3, name: "응봉산 전망대", theme: .sunset, thumbnailUrl: nil, distanceKm: 2.0, isBookmarked: false),
-        SpotListItem(spotId: 4, name: "반포 무지개 분수", theme: .reflection, thumbnailUrl: nil, distanceKm: 2.8, isBookmarked: false),
-        SpotListItem(spotId: 5, name: "선유도 일몰 포인트", theme: .sunset, thumbnailUrl: nil, distanceKm: 3.5, isBookmarked: false),
-        SpotListItem(spotId: 6, name: "광나루 윤슬길", theme: .reflection, thumbnailUrl: nil, distanceKm: 4.1, isBookmarked: false),
-        SpotListItem(spotId: 7, name: "노들섬 노을 뷰", theme: .sunset, thumbnailUrl: nil, distanceKm: 4.7, isBookmarked: false),
-        SpotListItem(spotId: 8, name: "성수 한강 윤슬", theme: .reflection, thumbnailUrl: nil, distanceKm: 5.3, isBookmarked: false),
-        SpotListItem(spotId: 9, name: "양화대교 노을", theme: .sunset, thumbnailUrl: nil, distanceKm: 6.0, isBookmarked: false),
-        SpotListItem(spotId: 10, name: "동작대교 윤슬", theme: .reflection, thumbnailUrl: nil, distanceKm: 6.8, isBookmarked: false),
+    private static let allItems: [SavedSpotItem] = [
+        makeSavedSpotItem(spotId: 1, name: "한강 노을길", theme: .sunset, distanceKm: 0.4),
+        makeSavedSpotItem(spotId: 2, name: "잠실 윤슬", theme: .reflection, distanceKm: 1.2, isPrivate: true),
+        makeSavedSpotItem(spotId: 3, name: "응봉산 전망대", theme: .sunset, distanceKm: 2.0, deleted: true),
+        makeSavedSpotItem(spotId: 4, name: "반포 무지개 분수", theme: .reflection, distanceKm: 2.8),
+        makeSavedSpotItem(spotId: 5, name: "선유도 일몰 포인트", theme: .sunset, distanceKm: 3.5),
+        makeSavedSpotItem(spotId: 6, name: "광나루 윤슬길", theme: .reflection, distanceKm: 4.1, deleted: true),
+        makeSavedSpotItem(spotId: 7, name: "노들섬 노을 뷰", theme: .sunset, distanceKm: 4.7),
+        makeSavedSpotItem(spotId: 8, name: "성수 한강 윤슬", theme: .reflection, distanceKm: 5.3),
+        makeSavedSpotItem(spotId: 9, name: "양화대교 노을", theme: .sunset, distanceKm: 6.0),
+        makeSavedSpotItem(spotId: 10, name: "동작대교 윤슬", theme: .reflection, distanceKm: 6.8),
     ]
+}
+
+/// 프리뷰용 저장 스팟 픽스처. 비공개/삭제 상태를 섞어 볼 수 있게 인자로 뺐다.
+func makeSavedSpotItem(
+    spotId: Int64,
+    name: String,
+    theme: SpotTheme?,
+    distanceKm: Double?,
+    deleted: Bool = false,
+    isPrivate: Bool? = nil
+) -> SavedSpotItem {
+    SavedSpotItem(
+        spotId: spotId,
+        name: name,
+        theme: theme,
+        imageUrl: nil,
+        latitude: 37.5,
+        longitude: 127.0,
+        distanceKm: distanceKm,
+        savedAt: "2026-08-01T00:00:00Z",
+        deleted: deleted,
+        isPrivate: isPrivate
+    )
 }

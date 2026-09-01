@@ -14,5 +14,11 @@ struct SpotPreviewResponse: Codable, Sendable, Identifiable, Equatable {
     let addressRoad: String?
     let addressJibun: String?
 
+    // MARK: - PV-40
+    var isCurated: Bool?
+    var likeCount: Int?
+    var isLiked: Bool?
+    var isLikeable: Bool?
+
     var id: Int64 { spotId }
 }

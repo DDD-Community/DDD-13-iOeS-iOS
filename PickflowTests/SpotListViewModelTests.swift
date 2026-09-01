@@ -253,6 +253,66 @@ final class SpotListViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.toast)
     }
 
+    // MARK: - 추천 변경 알림
+
+    func test_spotLikeDidChange_알림을받으면_해당아이템만_로컬로갱신된다() async {
+        spotListService.responder = { _ in
+            .success(SpotListPage(
+                spots: [
+                    .fixture(spotId: 1, name: "A"),
+                    .fixture(spotId: 2, name: "B")
+                ],
+                page: 0,
+                hasNext: false
+            ))
+        }
+        await viewModel.onAppear()
+
+        NotificationCenter.default.post(
+            name: .spotLikeDidChange,
+            object: SpotLikeChange(spotId: 2, likeCount: 9, isLiked: true)
+        )
+        // NotificationCenter 콜백은 다음 런루프에서 실행되므로 한 틱 양보한다.
+        await Task.yield()
+
+        guard case let .loaded(items, _) = viewModel.state else {
+            return XCTFail("state 가 loaded 여야 한다")
+        }
+        XCTAssertEqual(items.first(where: { $0.spotId == 2 })?.likeCount, 9)
+        XCTAssertEqual(items.first(where: { $0.spotId == 2 })?.isLiked, true)
+        // 대상이 아닌 아이템은 그대로다.
+        XCTAssertNil(items.first(where: { $0.spotId == 1 })?.likeCount)
+    }
+
+    func test_spotBookmarkDidChange_알림을받으면_bookmarkStates만_갱신된다() async {
+        spotListService.responder = { _ in
+            .success(SpotListPage(spots: [.fixture(spotId: 5, isBookmarked: false)], page: 0, hasNext: false))
+        }
+        await viewModel.onAppear()
+        XCTAssertFalse(viewModel.isBookmarked(5))
+
+        NotificationCenter.default.post(
+            name: .spotBookmarkDidChange,
+            object: SpotBookmarkChange(spotId: 5, isBookmarked: true)
+        )
+        await Task.yield()
+
+        XCTAssertTrue(viewModel.isBookmarked(5))
+    }
+
+    func test_spotBookmarkDidChange_페이로드가없는알림은_무시한다() async {
+        spotListService.responder = { _ in
+            .success(SpotListPage(spots: [.fixture(spotId: 5, isBookmarked: false)], page: 0, hasNext: false))
+        }
+        await viewModel.onAppear()
+
+        // 보관함/마이페이지용으로 object 없이 posting 하는 기존 호출부와의 호환성 확인.
+        NotificationCenter.default.post(name: .spotBookmarkDidChange, object: nil)
+        await Task.yield()
+
+        XCTAssertFalse(viewModel.isBookmarked(5))
+    }
+
     // MARK: - Helpers
 
     private func makeViewModel() -> SpotListViewModel {

@@ -109,9 +109,8 @@ final class AuthService: AuthServiceProtocol, Sendable {
         if let authError = error as? AuthError {
             return authError
         }
-        if let afError = error as? AFError,
-           let statusCode = afError.responseCode
-        {
+        let statusCode = (error as? AFError)?.responseCode ?? (error as? APIError)?.statusCode
+        if let statusCode {
             switch statusCode {
             case 401: return .unauthorized
             case 403: return .forbidden

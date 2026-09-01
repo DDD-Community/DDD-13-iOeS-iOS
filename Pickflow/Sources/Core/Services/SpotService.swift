@@ -83,6 +83,20 @@ final class SpotService: SpotServiceProtocol, Sendable {
             endpoint: ReportEndpoint(spotId: id, content: content)
         )
     }
+
+    func likeSpot(id: Int64) async throws -> SpotLikeResponse {
+        let envelope: APIEnvelope<SpotLikeResponse> = try await networkManager.request(
+            endpoint: SpotLikeEndpoint.like(spotId: id)
+        )
+        return envelope.data
+    }
+
+    func unlikeSpot(id: Int64) async throws -> SpotLikeResponse {
+        let envelope: APIEnvelope<SpotLikeResponse> = try await networkManager.request(
+            endpoint: SpotLikeEndpoint.unlike(spotId: id)
+        )
+        return envelope.data
+    }
 }
 
 private extension Double {

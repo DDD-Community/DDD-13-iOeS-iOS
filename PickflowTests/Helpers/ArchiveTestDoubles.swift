@@ -2,8 +2,8 @@ import Foundation
 @testable import Pickflow
 
 final class MockArchiveService: ArchiveServiceProtocol, @unchecked Sendable {
-    var responder: @Sendable (Int) -> Result<SpotListPage, any Error> = { _ in
-        .success(SpotListPage(spots: [], page: 0, hasNext: false))
+    var responder: @Sendable (Int) -> Result<SavedSpotPage, any Error> = { _ in
+        .success(SavedSpotPage(spots: [], page: 0, hasNext: false))
     }
 
     var mySpotsResponder: @Sendable (Int) -> Result<MySpotListPage, any Error> = { _ in
@@ -19,7 +19,7 @@ final class MockArchiveService: ArchiveServiceProtocol, @unchecked Sendable {
         archiveInfo
     }
 
-    func fetchSavedSpots(page: Int, latitude _: Double?, longitude _: Double?) async throws -> SpotListPage {
+    func fetchSavedSpots(page: Int, latitude _: Double?, longitude _: Double?) async throws -> SavedSpotPage {
         requestedPages.append(page)
         return try responder(page).get()
     }
@@ -79,5 +79,53 @@ final class MockAuthServiceForArchive: AuthServiceProtocol, @unchecked Sendable 
 
     func restoreAccount(restoreToken: String) async throws {
         fatalError("not used in archive tests")
+    }
+}
+
+extension SavedSpotItem {
+    static func fixture(
+        spotId: Int64 = 1,
+        name: String = "한강 노을 스팟",
+        theme: SpotTheme? = .sunset,
+        imageUrl: String? = "https://example.com/spot.jpg",
+        distanceKm: Double? = 1.2,
+        deleted: Bool = false,
+        isPrivate: Bool? = nil
+    ) -> SavedSpotItem {
+        SavedSpotItem(
+            spotId: spotId,
+            name: name,
+            theme: theme,
+            imageUrl: imageUrl,
+            latitude: 37.5,
+            longitude: 127.0,
+            distanceKm: distanceKm,
+            savedAt: "2026-08-01T00:00:00Z",
+            deleted: deleted,
+            isPrivate: isPrivate
+        )
+    }
+}
+
+extension MySpotListItem {
+    static func fixture(
+        spotId: Int64 = 1,
+        name: String = "석촌호수 산책길",
+        theme: SpotTheme? = .reflection,
+        status: MySpotStatus = .draft,
+        distanceKm: Double? = 1.2
+    ) -> MySpotListItem {
+        MySpotListItem(
+            spotId: spotId,
+            name: name,
+            theme: theme,
+            imageUrl: nil,
+            latitude: 37.5,
+            longitude: 127.0,
+            distanceKm: distanceKm,
+            createdAt: "2026-04-11",
+            status: status,
+            bookmarkCount: 0
+        )
     }
 }

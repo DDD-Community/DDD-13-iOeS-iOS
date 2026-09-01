@@ -12,6 +12,8 @@ enum SpotDetailDebugFixture {
         latitude: 37.501,
         longitude: 126.951,
         address: "서울 동작구",
+        addressRoad: "서울특별시 동작구 흑석한강로 100",
+        addressJibun: "서울특별시 동작구 흑석동 100-1",
         imageUrl: nil,
         recordedDate: "2026-05-23",
         recordedTime: "19:30",
@@ -37,6 +39,8 @@ enum SpotDetailDebugFixture {
         latitude: 37.501,
         longitude: 126.951,
         address: "서울 동작구",
+        addressRoad: "서울특별시 동작구 흑석한강로 100",
+        addressJibun: "서울특별시 동작구 흑석동 100-1",
         imageUrl: nil,
         recordedDate: "2026-05-23",
         recordedTime: "19:30",
@@ -97,6 +101,14 @@ final class DebugSpotService: SpotServiceProtocol, Sendable {
     }
 
     func reportSpot(id _: Int64, content _: String) async throws {}
+
+    func likeSpot(id _: Int64) async throws -> SpotLikeResponse {
+        SpotLikeResponse(likeCount: 1, isLiked: true)
+    }
+
+    func unlikeSpot(id _: Int64) async throws -> SpotLikeResponse {
+        SpotLikeResponse(likeCount: 0, isLiked: false)
+    }
 }
 
 final class DebugMySpotService: SpotServiceProtocol, Sendable {
@@ -113,6 +125,14 @@ final class DebugMySpotService: SpotServiceProtocol, Sendable {
     }
 
     func reportSpot(id _: Int64, content _: String) async throws {}
+
+    func likeSpot(id _: Int64) async throws -> SpotLikeResponse {
+        SpotLikeResponse(likeCount: 1, isLiked: true)
+    }
+
+    func unlikeSpot(id _: Int64) async throws -> SpotLikeResponse {
+        SpotLikeResponse(likeCount: 0, isLiked: false)
+    }
 }
 
 final class DebugBookmarkService: BookmarkServiceProtocol, Sendable {
