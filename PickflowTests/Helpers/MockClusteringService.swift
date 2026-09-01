@@ -30,12 +30,14 @@ extension RegionServiceProtocol where Self == MockRegionService {
 final class MockRegionService: RegionServiceProtocol, @unchecked Sendable {
     var regions: [Region]
     var error: (any Error)?
+    private(set) var fetchCallCount = 0
 
     init(regions: [Region] = Region.fallbackRegions) {
         self.regions = regions
     }
 
     func fetchActiveRegions() async throws -> [Region] {
+        fetchCallCount += 1
         if let error { throw error }
         return regions
     }
