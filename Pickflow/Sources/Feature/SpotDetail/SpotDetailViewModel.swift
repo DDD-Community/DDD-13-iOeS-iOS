@@ -269,21 +269,31 @@ final class SpotDetailViewModel: ObservableObject {
 
         let previousIsLiked = isLiked
         let previousCount = likeCount
-        isLiked.toggle()
-        likeCount = max(0, previousCount + (previousIsLiked ? -1 : 1))
+        updateLikeState(count: max(0, previousCount + (previousIsLiked ? -1 : 1)), isLiked: !previousIsLiked)
 
         do {
             let response = previousIsLiked
                 ? try await spotService.unlikeSpot(id: spotId)
                 : try await spotService.likeSpot(id: spotId)
             // 서버에 최종 반영된 값이 진실이다.
-            likeCount = response.likeCount
-            isLiked = response.isLiked
+            updateLikeState(count: response.likeCount, isLiked: response.isLiked)
         } catch {
-            isLiked = previousIsLiked
-            likeCount = previousCount
+            updateLikeState(count: previousCount, isLiked: previousIsLiked)
             showToast(error.spotPublicationErrorCode?.userMessage ?? "잠시 후 다시 시도해주세요.")
         }
+    }
+
+    /// `likeCount`/`isLiked` 는 헤더 등 여러 컴포넌트가 `detailState` 에 담긴
+    /// `SpotDetail` 을 직접 읽으므로, 별도 published 프로퍼티만 갱신하면
+    /// 화면에 반영되지 않는다(publicationStatus 와 같은 이유).
+    private func updateLikeState(count: Int, isLiked: Bool) {
+        likeCount = count
+        self.isLiked = isLiked
+
+        guard case var .loaded(spot) = detailState else { return }
+        spot.likeCount = count
+        spot.isLiked = isLiked
+        detailState = .loaded(spot)
     }
 
     // MARK: 시트

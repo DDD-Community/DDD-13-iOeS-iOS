@@ -67,6 +67,19 @@ final class SpotPublicationViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.isLiked)
     }
 
+    func test_toggleLike_성공하면_detailState의_스팟에도_반영된다() async {
+        await loadDetail(.fixture(likeCount: 3, isLiked: false, isLikeable: true))
+        spotService.likeResult = .success(SpotLikeResponse(likeCount: 4, isLiked: true))
+
+        await viewModel.toggleLike()
+
+        guard case let .loaded(spot) = viewModel.detailState else {
+            return XCTFail("detailState 가 loaded 여야 한다")
+        }
+        XCTAssertEqual(spot.likeCount, 4)
+        XCTAssertEqual(spot.isLiked, true)
+    }
+
     func test_toggleLike_이미추천했으면_취소를_호출한다() async {
         await loadDetail(.fixture(likeCount: 4, isLiked: true, isLikeable: true))
         spotService.unlikeResult = .success(SpotLikeResponse(likeCount: 3, isLiked: false))
