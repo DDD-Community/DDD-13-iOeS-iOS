@@ -45,7 +45,7 @@ struct SpotOpenGuideSheet: View {
                 .background(.gray0)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
-            .padding(.horizontal, 4)
+            .padding(.horizontal, 20)
         }
         .padding(.horizontal, 16)
         .padding(.bottom, 26)
