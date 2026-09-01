@@ -17,6 +17,10 @@ struct ContentView: View {
     @StateObject private var clusteringViewModel: MapClusteringViewModel
     @StateObject private var myProfileViewModel: MyProfileViewModel
     @StateObject private var archiveViewModel: ArchiveViewModel
+    // HomeMapView와 동일한 DI 싱글턴(scope=.container)을 참조 — 지역 시트를 탭바 위에
+    // 띄우려면(§2.2) 이 뷰 레벨에서 렌더해야 하는데, 필요한 데이터(regions/selectedRegion)는
+    // HomeMapView 내부 상태가 아니라 이 store 하나로 충분하다.
+    @StateObject private var regionSelectionStore = getRegionSelectionStore()
     // 탭바 위에 있으므로 로그인 여부와 무관하게 어느 화면에서든 진입할 수 있다.
     @StateObject private var devMode = DevModeController()
 
@@ -55,7 +59,8 @@ struct ContentView: View {
 
     private var isTabBarVisible: Bool {
         switch selectedTab {
-        case .explore: !isExploreAddPlacePresented && !isExploreSpotDetailPresented && !isExploreRegionSheetPresented
+        // 지역 시트는 탭바 위에 떠 있는 형태(§2.2)라 탭바를 숨길 필요가 없다.
+        case .explore: !isExploreAddPlacePresented && !isExploreSpotDetailPresented
         case .saved: savedPath.isEmpty
         case .my:
             // 계정 관리·공지사항·약관 등 마이 하위 상세 화면에서는 탭바를 숨긴다.
@@ -131,6 +136,28 @@ struct ContentView: View {
                     }
                 )
                 .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        // safeAreaInset 다음(=바깥)에 적용해야 탭바 위로 뜬다 — safeAreaInset 콘텐츠는 항상
+        // 그 안쪽에서 그려진 overlay보다 위에 오므로, HomeMapView 내부에 이 오버레이를 두면
+        // 탭바에 가려진다(§2.2 확인됨).
+        .overlay {
+            if isExploreRegionSheetPresented {
+                RegionSelectionOverlay(
+                    regions: regionSelectionStore.regions,
+                    appliedRegion: regionSelectionStore.selectedRegion,
+                    onApply: { region in
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            isExploreRegionSheetPresented = false
+                        }
+                        regionSelectionStore.select(region)
+                    },
+                    onCancel: {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            isExploreRegionSheetPresented = false
+                        }
+                    }
+                )
             }
         }
         .alert("코드를 입력해 주세요", isPresented: $devMode.isPasscodePromptPresented) {
