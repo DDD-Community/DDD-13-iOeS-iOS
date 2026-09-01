@@ -3,13 +3,12 @@ import SwiftUI
 /// PICKFLOW 워드마크 옆에 현재 선택된 지역명을 붙여 노출하는 헤더. 탭하면 지역 선택 바텀시트가 뜬다.
 struct RegionPickerHeader: View {
     let regionName: String
-    var logoWidth: CGFloat = 140
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: 6) {
-                PickflowWorkMarkLogo(width: logoWidth)
+                PickflowWorkMarkLogo()
                 if !regionName.isEmpty {
                     Text(regionName)
                         .pretendard(.heading(.medium))

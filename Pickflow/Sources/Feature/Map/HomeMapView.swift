@@ -297,10 +297,7 @@ struct HomeMapView: View {
     private var topBar: some View {
         VStack(alignment: .leading, spacing: 14) {
           HStack(alignment: .center) {
-              RegionPickerHeader(
-                  regionName: regionSelectionStore.selectedRegion?.name ?? "",
-                  logoWidth: mapListMode == .list ? 132 : 140
-              ) {
+              RegionPickerHeader(regionName: regionSelectionStore.selectedRegion?.name ?? "") {
                   withAnimation(.easeInOut(duration: 0.25)) {
                       isRegionSheetPresented = true
                   }
