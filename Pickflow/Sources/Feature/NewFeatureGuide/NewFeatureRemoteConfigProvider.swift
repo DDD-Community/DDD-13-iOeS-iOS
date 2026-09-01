@@ -23,8 +23,13 @@ final class FirebaseNewFeatureRemoteConfigProvider: NewFeatureRemoteConfigProvid
         let remoteConfig = self.remoteConfig ?? RemoteConfig.remoteConfig()
         self.remoteConfig = remoteConfig
         configure(remoteConfig)
-        _ = try await remoteConfig.fetchAndActivate()
-        let data = remoteConfig.configValue(forKey: Self.remoteConfigKey).dataValue
+        let status = try await remoteConfig.fetchAndActivate()
+        let configValue = remoteConfig.configValue(forKey: Self.remoteConfigKey)
+        let data = configValue.dataValue
+        debugLog("fetchAndActivate status=\(status.rawValue), source=\(configValue.source.rawValue)")
+        if let rawValue = String(data: data, encoding: .utf8) {
+            debugLog("raw \(Self.remoteConfigKey)=\(rawValue)")
+        }
         return try JSONDecoder().decode(NewFeatureRemoteConfig.self, from: data)
     }
 
@@ -35,8 +40,18 @@ final class FirebaseNewFeatureRemoteConfigProvider: NewFeatureRemoteConfigProvid
 
     private func configure(_ remoteConfig: RemoteConfig) {
         let settings = RemoteConfigSettings()
+        #if DEBUG
+        settings.minimumFetchInterval = 0
+        #else
         settings.minimumFetchInterval = 60 * 60
+        #endif
         remoteConfig.configSettings = settings
+    }
+
+    private func debugLog(_ message: String) {
+        #if DEBUG
+        print("[NewFeatureRemoteConfig] \(message)")
+        #endif
     }
 }
 
