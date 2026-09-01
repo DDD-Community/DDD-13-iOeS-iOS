@@ -196,6 +196,24 @@ final class SpotPublicationViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.publicationStatus, .draft)
     }
 
+    func test_cancelPublication_공개중이었으면_hasEverBeenPublished가_꺼진뒤에도_true로유지된다() async {
+        await loadDetail(.fixture(isMySpot: true, status: .published))
+        XCTAssertTrue(viewModel.hasEverBeenPublished)
+        mySpotService.cancelPublicationResult = .success(
+            CancelPublicationResponse(spotId: 1, previousStatus: .published, status: .draft)
+        )
+
+        await viewModel.confirmCancelPublication()
+
+        XCTAssertTrue(viewModel.hasEverBeenPublished)
+    }
+
+    func test_최초미승인_draft스팟은_hasEverBeenPublished가_false다() async {
+        await loadDetail(.fixture(isMySpot: true, status: .draft))
+
+        XCTAssertFalse(viewModel.hasEverBeenPublished)
+    }
+
     func test_cancelPublication_성공하면_나의스팟목록갱신알림을_보낸다() async {
         await loadDetail(.fixture(isMySpot: true, status: .published))
         mySpotService.cancelPublicationResult = .success(
