@@ -23,14 +23,9 @@ struct HomeMapView: View {
     @State private var showAddPlaceLoginPrompt: Bool = false
     @State private var isAddPlaceLoginViewPresented: Bool = false
     @State private var showLocationPermissionPopup: Bool = false
-    @State private var showsNewThemeIndicators = {
-        let store = getNewFeatureGuideStore()
-        store.refreshActivatedFeatureConfig()
-        return store.shouldShowNewThemeIndicators(now: Date())
-    }()
+    @StateObject private var newThemeIndicatorViewModel = NewThemeIndicatorViewModel()
     private let tokenStore = getTokenStore()
     private let locationService = getLocationService()
-    private let newFeatureGuideStore = getNewFeatureGuideStore()
 
     var body: some View {
         NavigationStack {
@@ -135,7 +130,7 @@ struct HomeMapView: View {
                 await refreshUserLocation()
             }
             .task {
-                await refreshNewThemeIndicators()
+                await newThemeIndicatorViewModel.refresh()
             }
             .onChange(of: selectedThemes) { _, themes in
                 Task { await clusteringViewModel.themeChanged(themes) }
@@ -303,7 +298,7 @@ struct HomeMapView: View {
 
             SpotThemeFilterBar(
                 selectedThemes: $selectedThemes,
-                showsNewIndicators: showsNewThemeIndicators
+                showsNewIndicators: newThemeIndicatorViewModel.showsIndicators
             )
         }
     }
@@ -377,12 +372,30 @@ struct HomeMapView: View {
         }
     }
 
-    private func refreshNewThemeIndicators() async {
-        showsNewThemeIndicators = newFeatureGuideStore.shouldShowNewThemeIndicators(now: Date())
-        await newFeatureGuideStore.refreshFeatureConfig()
-        showsNewThemeIndicators = newFeatureGuideStore.shouldShowNewThemeIndicators(now: Date())
+}
+
+@MainActor
+private final class NewThemeIndicatorViewModel: ObservableObject {
+    @Published private(set) var showsIndicators: Bool
+
+    private let newFeatureGuideStore: NewFeatureGuideStore
+
+    init(newFeatureGuideStore: NewFeatureGuideStore = getNewFeatureGuideStore()) {
+        self.newFeatureGuideStore = newFeatureGuideStore
+        newFeatureGuideStore.refreshActivatedFeatureConfig()
+        showsIndicators = newFeatureGuideStore.shouldShowNewThemeIndicators(now: Date())
     }
 
+    func refresh() async {
+        newFeatureGuideStore.refreshActivatedFeatureConfig()
+        updateShowsIndicators()
+        await newFeatureGuideStore.refreshFeatureConfig()
+        updateShowsIndicators()
+    }
+
+    private func updateShowsIndicators() {
+        showsIndicators = newFeatureGuideStore.shouldShowNewThemeIndicators(now: Date())
+    }
 }
 
 private struct TopBarHeightKey: PreferenceKey {
