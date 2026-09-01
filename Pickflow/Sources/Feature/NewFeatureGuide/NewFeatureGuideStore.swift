@@ -7,7 +7,7 @@ protocol NewFeatureGuideStore: Sendable {
     func markV2UpdateModalSeen()
     func shouldShowSpotOpenGuide(userKey: String, now: Date) -> Bool
     func markSpotOpenGuideSeen(userKey: String)
-    func shouldShowNewThemeIndicators() -> Bool
+    func shouldShowNewThemeIndicators(now: Date) -> Bool
 }
 
 final class UserDefaultsNewFeatureGuideStore: NewFeatureGuideStore, @unchecked Sendable {
@@ -40,7 +40,7 @@ final class UserDefaultsNewFeatureGuideStore: NewFeatureGuideStore, @unchecked S
     }
 
     func shouldShowV2UpdateModal(now: Date = Date()) -> Bool {
-        isFeatureActive(featureKey: Self.v2UpdateModalFeatureKey)
+        isFeatureActive(featureKey: Self.v2UpdateModalFeatureKey, now: now)
             && !defaults.bool(forKey: v2UpdateModalSeenKey)
     }
 
@@ -49,7 +49,7 @@ final class UserDefaultsNewFeatureGuideStore: NewFeatureGuideStore, @unchecked S
     }
 
     func shouldShowSpotOpenGuide(userKey: String, now: Date = Date()) -> Bool {
-        isFeatureActive(featureKey: Self.spotOpenGuideFeatureKey, audienceKey: userKey)
+        isFeatureActive(featureKey: Self.spotOpenGuideFeatureKey, audienceKey: userKey, now: now)
             && !defaults.bool(forKey: spotOpenGuideSeenKey(userKey: userKey))
     }
 
@@ -57,17 +57,17 @@ final class UserDefaultsNewFeatureGuideStore: NewFeatureGuideStore, @unchecked S
         defaults.set(true, forKey: spotOpenGuideSeenKey(userKey: userKey))
     }
 
-    func shouldShowNewThemeIndicators() -> Bool {
-        isFeatureActive(featureKey: Self.newThemeIndicatorFeatureKey)
+    func shouldShowNewThemeIndicators(now: Date = Date()) -> Bool {
+        isFeatureActive(featureKey: Self.newThemeIndicatorFeatureKey, now: now)
     }
 
-    private func isFeatureActive(featureKey: String, audienceKey: String? = nil) -> Bool {
+    private func isFeatureActive(featureKey: String, audienceKey: String? = nil, now: Date) -> Bool {
         guard let config = currentRemoteConfig,
               let feature = config.feature(forKey: featureKey)
         else {
             return false
         }
-        return isFeatureActive(feature, serverTime: config.serverTime, audienceKey: audienceKey)
+        return isFeatureActive(feature, now: now, audienceKey: audienceKey)
     }
 
     private var version: String {
@@ -98,43 +98,44 @@ final class UserDefaultsNewFeatureGuideStore: NewFeatureGuideStore, @unchecked S
 
     private func isFeatureActive(
         _ feature: NewFeatureRemoteConfigFeature,
-        serverTime: Int64,
+        now: Date,
         audienceKey: String?
     ) -> Bool {
+        let currentTime = now.millisecondsSince1970
         if let startAt = feature.startAt {
-            return isLaunchBasedFeatureActive(feature, startAt: startAt, serverTime: serverTime)
+            return isLaunchBasedFeatureActive(feature, startAt: startAt, currentTime: currentTime)
         }
 
         let firstSeenAt = firstSeenAtForUserBasedFeature(
             featureKey: feature.key,
             audienceKey: audienceKey,
-            serverTime: serverTime
+            currentTime: currentTime
         )
         guard let durationDays = feature.durationDays else { return false }
-        return serverTime - firstSeenAt < milliseconds(days: durationDays)
+        return currentTime - firstSeenAt < milliseconds(days: durationDays)
     }
 
     private func isLaunchBasedFeatureActive(
         _ feature: NewFeatureRemoteConfigFeature,
         startAt: Int64,
-        serverTime: Int64
+        currentTime: Int64
     ) -> Bool {
         let endAt = feature.endAt ?? feature.durationDays.map { startAt + milliseconds(days: $0) }
         guard let endAt else { return false }
-        return startAt <= serverTime && serverTime < endAt
+        return startAt <= currentTime && currentTime < endAt
     }
 
     private func firstSeenAtForUserBasedFeature(
         featureKey: String,
         audienceKey: String?,
-        serverTime: Int64
+        currentTime: Int64
     ) -> Int64 {
         let key = firstSeenAtKey(featureKey: featureKey, audienceKey: audienceKey)
         if defaults.object(forKey: key) != nil {
             return Int64(defaults.double(forKey: key))
         }
-        defaults.set(Double(serverTime), forKey: key)
-        return serverTime
+        defaults.set(Double(currentTime), forKey: key)
+        return currentTime
     }
 
     private func milliseconds(days: Int) -> Int64 {
@@ -168,4 +169,10 @@ func getNewFeatureGuideStore() -> NewFeatureGuideStore {
         fatalError("NewFeatureGuideStore is not registered in DIContainer")
     }
     return store
+}
+
+private extension Date {
+    var millisecondsSince1970: Int64 {
+        Int64((timeIntervalSince1970 * 1000).rounded())
+    }
 }

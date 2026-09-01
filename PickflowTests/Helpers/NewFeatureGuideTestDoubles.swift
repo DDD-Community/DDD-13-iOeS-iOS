@@ -26,7 +26,7 @@ final class FakeNewFeatureGuideStore: NewFeatureGuideStore, @unchecked Sendable 
         markedSpotOpenGuideUserKeys.append(userKey)
     }
 
-    func shouldShowNewThemeIndicators() -> Bool {
+    func shouldShowNewThemeIndicators(now _: Date) -> Bool {
         shouldShowNewThemeIndicatorsValue
     }
 }

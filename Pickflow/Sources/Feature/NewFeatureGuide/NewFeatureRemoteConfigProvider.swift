@@ -45,7 +45,6 @@ enum NewFeatureRemoteConfigProviderError: Error {
 }
 
 struct NewFeatureRemoteConfig: Codable, Sendable, Equatable {
-    let serverTime: Int64
     let features: [NewFeatureRemoteConfigFeature]
 
     func feature(forKey key: String) -> NewFeatureRemoteConfigFeature? {

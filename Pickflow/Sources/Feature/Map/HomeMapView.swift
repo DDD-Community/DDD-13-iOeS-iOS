@@ -373,7 +373,7 @@ struct HomeMapView: View {
 
     private func refreshNewThemeIndicators() async {
         await newFeatureGuideStore.refreshFeatureConfig()
-        showsNewThemeIndicators = newFeatureGuideStore.shouldShowNewThemeIndicators()
+        showsNewThemeIndicators = newFeatureGuideStore.shouldShowNewThemeIndicators(now: Date())
     }
 
 }
