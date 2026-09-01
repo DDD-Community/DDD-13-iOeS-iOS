@@ -290,6 +290,11 @@ final class SpotDetailViewModel: ObservableObject {
         likeCount = count
         self.isLiked = isLiked
 
+        NotificationCenter.default.post(
+            name: .spotLikeDidChange,
+            object: SpotLikeChange(spotId: spotId, likeCount: count, isLiked: isLiked)
+        )
+
         guard case var .loaded(spot) = detailState else { return }
         spot.likeCount = count
         spot.isLiked = isLiked

@@ -253,6 +253,37 @@ final class SpotListViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.toast)
     }
 
+    // MARK: - 추천 변경 알림
+
+    func test_spotLikeDidChange_알림을받으면_해당아이템만_로컬로갱신된다() async {
+        spotListService.responder = { _ in
+            .success(SpotListPage(
+                spots: [
+                    .fixture(spotId: 1, name: "A"),
+                    .fixture(spotId: 2, name: "B")
+                ],
+                page: 0,
+                hasNext: false
+            ))
+        }
+        await viewModel.onAppear()
+
+        NotificationCenter.default.post(
+            name: .spotLikeDidChange,
+            object: SpotLikeChange(spotId: 2, likeCount: 9, isLiked: true)
+        )
+        // NotificationCenter 콜백은 다음 런루프에서 실행되므로 한 틱 양보한다.
+        await Task.yield()
+
+        guard case let .loaded(items, _) = viewModel.state else {
+            return XCTFail("state 가 loaded 여야 한다")
+        }
+        XCTAssertEqual(items.first(where: { $0.spotId == 2 })?.likeCount, 9)
+        XCTAssertEqual(items.first(where: { $0.spotId == 2 })?.isLiked, true)
+        // 대상이 아닌 아이템은 그대로다.
+        XCTAssertNil(items.first(where: { $0.spotId == 1 })?.likeCount)
+    }
+
     // MARK: - Helpers
 
     private func makeViewModel() -> SpotListViewModel {

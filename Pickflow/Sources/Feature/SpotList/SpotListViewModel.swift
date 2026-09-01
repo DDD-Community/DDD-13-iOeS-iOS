@@ -30,6 +30,7 @@ final class SpotListViewModel: ObservableObject {
     private var hasNext: Bool = false
     private var currentCoordinate: Coordinate?
     private var hasInitializedSort: Bool = false
+    nonisolated(unsafe) private var likeObserver: NSObjectProtocol?
 
     init(
         spotListService: SpotListServiceProtocol,
@@ -43,6 +44,33 @@ final class SpotListViewModel: ObservableObject {
         self.locationService = locationService
         self.tokenStore = tokenStore
         self.selectedThemes = initialThemes
+        setupLikeObserver()
+    }
+
+    deinit {
+        likeObserver.map(NotificationCenter.default.removeObserver)
+    }
+
+    /// 스팟 상세에서 추천을 바꾸면, 여기서는 전체 재조회 대신 해당 아이템만 갱신한다.
+    /// 전체 재조회는 로딩 스피너와 스크롤/정렬 초기화를 동반해 되돌아올 때마다 화면이 튄다.
+    private func setupLikeObserver() {
+        likeObserver = NotificationCenter.default.addObserver(
+            forName: .spotLikeDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let change = notification.object as? SpotLikeChange else { return }
+            self?.applyLikeChange(change)
+        }
+    }
+
+    private func applyLikeChange(_ change: SpotLikeChange) {
+        guard case let .loaded(items, hasNext) = state else { return }
+        guard let index = items.firstIndex(where: { $0.spotId == change.spotId }) else { return }
+        var updated = items
+        updated[index].likeCount = change.likeCount
+        updated[index].isLiked = change.isLiked
+        state = .loaded(items: updated, hasNext: hasNext)
     }
 
     func onAppear() async {
