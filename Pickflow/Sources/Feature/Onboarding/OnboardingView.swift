@@ -51,7 +51,8 @@ struct OnboardingView: View {
                 page: viewModel.pages[viewModel.currentIndex],
                 currentIndex: viewModel.currentIndex,
                 pageCount: viewModel.pages.count,
-                onPrimaryTap: { viewModel.finishOnboarding() }
+                primaryButtonTitle: viewModel.primaryButtonTitle,
+                onPrimaryTap: viewModel.primaryButtonTapped
             )
             .animation(.easeInOut(duration: 0.2), value: viewModel.currentIndex)
         }
@@ -76,11 +77,9 @@ struct OnboardingView: View {
                 ForEach(Array(viewModel.pages.enumerated()), id: \.element.id) { _, page in
                     OnboardingIllustration(
                         page: page,
-                        isCarouselAnimating: isCarouselAnimating,
-                        toastText: page.layout == .bottomAlignedImage ? viewModel.toast : nil
+                        isCarouselAnimating: isCarouselAnimating
                     )
                     .frame(width: geo.size.width, height: geo.size.height)
-                    .animation(.easeInOut(duration: 0.25), value: viewModel.toast)
                 }
             }
             .offset(x: pagerOffset(width: geo.size.width))

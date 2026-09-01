@@ -6,6 +6,7 @@ struct LoginView: View {
 
     /// 로그인 성공 시 상위(`AppRootView`)로 전파되는 콜백.
     var onSignInSucceeded: () -> Void = {}
+    var onGuestEntryRequested: (() -> Void)? = nil
     var isClosable: Bool = false
 
     @Environment(\.dismiss) private var dismiss
@@ -36,7 +37,7 @@ struct LoginView: View {
         .onChange(of: viewModel.didRequestGuestEntry) { _, requested in
             if requested {
                 // 비회원으로 시작하기 — 로그인 없이 홈(지도/리스트) 진입
-                onSignInSucceeded()
+                (onGuestEntryRequested ?? onSignInSucceeded)()
             }
         }
         .alert(

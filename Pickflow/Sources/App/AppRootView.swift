@@ -14,6 +14,7 @@ struct AppRootView: View {
         socialLoginService: SocialLoginServiceProtocol,
         locationService: LocationServiceProtocol,
         onboardingCompletionStore: OnboardingCompletionStore,
+        guestModeStore: GuestModeStore,
         newFeatureGuideStore: NewFeatureGuideStore
     ) {
         _viewModel = StateObject(
@@ -22,6 +23,7 @@ struct AppRootView: View {
                 socialLoginService: socialLoginService,
                 locationService: locationService,
                 onboardingCompletionStore: onboardingCompletionStore,
+                guestModeStore: guestModeStore,
                 newFeatureGuideStore: newFeatureGuideStore
             )
         )
@@ -46,9 +48,10 @@ struct AppRootView: View {
                         socialLoginService: viewModel.socialLoginService
                     ),
                     onSignInSucceeded: viewModel.didCompleteSignIn,
+                    onGuestEntryRequested: viewModel.didEnterGuest,
                     isClosable: false
                 )
-            case .signedIn:
+            case .main:
                 ContentView(onSignedOut: viewModel.didSignOut)
                     .task {
                         viewModel.prepareLocationPermissionIfNeeded()
@@ -77,7 +80,7 @@ final class AppRootViewModel: ObservableObject {
         case loading
         case onboarding
         case signedOut
-        case signedIn
+        case main
     }
 
     @Published private(set) var routeState: AuthRouteState = .loading
@@ -89,6 +92,7 @@ final class AppRootViewModel: ObservableObject {
     let socialLoginService: SocialLoginServiceProtocol
     let locationService: LocationServiceProtocol
     let onboardingCompletionStore: OnboardingCompletionStore
+    let guestModeStore: GuestModeStore
     private let newFeatureGuideStore: NewFeatureGuideStore
 
     private var didHandleLocationPermission = false
@@ -99,12 +103,14 @@ final class AppRootViewModel: ObservableObject {
         socialLoginService: SocialLoginServiceProtocol,
         locationService: LocationServiceProtocol,
         onboardingCompletionStore: OnboardingCompletionStore,
+        guestModeStore: GuestModeStore,
         newFeatureGuideStore: NewFeatureGuideStore
     ) {
         self.authService = authService
         self.socialLoginService = socialLoginService
         self.locationService = locationService
         self.onboardingCompletionStore = onboardingCompletionStore
+        self.guestModeStore = guestModeStore
         self.newFeatureGuideStore = newFeatureGuideStore
     }
 
@@ -113,33 +119,32 @@ final class AppRootViewModel: ObservableObject {
             routeState = .onboarding
             return
         }
-        let state = await authService.currentAuthState()
-        let nextRouteState = state.toRoute()
-        if nextRouteState == .signedIn {
-            routeState = nextRouteState
+
+        let authState = await authService.currentAuthState()
+        if case .signedIn = authState {
+            routeState = .main
             presentV2UpdateGuideIfNeeded()
             refreshFeatureConfigAndPresentV2UpdateGuide()
         } else {
-            routeState = nextRouteState
+            routeState = guestModeStore.hasEnteredAsGuest() ? .main : .signedOut
         }
     }
 
     func didCompleteOnboarding() {
         Task { @MainActor in
-            let state = await authService.currentAuthState()
-            let nextRouteState = state.toRoute()
-            if nextRouteState == .signedIn {
-                routeState = nextRouteState
+            let authState = await authService.currentAuthState()
+            if case .signedIn = authState {
+                routeState = .main
                 presentV2UpdateGuideIfNeeded()
                 refreshFeatureConfigAndPresentV2UpdateGuide()
             } else {
-                routeState = nextRouteState
+                routeState = .signedOut
             }
         }
     }
 
     func didCompleteSignIn() {
-        routeState = .signedIn
+        routeState = .main
         presentV2UpdateGuideIfNeeded()
         refreshFeatureConfigAndPresentV2UpdateGuide()
     }
@@ -152,6 +157,11 @@ final class AppRootViewModel: ObservableObject {
         }
     }
 
+    func didEnterGuest() {
+        guestModeStore.markGuestEntry()
+        routeState = .main
+    }
+
     func didSignOut() {
         routeState = .signedOut
         didEvaluateV2UpdateGuide = false
@@ -159,7 +169,7 @@ final class AppRootViewModel: ObservableObject {
     }
 
     func prepareLocationPermissionIfNeeded() {
-        guard routeState == .signedIn, !didHandleLocationPermission else { return }
+        guard routeState == .main, !didHandleLocationPermission else { return }
         guard ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1" else { return }
 
         switch locationService.authorizationStatus() {
@@ -175,7 +185,7 @@ final class AppRootViewModel: ObservableObject {
     }
 
     func presentV2UpdateGuideIfNeeded(now: Date = Date()) {
-        guard routeState == .signedIn, !didEvaluateV2UpdateGuide else { return }
+        guard routeState == .main, !didEvaluateV2UpdateGuide else { return }
         didEvaluateV2UpdateGuide = true
         isV2UpdateGuidePresented = newFeatureGuideStore.shouldShowV2UpdateModal(now: now)
     }
@@ -190,7 +200,7 @@ private extension AuthState {
     func toRoute() -> AppRootViewModel.AuthRouteState {
         switch self {
         case .signedOut: .signedOut
-        case .signedIn: .signedIn
+        case .signedIn: .main
         }
     }
 }

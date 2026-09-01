@@ -23,6 +23,7 @@ struct PickflowApp: App {
                     socialLoginService: getSocialLoginService(),
                     locationService: getLocationService(),
                     onboardingCompletionStore: getOnboardingCompletionStore(),
+                    guestModeStore: getGuestModeStore(),
                     newFeatureGuideStore: getNewFeatureGuideStore()
                 )
             }
