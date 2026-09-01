@@ -16,7 +16,7 @@ struct SpotOpenGuideSheet: View {
 
                 Text("내가 기록한 스팟을 다른 유저에게 공개할 수 있어요")
                     .pretendard(.body(.medium()))
-                    .foregroundStyle(Color(red: 177 / 255, green: 184 / 255, blue: 190 / 255))
+                    .foregroundStyle(.gray30)
                     .multilineTextAlignment(.center)
             }
 
