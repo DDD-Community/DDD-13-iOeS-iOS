@@ -8,6 +8,7 @@ import SwiftUI
 /// 카테고리가 더 늘어나도 이 구조 그대로 버틴다.
 struct SpotThemeFilterBar: View {
     @Binding var selectedThemes: Set<SpotTheme>
+    var showsNewIndicators: Bool = false
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -28,27 +29,41 @@ struct SpotThemeFilterBar: View {
                 selectedThemes.insert(theme)
             }
         } label: {
-            HStack(spacing: 6) {
-                AssetImage(named: theme.iconAssetName, size: 20) {
-                    Text(theme.iconEmoji)
-                        .font(.system(size: 16))
-                }
+            ZStack(alignment: .topTrailing) {
+                HStack(spacing: 6) {
+                    AssetImage(named: theme.iconAssetName, size: 20) {
+                        Text(theme.iconEmoji)
+                            .font(.system(size: 16))
+                    }
 
-                Text(theme.displayName)
-                    .pretendard(.body(.large(.bold)))
-                    .padding(.vertical, 8)
-                    .foregroundStyle(isSelected ? .white : .primary)
+                    Text(theme.displayName)
+                        .pretendard(.body(.large(.bold)))
+                        .padding(.vertical, 8)
+                        .foregroundStyle(isSelected ? .white : .primary)
+                }
+                .padding(.horizontal, 14)
+                .background(.gray95)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                // 선택 stroke 는 카테고리와 무관하게 단일 주황(#FA6133) — 디자인 확인 완료.
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(isSelected ? Color(.sunsetOrange) : .clear, lineWidth: 1)
+                )
+
+                if showsNewIndicator(for: theme) {
+                    Circle()
+                        .fill(UIAsset.Colors.sunsetOrange.swiftUIColor)
+                        .frame(width: 5, height: 5)
+                        .padding(.top, 6)
+                        .padding(.trailing, 6)
+                }
             }
-            .padding(.horizontal, 14)
-            .background(.gray95)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            // 선택 stroke 는 카테고리와 무관하게 단일 주황(#FA6133) — 디자인 확인 완료.
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(isSelected ? Color(.sunsetOrange) : .clear, lineWidth: 1)
-            )
         }
         .accessibilityLabel("카테고리 \(theme.displayName)")
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private func showsNewIndicator(for theme: SpotTheme) -> Bool {
+        showsNewIndicators && (theme == .sunlight || theme == .nightView)
     }
 }

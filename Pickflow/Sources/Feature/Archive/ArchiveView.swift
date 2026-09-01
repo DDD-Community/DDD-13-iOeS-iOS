@@ -169,6 +169,22 @@ struct ArchiveView: View {
                 ))
             }
         }
+        .sheet(isPresented: Binding(
+            get: { viewModel.isSpotOpenGuidePresented },
+            set: { if !$0 { viewModel.dismissSpotOpenGuide() } }
+        )) {
+            SpotOpenGuideSheet(
+                onOpenSpot: {
+                    if let spotId = viewModel.spotOpenGuidePrimaryTapped() {
+                        selectedSpotId = spotId
+                    }
+                },
+                onConfirm: viewModel.dismissSpotOpenGuide
+            )
+            .presentationDetents([.height(496)])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(UIAsset.Colors.gray95.swiftUIColor)
+        }
         .navigationDestination(isPresented: $showRegistration) {
             SpotRegistrationAssembly.make { _ in
                 showRegistration = false

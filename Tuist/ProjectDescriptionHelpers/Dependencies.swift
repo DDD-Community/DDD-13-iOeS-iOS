@@ -15,6 +15,7 @@ public enum DoriDependency: String {
     case firebaseMessaging = "FirebaseMessaging"
     case firebaseAnalytics = "FirebaseAnalytics"
     case firebaseCrashlytics = "FirebaseCrashlytics"
+    case firebaseRemoteConfig = "FirebaseRemoteConfig"
     case nMapsMap = "NMapsMap"
     case snapshotTesting = "SnapshotTesting"
     case swinject = "Swinject"

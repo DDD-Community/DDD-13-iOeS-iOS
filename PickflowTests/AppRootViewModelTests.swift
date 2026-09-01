@@ -6,6 +6,7 @@ final class AppRootViewModelTests: XCTestCase {
     private var authService: MockAuthService!
     private var onboardingStore: MockOnboardingCompletionStore!
     private var guestModeStore: MockGuestModeStore!
+    private var newFeatureGuideStore: FakeNewFeatureGuideStore!
     private var viewModel: AppRootViewModel!
 
     override func setUp() async throws {
@@ -13,17 +14,20 @@ final class AppRootViewModelTests: XCTestCase {
         authService = MockAuthService()
         onboardingStore = MockOnboardingCompletionStore()
         guestModeStore = MockGuestModeStore()
+        newFeatureGuideStore = FakeNewFeatureGuideStore()
         viewModel = AppRootViewModel(
             authService: authService,
             socialLoginService: MockSocialLoginService(),
             locationService: MockLocationService(),
             onboardingCompletionStore: onboardingStore,
-            guestModeStore: guestModeStore
+            guestModeStore: guestModeStore,
+            newFeatureGuideStore: newFeatureGuideStore
         )
     }
 
     override func tearDown() async throws {
         viewModel = nil
+        newFeatureGuideStore = nil
         guestModeStore = nil
         onboardingStore = nil
         authService = nil

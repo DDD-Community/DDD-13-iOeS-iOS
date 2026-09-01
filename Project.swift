@@ -46,6 +46,7 @@ let project = Project(
                 .external(.firebaseMessaging),
                 .external(.firebaseAnalytics),
                 .external(.firebaseCrashlytics),
+                .external(.firebaseRemoteConfig),
                 .external(.kakaoSDKCommon),
                 .external(.kakaoSDKAuth),
                 .external(.kakaoSDKUser),

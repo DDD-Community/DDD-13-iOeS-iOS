@@ -57,18 +57,21 @@ final class ArchiveViewModel: ObservableObject {
     @Published var toast: String?
     @Published var archiveName: String = "나의 보관함"
     @Published var coverImageData: Data?
+    @Published private(set) var isSpotOpenGuidePresented: Bool = false
 
     private let archiveService: ArchiveServiceProtocol
     private let bookmarkService: BookmarkServiceProtocol
     private let authService: AuthServiceProtocol
     private let socialLoginService: SocialLoginServiceProtocol
     private let locationService: LocationServiceProtocol
+    private let newFeatureGuideStore: NewFeatureGuideStore
 
     private var currentPage: Int = 0
     private var hasNext: Bool = false
     private var mySpotsCurrentPage: Int = 0
     private var mySpotsHasNext: Bool = false
     private var currentCoordinate: Coordinate?
+    private var currentUserGuideKey: String?
     nonisolated(unsafe) private var notificationObservers: [NSObjectProtocol] = []
 
     init(
@@ -76,13 +79,15 @@ final class ArchiveViewModel: ObservableObject {
         bookmarkService: BookmarkServiceProtocol,
         authService: AuthServiceProtocol,
         socialLoginService: SocialLoginServiceProtocol,
-        locationService: LocationServiceProtocol
+        locationService: LocationServiceProtocol,
+        newFeatureGuideStore: NewFeatureGuideStore = getNewFeatureGuideStore()
     ) {
         self.archiveService = archiveService
         self.bookmarkService = bookmarkService
         self.authService = authService
         self.socialLoginService = socialLoginService
         self.locationService = locationService
+        self.newFeatureGuideStore = newFeatureGuideStore
         setupNotificationObservers()
     }
 
@@ -122,10 +127,13 @@ final class ArchiveViewModel: ObservableObject {
 
     func onAppear() async {
         let authState = await authService.currentAuthState()
-        guard case .signedIn = authState else {
+        guard case let .signedIn(token) = authState else {
             state = .signedOut
+            currentUserGuideKey = nil
             return
         }
+        currentUserGuideKey = token.newFeatureGuideUserKey
+        refreshFeatureConfigAndEvaluateSpotOpenGuide()
         // 이미 표시할 데이터가 있으면(탭 재진입 등) 로딩 스켈레톤 없이 조용히 갱신해
         // 화면이 매번 깜빡이며 리프레시되는 현상을 막는다. (@StateObject 라 이전 상태 유지)
         // 최초 진입·재시도·로그인 직후엔 데이터가 없으므로 로딩을 노출한다.
@@ -207,6 +215,7 @@ final class ArchiveViewModel: ObservableObject {
 
     func tabChanged(_ tab: ArchiveTab) {
         selectedTab = tab
+        evaluateSpotOpenGuidePresentation()
     }
 
     func clearLoginError() {
@@ -255,6 +264,21 @@ final class ArchiveViewModel: ObservableObject {
             try? await Task.sleep(for: .seconds(2))
             toast = nil
         }
+    }
+
+    func dismissSpotOpenGuide() {
+        guard let currentUserGuideKey else {
+            isSpotOpenGuidePresented = false
+            return
+        }
+        newFeatureGuideStore.markSpotOpenGuideSeen(userKey: currentUserGuideKey)
+        isSpotOpenGuidePresented = false
+    }
+
+    func spotOpenGuidePrimaryTapped() -> Int64? {
+        let spotId = firstMySpotId
+        dismissSpotOpenGuide()
+        return spotId
     }
 
     func loadNextPageIfNeeded(currentItem: SpotListItem) async {
@@ -385,6 +409,7 @@ final class ArchiveViewModel: ObservableObject {
             mySpotsState = response.spots.isEmpty
                 ? .empty
                 : .loaded(items: response.spots, hasNext: response.hasNext)
+            evaluateSpotOpenGuidePresentation()
         } catch {
             guard !silent else { return }
             mySpotsState = .failed(error.localizedDescription)
@@ -410,8 +435,34 @@ final class ArchiveViewModel: ObservableObject {
             mySpotsCurrentPage = response.page
             mySpotsHasNext = response.hasNext
             mySpotsState = .loaded(items: items + response.spots, hasNext: response.hasNext)
+            evaluateSpotOpenGuidePresentation()
         } catch {
             toast = "다음 페이지를 불러오지 못했어요."
+        }
+    }
+
+    private var firstMySpotId: Int64? {
+        guard case let .loaded(items, _) = mySpotsState else { return nil }
+        return items.first?.spotId
+    }
+
+    private func evaluateSpotOpenGuidePresentation(now: Date = Date()) {
+        guard selectedTab == .mySpots else { return }
+        guard !isSpotOpenGuidePresented else { return }
+        guard firstMySpotId != nil else { return }
+        guard let currentUserGuideKey else { return }
+        isSpotOpenGuidePresented = newFeatureGuideStore.shouldShowSpotOpenGuide(
+            userKey: currentUserGuideKey,
+            now: now
+        )
+    }
+
+    private func refreshFeatureConfigAndEvaluateSpotOpenGuide() {
+        evaluateSpotOpenGuidePresentation()
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            await self.newFeatureGuideStore.refreshFeatureConfig()
+            self.evaluateSpotOpenGuidePresentation()
         }
     }
 }
