@@ -355,6 +355,9 @@ final class SpotDetailViewModel: ObservableObject {
 
     private func updatePublicationStatus(_ status: MySpotStatus?) {
         publicationStatus = status
+        // 오픈 신청/철회로 상태 뱃지가 바뀌므로 "나의 스팟" 목록도 같이 갱신되어야 한다
+        // (삭제 때와 같은 이유).
+        NotificationCenter.default.post(name: .mySpotListDidChange, object: nil)
 
         guard case var .loaded(spot) = detailState else { return }
         spot.status = status

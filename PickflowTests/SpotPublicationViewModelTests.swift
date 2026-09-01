@@ -137,6 +137,20 @@ final class SpotPublicationViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.activeSheet)
     }
 
+    func test_requestOpen_성공하면_나의스팟목록갱신알림을_보낸다() async {
+        await loadDetail(.fixture(isMySpot: true, status: .draft))
+        mySpotService.requestOpenResult = .success(OpenMySpotResponse(spotId: 1, status: .pending))
+        var received: Notification.Name?
+        let observer = NotificationCenter.default.addObserver(
+            forName: .mySpotListDidChange, object: nil, queue: nil
+        ) { received = $0.name }
+        defer { NotificationCenter.default.removeObserver(observer) }
+
+        await viewModel.confirmOpenRequest()
+
+        XCTAssertEqual(received, .mySpotListDidChange)
+    }
+
     func test_requestOpen_반려상태에서_재신청하면_재검토대기가_된다() async {
         await loadDetail(.fixture(isMySpot: true, status: .rejected))
         mySpotService.requestOpenResult = .success(OpenMySpotResponse(spotId: 1, status: .reReviewPending))
@@ -180,6 +194,22 @@ final class SpotPublicationViewModelTests: XCTestCase {
         await viewModel.confirmCancelPublication()
 
         XCTAssertEqual(viewModel.publicationStatus, .draft)
+    }
+
+    func test_cancelPublication_성공하면_나의스팟목록갱신알림을_보낸다() async {
+        await loadDetail(.fixture(isMySpot: true, status: .published))
+        mySpotService.cancelPublicationResult = .success(
+            CancelPublicationResponse(spotId: 1, previousStatus: .published, status: .draft)
+        )
+        var received: Notification.Name?
+        let observer = NotificationCenter.default.addObserver(
+            forName: .mySpotListDidChange, object: nil, queue: nil
+        ) { received = $0.name }
+        defer { NotificationCenter.default.removeObserver(observer) }
+
+        await viewModel.confirmCancelPublication()
+
+        XCTAssertEqual(received, .mySpotListDidChange)
     }
 
     func test_cancelPublication_반려상태에서도_공개해제API를_호출하고_배너상태를_지운다() async {
