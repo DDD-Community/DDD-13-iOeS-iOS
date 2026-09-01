@@ -8,6 +8,8 @@ final class FakeNewFeatureGuideStore: NewFeatureGuideStore, @unchecked Sendable 
     private(set) var didMarkV2UpdateModalSeen = false
     private(set) var markedSpotOpenGuideUserKeys: [String] = []
 
+    func refreshActivatedFeatureConfig() {}
+
     func refreshFeatureConfig() async {}
 
     func shouldShowV2UpdateModal(now _: Date) -> Bool {
@@ -33,9 +35,14 @@ final class FakeNewFeatureGuideStore: NewFeatureGuideStore, @unchecked Sendable 
 
 final class StubNewFeatureRemoteConfigProvider: NewFeatureRemoteConfigProvider, @unchecked Sendable {
     var result: Result<NewFeatureRemoteConfig, any Error>
+    var activatedConfig: NewFeatureRemoteConfig?
 
     init(result: Result<NewFeatureRemoteConfig, any Error>) {
         self.result = result
+    }
+
+    func activatedFeatureConfig() -> NewFeatureRemoteConfig? {
+        activatedConfig
     }
 
     func fetchFeatureConfig() async throws -> NewFeatureRemoteConfig {

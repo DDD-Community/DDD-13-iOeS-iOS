@@ -2,6 +2,7 @@ import CryptoKit
 import Foundation
 
 protocol NewFeatureGuideStore: Sendable {
+    func refreshActivatedFeatureConfig()
     func refreshFeatureConfig() async
     func shouldShowV2UpdateModal(now: Date) -> Bool
     func markV2UpdateModalSeen()
@@ -33,11 +34,19 @@ final class UserDefaultsNewFeatureGuideStore: NewFeatureGuideStore, @unchecked S
         self.remoteConfigFallback = remoteConfigFallback
     }
 
+    func refreshActivatedFeatureConfig() {
+        guard let config = remoteConfigProvider?.activatedFeatureConfig() else { return }
+        saveRemoteConfig(config)
+        debugLog("activated remote config cached: \(config)")
+    }
+
     func refreshFeatureConfig() async {
         guard let remoteConfigProvider else {
             debugLog("remoteConfigProvider is nil")
             return
         }
+
+        refreshActivatedFeatureConfig()
 
         do {
             let config = try await remoteConfigProvider.fetchFeatureConfig()

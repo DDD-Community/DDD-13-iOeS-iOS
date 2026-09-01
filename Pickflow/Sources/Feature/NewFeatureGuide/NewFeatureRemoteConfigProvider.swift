@@ -3,6 +3,7 @@ import FirebaseCore
 import FirebaseRemoteConfig
 
 protocol NewFeatureRemoteConfigProvider: Sendable {
+    func activatedFeatureConfig() -> NewFeatureRemoteConfig?
     func fetchFeatureConfig() async throws -> NewFeatureRemoteConfig
 }
 
@@ -14,6 +15,20 @@ final class FirebaseNewFeatureRemoteConfigProvider: NewFeatureRemoteConfigProvid
     init(remoteConfig: RemoteConfig? = nil) {
         self.remoteConfig = remoteConfig
         configureRemoteConfigIfNeeded()
+    }
+
+    func activatedFeatureConfig() -> NewFeatureRemoteConfig? {
+        guard FirebaseApp.app() != nil else { return nil }
+        let remoteConfig = self.remoteConfig ?? RemoteConfig.remoteConfig()
+        self.remoteConfig = remoteConfig
+        configure(remoteConfig)
+        let configValue = remoteConfig.configValue(forKey: Self.remoteConfigKey)
+        let data = configValue.dataValue
+        guard let config = try? JSONDecoder().decode(NewFeatureRemoteConfig.self, from: data) else {
+            return nil
+        }
+        debugLog("activated source=\(configValue.source.rawValue), config=\(config)")
+        return config
     }
 
     func fetchFeatureConfig() async throws -> NewFeatureRemoteConfig {
