@@ -20,7 +20,7 @@ struct SpotOpenGuideSheet: View {
                     .multilineTextAlignment(.center)
             }
 
-            VStack(spacing: 12) {
+            VStack(spacing: 20) {
                 Button(action: onOpenSpot) {
                     HStack(spacing: 8) {
                         Text("내 스팟 오픈하러 가기")
