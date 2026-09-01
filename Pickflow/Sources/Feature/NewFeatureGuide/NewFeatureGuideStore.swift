@@ -34,14 +34,26 @@ final class UserDefaultsNewFeatureGuideStore: NewFeatureGuideStore, @unchecked S
     }
 
     func refreshFeatureConfig() async {
-        guard let remoteConfigProvider else { return }
-        guard let config = try? await remoteConfigProvider.fetchFeatureConfig() else { return }
-        saveRemoteConfig(config)
+        guard let remoteConfigProvider else {
+            debugLog("remoteConfigProvider is nil")
+            return
+        }
+
+        do {
+            let config = try await remoteConfigProvider.fetchFeatureConfig()
+            saveRemoteConfig(config)
+            debugLog("remote config fetched: \(config)")
+        } catch {
+            debugLog("remote config fetch failed: \(error)")
+        }
     }
 
     func shouldShowV2UpdateModal(now: Date = Date()) -> Bool {
-        isFeatureActive(featureKey: Self.v2UpdateModalFeatureKey, now: now)
-            && !defaults.bool(forKey: v2UpdateModalSeenKey)
+        let isActive = isFeatureActive(featureKey: Self.v2UpdateModalFeatureKey, now: now)
+        let hasSeen = defaults.bool(forKey: v2UpdateModalSeenKey)
+        let shouldShow = isActive && !hasSeen
+        debugLog("v2_update_modal isActive=\(isActive), hasSeen=\(hasSeen), shouldShow=\(shouldShow)")
+        return shouldShow
     }
 
     func markV2UpdateModalSeen() {
@@ -49,8 +61,11 @@ final class UserDefaultsNewFeatureGuideStore: NewFeatureGuideStore, @unchecked S
     }
 
     func shouldShowSpotOpenGuide(userKey: String, now: Date = Date()) -> Bool {
-        isFeatureActive(featureKey: Self.spotOpenGuideFeatureKey, audienceKey: userKey, now: now)
-            && !defaults.bool(forKey: spotOpenGuideSeenKey(userKey: userKey))
+        let isActive = isFeatureActive(featureKey: Self.spotOpenGuideFeatureKey, audienceKey: userKey, now: now)
+        let hasSeen = defaults.bool(forKey: spotOpenGuideSeenKey(userKey: userKey))
+        let shouldShow = isActive && !hasSeen
+        debugLog("spot_open_guide userKey=\(userKey), isActive=\(isActive), hasSeen=\(hasSeen), shouldShow=\(shouldShow)")
+        return shouldShow
     }
 
     func markSpotOpenGuideSeen(userKey: String) {
@@ -58,7 +73,9 @@ final class UserDefaultsNewFeatureGuideStore: NewFeatureGuideStore, @unchecked S
     }
 
     func shouldShowNewThemeIndicators(now: Date = Date()) -> Bool {
-        isFeatureActive(featureKey: Self.newThemeIndicatorFeatureKey, now: now)
+        let isActive = isFeatureActive(featureKey: Self.newThemeIndicatorFeatureKey, now: now)
+        debugLog("home_new_badge isActive=\(isActive)")
+        return isActive
     }
 
     private func isFeatureActive(featureKey: String, audienceKey: String? = nil, now: Date) -> Bool {
@@ -149,6 +166,12 @@ final class UserDefaultsNewFeatureGuideStore: NewFeatureGuideStore, @unchecked S
     private func firstSeenAtKey(featureKey: String, audienceKey: String?) -> String {
         let audience = audienceKey ?? "device"
         return "\(Self.baseKey).firstSeenAt.\(version).\(featureKey).\(audience)"
+    }
+
+    private func debugLog(_ message: String) {
+        #if DEBUG
+        print("[NewFeatureGuide] \(message)")
+        #endif
     }
 }
 
