@@ -21,7 +21,11 @@ final class SocialLoginService: SocialLoginServiceProtocol {
     func signInWithKakao() async throws {
         let kakaoToken = try await kakaoAuthProvider.obtainAccessToken()
         let response = try await authService.signInWithKakao(accessToken: kakaoToken)
-        try tokenStore.save(AuthToken(accessToken: response.accessToken, refreshToken: response.refreshToken))
+        try tokenStore.save(AuthToken(
+            accessToken: response.accessToken,
+            refreshToken: response.refreshToken,
+            userId: response.profile.userId
+        ))
     }
 
     func signInWithApple() async throws {
@@ -35,7 +39,11 @@ final class SocialLoginService: SocialLoginServiceProtocol {
             identityToken: credential.identityToken,
             user: user
         )
-        try tokenStore.save(AuthToken(accessToken: response.accessToken, refreshToken: response.refreshToken))
+        try tokenStore.save(AuthToken(
+            accessToken: response.accessToken,
+            refreshToken: response.refreshToken,
+            userId: response.profile.userId
+        ))
     }
 
     func restoreAccount(restoreToken: String) async throws {
@@ -50,6 +58,10 @@ final class SocialLoginService: SocialLoginServiceProtocol {
         case let .apple(identityToken, user):
             response = try await authService.signInWithApple(identityToken: identityToken, user: user)
         }
-        try tokenStore.save(AuthToken(accessToken: response.accessToken, refreshToken: response.refreshToken))
+        try tokenStore.save(AuthToken(
+            accessToken: response.accessToken,
+            refreshToken: response.refreshToken,
+            userId: response.profile.userId
+        ))
     }
 }

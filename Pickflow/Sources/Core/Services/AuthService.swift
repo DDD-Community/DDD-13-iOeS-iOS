@@ -59,7 +59,11 @@ final class AuthService: AuthServiceProtocol, Sendable {
             let response: ApiResponse<TokenResponse> = try await networkManager.requestJSON(
                 endpoint: AuthEndpoint.refresh(refreshToken: refreshToken)
             )
-            return AuthToken(accessToken: response.data.accessToken, refreshToken: response.data.refreshToken)
+            return AuthToken(
+                accessToken: response.data.accessToken,
+                refreshToken: response.data.refreshToken,
+                userId: response.data.profile.userId
+            )
         } catch {
             throw Self.map(error)
         }

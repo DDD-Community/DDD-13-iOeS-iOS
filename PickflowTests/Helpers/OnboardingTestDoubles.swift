@@ -16,3 +16,17 @@ final class MockOnboardingCompletionStore: OnboardingCompletionStore, @unchecked
         hasSeenValue = true
     }
 }
+
+final class MockGuestModeStore: GuestModeStore, @unchecked Sendable {
+    var hasEnteredValue = false
+    private(set) var markCallCount = 0
+
+    func hasEnteredAsGuest() -> Bool {
+        hasEnteredValue
+    }
+
+    func markGuestEntry() {
+        markCallCount += 1
+        hasEnteredValue = true
+    }
+}

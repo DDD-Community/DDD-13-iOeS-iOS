@@ -5,6 +5,13 @@ import Foundation
 struct AuthToken: Codable, Sendable {
     let accessToken: String
     let refreshToken: String
+    let userId: String?
+
+    init(accessToken: String, refreshToken: String, userId: String? = nil) {
+        self.accessToken = accessToken
+        self.refreshToken = refreshToken
+        self.userId = userId
+    }
 }
 
 enum AuthState: Sendable {

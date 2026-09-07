@@ -13,14 +13,18 @@ struct AppRootView: View {
         authService: AuthServiceProtocol,
         socialLoginService: SocialLoginServiceProtocol,
         locationService: LocationServiceProtocol,
-        onboardingCompletionStore: OnboardingCompletionStore
+        onboardingCompletionStore: OnboardingCompletionStore,
+        guestModeStore: GuestModeStore,
+        newFeatureGuideStore: NewFeatureGuideStore
     ) {
         _viewModel = StateObject(
             wrappedValue: AppRootViewModel(
                 authService: authService,
                 socialLoginService: socialLoginService,
                 locationService: locationService,
-                onboardingCompletionStore: onboardingCompletionStore
+                onboardingCompletionStore: onboardingCompletionStore,
+                guestModeStore: guestModeStore,
+                newFeatureGuideStore: newFeatureGuideStore
             )
         )
     }
@@ -44,16 +48,24 @@ struct AppRootView: View {
                         socialLoginService: viewModel.socialLoginService
                     ),
                     onSignInSucceeded: viewModel.didCompleteSignIn,
+                    onGuestEntryRequested: viewModel.didEnterGuest,
                     isClosable: false
                 )
-            case .signedIn:
+            case .main:
                 ContentView(onSignedOut: viewModel.didSignOut)
                     .task {
                         viewModel.prepareLocationPermissionIfNeeded()
                     }
             }
         }
+        .overlay {
+            if viewModel.isV2UpdateGuidePresented {
+                V2UpdateGuideModal(onConfirm: viewModel.didConfirmV2UpdateGuide)
+                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
+            }
+        }
         .animation(.easeInOut(duration: 0.25), value: viewModel.routeState)
+        .animation(.easeInOut(duration: 0.2), value: viewModel.isV2UpdateGuidePresented)
         .task {
             await viewModel.bootstrap()
         }
@@ -68,10 +80,17 @@ final class AppRootViewModel: ObservableObject {
         case loading
         case onboarding
         case signedOut
-        case signedIn
+        case main
     }
 
-    @Published private(set) var routeState: AuthRouteState = .loading
+    @Published private(set) var routeState: AuthRouteState = .loading {
+        didSet {
+            guard routeState == .main, oldValue != .main else { return }
+            presentV2UpdateGuideIfNeeded()
+            refreshFeatureConfigAndPresentV2UpdateGuide()
+        }
+    }
+    @Published private(set) var isV2UpdateGuidePresented = false
 
     /// 하위 ViewModel(LoginViewModel, OnboardingViewModel 등) 생성 시 주입용으로 노출.
     /// AppContainer에서 1회 resolve한 인스턴스를 재사용한다.
@@ -79,19 +98,26 @@ final class AppRootViewModel: ObservableObject {
     let socialLoginService: SocialLoginServiceProtocol
     let locationService: LocationServiceProtocol
     let onboardingCompletionStore: OnboardingCompletionStore
+    let guestModeStore: GuestModeStore
+    private let newFeatureGuideStore: NewFeatureGuideStore
 
     private var didHandleLocationPermission = false
+    private var didEvaluateV2UpdateGuide = false
 
     init(
         authService: AuthServiceProtocol,
         socialLoginService: SocialLoginServiceProtocol,
         locationService: LocationServiceProtocol,
-        onboardingCompletionStore: OnboardingCompletionStore
+        onboardingCompletionStore: OnboardingCompletionStore,
+        guestModeStore: GuestModeStore,
+        newFeatureGuideStore: NewFeatureGuideStore
     ) {
         self.authService = authService
         self.socialLoginService = socialLoginService
         self.locationService = locationService
         self.onboardingCompletionStore = onboardingCompletionStore
+        self.guestModeStore = guestModeStore
+        self.newFeatureGuideStore = newFeatureGuideStore
     }
 
     func bootstrap() async {
@@ -99,27 +125,51 @@ final class AppRootViewModel: ObservableObject {
             routeState = .onboarding
             return
         }
-        let state = await authService.currentAuthState()
-        routeState = state.toRoute()
+
+        let authState = await authService.currentAuthState()
+        if case .signedIn = authState {
+            routeState = .main
+        } else {
+            routeState = guestModeStore.hasEnteredAsGuest() ? .main : .signedOut
+        }
     }
 
     func didCompleteOnboarding() {
         Task { @MainActor in
-            let state = await authService.currentAuthState()
-            routeState = state.toRoute()
+            let authState = await authService.currentAuthState()
+            if case .signedIn = authState {
+                routeState = .main
+            } else {
+                routeState = .signedOut
+            }
         }
     }
 
     func didCompleteSignIn() {
-        routeState = .signedIn
+        routeState = .main
+    }
+
+    private func refreshFeatureConfigAndPresentV2UpdateGuide() {
+        Task {
+            await newFeatureGuideStore.refreshFeatureConfig()
+            didEvaluateV2UpdateGuide = false
+            presentV2UpdateGuideIfNeeded()
+        }
+    }
+
+    func didEnterGuest() {
+        guestModeStore.markGuestEntry()
+        routeState = .main
     }
 
     func didSignOut() {
         routeState = .signedOut
+        didEvaluateV2UpdateGuide = false
+        isV2UpdateGuidePresented = false
     }
 
     func prepareLocationPermissionIfNeeded() {
-        guard routeState == .signedIn, !didHandleLocationPermission else { return }
+        guard routeState == .main, !didHandleLocationPermission else { return }
         guard ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1" else { return }
 
         switch locationService.authorizationStatus() {
@@ -133,13 +183,24 @@ final class AppRootViewModel: ObservableObject {
 
         didHandleLocationPermission = true
     }
+
+    func presentV2UpdateGuideIfNeeded(now: Date = Date()) {
+        guard routeState == .main, !didEvaluateV2UpdateGuide else { return }
+        didEvaluateV2UpdateGuide = true
+        isV2UpdateGuidePresented = newFeatureGuideStore.shouldShowV2UpdateModal(now: now)
+    }
+
+    func didConfirmV2UpdateGuide() {
+        newFeatureGuideStore.markV2UpdateModalSeen()
+        isV2UpdateGuidePresented = false
+    }
 }
 
 private extension AuthState {
     func toRoute() -> AppRootViewModel.AuthRouteState {
         switch self {
         case .signedOut: .signedOut
-        case .signedIn: .signedIn
+        case .signedIn: .main
         }
     }
 }

@@ -1,12 +1,15 @@
 {
   "images" : [
     {
-      "filename" : "onboarding_1.pdf",
+      "filename" : "spot_open_guide_preview.svg",
       "idiom" : "universal"
     }
   ],
   "info" : {
     "author" : "xcode",
     "version" : 1
+  },
+  "properties" : {
+    "preserves-vector-representation" : true
   }
 }
