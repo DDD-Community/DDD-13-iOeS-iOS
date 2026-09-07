@@ -52,6 +52,9 @@ final class AppContainer {
         container.register(OnboardingCompletionStore.self, scope: .container) { UserDefaultsOnboardingCompletionStore() }
         container.register(GuestModeStore.self, scope: .container) { UserDefaultsGuestModeStore() }
         container.register(ReviewRequestStore.self, scope: .container) { UserDefaultsReviewRequestStore() }
+        container.register(NewFeatureGuideStore.self, scope: .container) {
+            UserDefaultsNewFeatureGuideStore(remoteConfigProvider: FirebaseNewFeatureRemoteConfigProvider())
+        }
         container.register(ReviewRequestServiceProtocol.self, scope: .container) { ReviewRequestService() }
     }
 }

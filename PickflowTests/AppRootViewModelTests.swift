@@ -6,6 +6,7 @@ final class AppRootViewModelTests: XCTestCase {
     private var authService: MockAuthService!
     private var onboardingStore: MockOnboardingCompletionStore!
     private var guestModeStore: MockGuestModeStore!
+    private var newFeatureGuideStore: FakeNewFeatureGuideStore!
     private var viewModel: AppRootViewModel!
 
     override func setUp() async throws {
@@ -13,17 +14,20 @@ final class AppRootViewModelTests: XCTestCase {
         authService = MockAuthService()
         onboardingStore = MockOnboardingCompletionStore()
         guestModeStore = MockGuestModeStore()
+        newFeatureGuideStore = FakeNewFeatureGuideStore()
         viewModel = AppRootViewModel(
             authService: authService,
             socialLoginService: MockSocialLoginService(),
             locationService: MockLocationService(),
             onboardingCompletionStore: onboardingStore,
-            guestModeStore: guestModeStore
+            guestModeStore: guestModeStore,
+            newFeatureGuideStore: newFeatureGuideStore
         )
     }
 
     override func tearDown() async throws {
         viewModel = nil
+        newFeatureGuideStore = nil
         guestModeStore = nil
         onboardingStore = nil
         authService = nil
@@ -51,6 +55,18 @@ final class AppRootViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.routeState, .main)
     }
 
+    func test_bootstrap_온보딩을본회원이고V2안내대상이면_모달을노출한다() async {
+        onboardingStore.hasSeenValue = true
+        authService.stubbedAuthState = .signedIn(
+            AuthToken(accessToken: "access", refreshToken: "refresh")
+        )
+        newFeatureGuideStore.shouldShowV2UpdateModalValue = true
+
+        await viewModel.bootstrap()
+
+        XCTAssertTrue(viewModel.isV2UpdateGuidePresented)
+    }
+
     func test_bootstrap_최초비회원이면_온보딩으로진입한다() async {
         await viewModel.bootstrap()
 
@@ -74,10 +90,28 @@ final class AppRootViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.routeState, .main)
     }
 
+    func test_bootstrap_온보딩을본비회원이고게스트이력이있고V2안내대상이면_모달을노출한다() async {
+        onboardingStore.hasSeenValue = true
+        guestModeStore.hasEnteredValue = true
+        newFeatureGuideStore.shouldShowV2UpdateModalValue = true
+
+        await viewModel.bootstrap()
+
+        XCTAssertTrue(viewModel.isV2UpdateGuidePresented)
+    }
+
     func test_didEnterGuest_게스트이력을저장하고메인으로진입한다() {
         viewModel.didEnterGuest()
 
         XCTAssertEqual(guestModeStore.markCallCount, 1)
         XCTAssertEqual(viewModel.routeState, .main)
+    }
+
+    func test_didEnterGuest_V2안내대상이면_모달을노출한다() {
+        newFeatureGuideStore.shouldShowV2UpdateModalValue = true
+
+        viewModel.didEnterGuest()
+
+        XCTAssertTrue(viewModel.isV2UpdateGuidePresented)
     }
 }
