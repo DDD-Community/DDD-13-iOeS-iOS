@@ -8,10 +8,8 @@ struct OnboardingPage: Identifiable, Hashable, Sendable {
     }
 
     /// 일러스트 영역의 레이아웃 종류.
-    /// - `topAlignedImage`: 디바이스 프레임 목업을 상단(safe area 침범)에 부착 + 좌우 패딩 + 그림자. Step 0.
-    /// - `fullBleedImage`: 그라데이션·UI가 모두 합성된 단일 히어로 이미지를 화면 폭 전체로 상단 정렬(Figma `swipe` export). Step 1~3.
+    /// - `fullBleedImage`: 그라데이션·UI가 모두 합성된 단일 히어로 이미지를 화면 폭 전체로 상단 정렬(Figma `swipe` export). Step 0~3.
     enum Layout: Sendable, Hashable {
-        case topAlignedImage
         case fullBleedImage
     }
 
@@ -49,7 +47,7 @@ extension OnboardingPage {
             gradient: .orangeWarm,
             carouselImageNames: [],
             moodHeader: nil,
-            layout: .topAlignedImage
+            layout: .fullBleedImage
         ),
         OnboardingPage(
             id: 1,
