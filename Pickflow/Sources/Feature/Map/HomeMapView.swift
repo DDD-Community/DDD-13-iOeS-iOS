@@ -7,6 +7,7 @@ struct HomeMapView: View {
     @State private var mapListMode: MapListMode = .map
     @Binding var isAddPlacePresented: Bool
     @Binding var isSpotDetailPresented: Bool
+    @Binding var isRegionSheetPresented: Bool
     @StateObject var clusteringViewModel: MapClusteringViewModel
     @State private var isSpotDetailSheetPresented = false
     @State private var selectedSpotVM: SpotDetailViewModel?
@@ -15,8 +16,10 @@ struct HomeMapView: View {
         spotListService: getSpotListService(),
         bookmarkService: getBookmarkService(),
         locationService: getLocationService(),
-        tokenStore: getTokenStore()
+        tokenStore: getTokenStore(),
+        regionSelectionStore: getRegionSelectionStore()
     )
+    @StateObject private var regionSelectionStore = getRegionSelectionStore()
     @State private var topBarHeight: CGFloat = 0
     @State private var isSortExpanded: Bool = false
     @State private var cameraMoveRequest: CameraMoveRequest?
@@ -129,6 +132,24 @@ struct HomeMapView: View {
             }
             .task {
                 await refreshUserLocation()
+            }
+            .task {
+                // 보통 부팅 시퀀스(ForceUpdate 이후)에서 이미 로드가 끝나 있거나 진행 중이라 즉시 반환된다.
+                await regionSelectionStore.loadIfNeeded()
+            }
+            .onChange(of: regionSelectionStore.selectedRegion) { oldValue, newValue in
+                // 최초 해석(oldValue == nil, 부팅 시퀀스의 loadIfNeeded 또는 persisted 값 복원)에도
+                // 카메라를 이 지역 bounds로 옮겨야 한다 — regionId가 viewport 조회에 필수 파라미터라
+                // NaverMapViewController의 하드코딩된 초기 카메라(서울 왕십리 근방)와 기본 선택 지역이
+                // 어긋나면 bbox·regionId가 AND로 묶여 빈 응답만 오는 콜드 런치 blank map 버그가 난다.
+                guard let newValue, oldValue != newValue else { return }
+                // 지도는 이 지역의 bounds로 카메라를 이동시키면 idle 콜백으로 새 viewport가
+                // 자동 보고되어 clusteringViewModel이 그 지역 기준으로 재조회한다.
+                // bounds를 모르는(향후 확장) 지역이면 필터링만 적용되고 카메라는 그대로 둔다.
+                if let bounds = newValue.cameraBounds {
+                    cameraMoveRequest = CameraMoveRequest(southWest: bounds.southWest, northEast: bounds.northEast)
+                }
+                Task { await spotList.regionChanged() }
             }
             .task {
                 await newThemeIndicatorViewModel.refresh()
@@ -285,7 +306,11 @@ struct HomeMapView: View {
     private var topBar: some View {
         VStack(alignment: .leading, spacing: 14) {
           HStack(alignment: .center) {
-              PickflowWorkMarkLogo()
+              RegionPickerHeader(regionName: regionSelectionStore.selectedRegion?.name ?? "") {
+                  withAnimation(.easeInOut(duration: 0.25)) {
+                      isRegionSheetPresented = true
+                  }
+              }
 
                 Spacer()
 
@@ -443,7 +468,11 @@ extension View {
     HomeMapView(
         isAddPlacePresented: .constant(false),
         isSpotDetailPresented: .constant(false),
-        clusteringViewModel: MapClusteringViewModel(clusteringService: getClusteringService())
+        isRegionSheetPresented: .constant(false),
+        clusteringViewModel: MapClusteringViewModel(
+            clusteringService: getClusteringService(),
+            regionSelectionStore: getRegionSelectionStore()
+        )
     )
     .environmentObject(DeepLinkRouter())
 }

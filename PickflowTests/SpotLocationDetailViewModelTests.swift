@@ -99,8 +99,10 @@ final class SpotLocationDetailViewModelTests: XCTestCase {
         await sut.moveToCurrentLocation()
 
         XCTAssertEqual(sut.userLocation, Coordinate(latitude: 37.5000, longitude: 127.0500))
-        XCTAssertEqual(sut.cameraMoveRequest?.coordinate,
-                       Coordinate(latitude: 37.5000, longitude: 127.0500))
+        guard case let .point(coordinate, _, _) = sut.cameraMoveRequest?.target else {
+            return XCTFail("Expected point target")
+        }
+        XCTAssertEqual(coordinate, Coordinate(latitude: 37.5000, longitude: 127.0500))
     }
 
     func test_moveToCurrentLocation_권한거부시_alert노출하고_위치갱신없음() async {

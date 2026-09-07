@@ -17,7 +17,10 @@ struct PickflowApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ForceUpdateGate(viewModel: ForceUpdateViewModel(service: getAppVersionService())) {
+            ForceUpdateGate(
+                viewModel: ForceUpdateViewModel(service: getAppVersionService()),
+                onLaunchChecksCompleted: { await getRegionSelectionStore().loadIfNeeded() }
+            ) {
                 AppRootView(
                     authService: getAuthService(),
                     socialLoginService: getSocialLoginService(),
