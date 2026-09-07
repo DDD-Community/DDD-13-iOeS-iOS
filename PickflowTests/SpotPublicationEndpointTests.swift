@@ -30,6 +30,15 @@ final class SpotPublicationEndpointTests: XCTestCase {
         XCTAssertEqual(endpoint.method, .delete)
     }
 
+    func test_노출_켜기_끄기는_같은_경로에_메서드만_다르다() {
+        let release = MySpotEndpoint.releaseSpot(spotId: spotId)
+        let unrelease = MySpotEndpoint.unreleaseSpot(spotId: spotId)
+        XCTAssertEqual(release.path, "/v1/users/me/my-spots/42/releases")
+        XCTAssertEqual(unrelease.path, "/v1/users/me/my-spots/42/releases")
+        XCTAssertEqual(release.method, .post)
+        XCTAssertEqual(unrelease.method, .delete)
+    }
+
     func test_추천_등록과_취소는_같은_경로에_메서드만_다르다() {
         let like = SpotLikeEndpoint.like(spotId: spotId)
         let unlike = SpotLikeEndpoint.unlike(spotId: spotId)

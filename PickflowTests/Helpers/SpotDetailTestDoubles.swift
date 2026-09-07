@@ -209,11 +209,19 @@ final class MockMySpotService: MySpotServiceProtocol, @unchecked Sendable {
     var cancelPublicationResult: Result<CancelPublicationResponse, any Error> = .success(
         CancelPublicationResponse(spotId: 1, previousStatus: .pending, status: .draft)
     )
+    var releaseResult: Result<ReleaseMySpotResponse, any Error> = .success(
+        ReleaseMySpotResponse(spotId: 1, released: true)
+    )
+    var unreleaseResult: Result<ReleaseMySpotResponse, any Error> = .success(
+        ReleaseMySpotResponse(spotId: 1, released: false)
+    )
 
     private(set) var updatedDrafts: [(spotId: Int64, draft: MySpotUpdateDraft)] = []
     private(set) var deletedSpotIds: [Int64] = []
     private(set) var requestedOpenSpotIds: [Int64] = []
     private(set) var cancelledSpotIds: [Int64] = []
+    private(set) var releasedSpotIds: [Int64] = []
+    private(set) var unreleasedSpotIds: [Int64] = []
 
     func updateMySpot(spotId: Int64, draft: MySpotUpdateDraft) async throws -> UpdateMySpotResponse {
         updatedDrafts.append((spotId, draft))
@@ -233,6 +241,16 @@ final class MockMySpotService: MySpotServiceProtocol, @unchecked Sendable {
     func cancelPublication(spotId: Int64) async throws -> CancelPublicationResponse {
         cancelledSpotIds.append(spotId)
         return try cancelPublicationResult.get()
+    }
+
+    func releaseSpot(spotId: Int64) async throws -> ReleaseMySpotResponse {
+        releasedSpotIds.append(spotId)
+        return try releaseResult.get()
+    }
+
+    func unreleaseSpot(spotId: Int64) async throws -> ReleaseMySpotResponse {
+        unreleasedSpotIds.append(spotId)
+        return try unreleaseResult.get()
     }
 }
 

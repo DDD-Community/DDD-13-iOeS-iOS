@@ -196,22 +196,54 @@ final class SpotPublicationViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.publicationStatus, .draft)
     }
 
-    func test_cancelPublication_공개중이었으면_hasEverBeenPublished가_꺼진뒤에도_true로유지된다() async {
+    // MARK: - 노출 on/off (releases)
+
+    func test_release_성공하면_isReleased가_true가_된다() async {
         await loadDetail(.fixture(isMySpot: true, status: .published))
-        XCTAssertTrue(viewModel.hasEverBeenPublished)
-        mySpotService.cancelPublicationResult = .success(
-            CancelPublicationResponse(spotId: 1, previousStatus: .published, status: .draft)
-        )
+        mySpotService.releaseResult = .success(ReleaseMySpotResponse(spotId: 1, released: true))
 
-        await viewModel.confirmCancelPublication()
+        await viewModel.confirmRelease()
 
-        XCTAssertTrue(viewModel.hasEverBeenPublished)
+        XCTAssertTrue(viewModel.isReleased)
+        XCTAssertEqual(mySpotService.releasedSpotIds, [1])
     }
 
-    func test_최초미승인_draft스팟은_hasEverBeenPublished가_false다() async {
-        await loadDetail(.fixture(isMySpot: true, status: .draft))
+    func test_unrelease_성공하면_isReleased가_false가_되고_publicationStatus는_published로_유지된다() async {
+        await loadDetail(.fixture(isMySpot: true, status: .published))
+        mySpotService.unreleaseResult = .success(ReleaseMySpotResponse(spotId: 1, released: false))
 
-        XCTAssertFalse(viewModel.hasEverBeenPublished)
+        await viewModel.confirmUnrelease()
+
+        XCTAssertFalse(viewModel.isReleased)
+        XCTAssertEqual(viewModel.publicationStatus, .published)
+        XCTAssertEqual(mySpotService.unreleasedSpotIds, [1])
+    }
+
+    func test_unrelease_성공해도_공개토글_섹션은_계속_노출된다() async {
+        await loadDetail(.fixture(isMySpot: true, status: .published))
+        mySpotService.unreleaseResult = .success(ReleaseMySpotResponse(spotId: 1, released: false))
+
+        await viewModel.confirmUnrelease()
+
+        // status 가 그대로 PUBLISHED 라 토글 섹션 노출 조건(SpotDetailView.isVisibilityToggleShown)이 유지된다.
+        XCTAssertEqual(viewModel.publicationStatus, .published)
+    }
+
+    func test_unrelease_실패하면_나의스팟목록갱신알림을_보내지_않는다() async {
+        await loadDetail(.fixture(isMySpot: true, status: .published))
+        mySpotService.unreleaseResult = .failure(
+            APIError(code: "SP012", message: "공개된 스팟만 노출을 켜고 끌 수 있어요.", statusCode: 409)
+        )
+        var received: Notification.Name?
+        let observer = NotificationCenter.default.addObserver(
+            forName: .mySpotListDidChange, object: nil, queue: nil
+        ) { received = $0.name }
+        defer { NotificationCenter.default.removeObserver(observer) }
+
+        await viewModel.confirmUnrelease()
+
+        XCTAssertNil(received)
+        XCTAssertEqual(viewModel.toast, "공개된 스팟만 노출을 켜고 끌 수 있어요.")
     }
 
     func test_cancelPublication_성공하면_나의스팟목록갱신알림을_보낸다() async {

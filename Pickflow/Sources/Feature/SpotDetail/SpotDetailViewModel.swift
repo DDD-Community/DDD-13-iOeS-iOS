@@ -28,11 +28,12 @@ final class SpotDetailViewModel: ObservableObject {
 
     /// 유저 등록 스팟의 공개 상태. 큐레이션 스팟이면 nil.
     @Published private(set) var publicationStatus: MySpotStatus?
-    /// 공개 토글을 OFF 하면 서버 상태가 DRAFT 로 돌아가 최초 미승인 상태와 구분이 안 된다
-    /// (docs/PV-40/backlog.md 의 "공개 ON/OFF 토글" 항목 참고 — 서버에 별도 상태 요청 중).
-    /// 그 전까지는 이 화면에서 한 번이라도 승인된 걸 봤다는 사실만이라도 기억해서,
-    /// 토글을 껐다고 섹션 자체가 사라지는 걸 막는다.
-    @Published private(set) var hasEverBeenPublished = false
+    /// 지도뷰/리스트 노출 on/off. `status`(검수 flow)와 독립적인 별도 플래그라
+    /// 껐다 켜도 PUBLISHED 를 벗어나지 않고, 재검수도 없다.
+    /// 상세/미리보기 응답에 아직 이 필드가 없어(서버에 추가 요청 중,
+    /// docs/PV-40/backlog.md 참고) 로드 시점엔 켜져 있다고 가정한다 —
+    /// 이 토글이 생기기 전엔 공개된 스팟은 항상 노출되어 있었기 때문이다.
+    @Published private(set) var isReleased = true
     @Published private(set) var likeCount = 0
     @Published private(set) var isLiked = false
     /// 추천 버튼 노출 여부. 비공개 상태의 유저 스팟에는 버튼 자체가 없다.
@@ -255,7 +256,6 @@ final class SpotDetailViewModel: ObservableObject {
 
     private func applyPublicationState(from spot: SpotDetail) {
         publicationStatus = spot.status
-        if spot.status == .published { hasEverBeenPublished = true }
         likeCount = spot.likeCount ?? 0
         isLiked = spot.isLiked ?? false
         canLike = spot.isLikeable ?? (spot.isCurated ?? false)
@@ -359,9 +359,37 @@ final class SpotDetailViewModel: ObservableObject {
         }
     }
 
+    /// 공개 ON/OFF 토글. `status`(검수 flow)와 독립적이라 재검수를 거치지 않는다.
+    func confirmRelease() async {
+        guard !isPublicationActionInFlight else { return }
+        isPublicationActionInFlight = true
+        defer { isPublicationActionInFlight = false }
+
+        do {
+            let response = try await mySpotService.releaseSpot(spotId: spotId)
+            isReleased = response.released
+            NotificationCenter.default.post(name: .mySpotListDidChange, object: nil)
+        } catch {
+            await handlePublicationFailure(error)
+        }
+    }
+
+    func confirmUnrelease() async {
+        guard !isPublicationActionInFlight else { return }
+        isPublicationActionInFlight = true
+        defer { isPublicationActionInFlight = false }
+
+        do {
+            let response = try await mySpotService.unreleaseSpot(spotId: spotId)
+            isReleased = response.released
+            NotificationCenter.default.post(name: .mySpotListDidChange, object: nil)
+        } catch {
+            await handlePublicationFailure(error)
+        }
+    }
+
     private func updatePublicationStatus(_ status: MySpotStatus?) {
         publicationStatus = status
-        if status == .published { hasEverBeenPublished = true }
         // 오픈 신청/철회로 상태 뱃지가 바뀌므로 "나의 스팟" 목록도 같이 갱신되어야 한다
         // (삭제 때와 같은 이유).
         NotificationCenter.default.post(name: .mySpotListDidChange, object: nil)

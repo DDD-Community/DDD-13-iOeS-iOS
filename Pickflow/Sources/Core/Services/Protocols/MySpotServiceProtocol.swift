@@ -16,6 +16,14 @@ protocol MySpotServiceProtocol: Sendable {
     /// 공개 해제. 검수중이면 신청 철회, 공개중이면 비공개 전환으로 처리된다.
     @discardableResult
     func cancelPublication(spotId: Int64) async throws -> CancelPublicationResponse
+
+    /// 노출 켜기. PUBLISHED 상태를 유지한 채 지도뷰/리스트 노출만 켠다(재검수 없음).
+    @discardableResult
+    func releaseSpot(spotId: Int64) async throws -> ReleaseMySpotResponse
+
+    /// 노출 끄기. PUBLISHED 상태를 유지한 채 지도뷰/리스트 노출만 끈다.
+    @discardableResult
+    func unreleaseSpot(spotId: Int64) async throws -> ReleaseMySpotResponse
 }
 
 /// 스팟 수정 요청 값. 전달한 값으로 전체를 덮어쓴다.

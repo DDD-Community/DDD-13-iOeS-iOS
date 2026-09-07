@@ -27,6 +27,14 @@ struct CancelPublicationResponse: Decodable, Sendable, Equatable {
     }
 }
 
+/// 노출 켜기/끄기 응답. `status`(검수 flow)와 독립적인 별도 플래그라
+/// 이 API 는 상태를 바꾸지 않는다 — PUBLISHED 인 채로 노출만 껐다 켤 수 있고,
+/// 다시 켤 때 재검수를 거치지 않는다.
+struct ReleaseMySpotResponse: Decodable, Sendable, Equatable {
+    let spotId: Int64
+    let released: Bool
+}
+
 /// 추천(좋아요) 등록/취소 응답.
 /// `likeCount` 는 서버에 최종 반영된 값이므로 화면은 이 값 기준으로 맞춘다.
 struct SpotLikeResponse: Decodable, Sendable, Equatable {

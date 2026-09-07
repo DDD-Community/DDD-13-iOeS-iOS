@@ -58,6 +58,12 @@ final class MockMySpotPublicationService: MySpotServiceProtocol, @unchecked Send
     func cancelPublication(spotId: Int64) async throws -> CancelPublicationResponse {
         CancelPublicationResponse(spotId: spotId, previousStatus: currentStatus, status: .draft)
     }
+    func releaseSpot(spotId: Int64) async throws -> ReleaseMySpotResponse {
+        ReleaseMySpotResponse(spotId: spotId, released: true)
+    }
+    func unreleaseSpot(spotId: Int64) async throws -> ReleaseMySpotResponse {
+        ReleaseMySpotResponse(spotId: spotId, released: false)
+    }
 }
 
 /// 오픈 완료 팝업을 매번 보기 위해 "확인한 적 없음" 으로 고정한다.

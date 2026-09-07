@@ -162,24 +162,23 @@ struct SpotDetailView: View {
         }
     }
 
-    /// OFF 하면 서버 상태가 DRAFT 로 돌아가(publicationStatus != .published) 최초
-    /// 미승인 상태와 구분이 안 된다. `hasEverBeenPublished` 로 "한 번은 승인됐었다" 를
-    /// 따로 기억해서, 토글을 껐다고 섹션 자체가 사라지는 걸 막는다.
+    /// 최초 오픈 승인 이후(PUBLISHED)에만 나타난다.
     private var isVisibilityToggleShown: Bool {
         viewModel.publicationStatus == .published
-            || (viewModel.hasEverBeenPublished && viewModel.publicationStatus == .draft)
     }
 
-    /// 공개 토글. OFF 는 즉시 비공개 전환이지만 ON 은 재검수를 거쳐야 하므로
-    /// 바로 공개하지 않고 오픈 신청 시트를 띄운다.
+    /// 지도뷰/리스트 노출 on/off. `status`(검수 flow)와 독립적인 별도 플래그라
+    /// 재검수 없이 자유롭게 켰다 껐다 할 수 있다.
     private var visibilityBinding: Binding<Bool> {
         Binding(
-            get: { viewModel.publicationStatus == .published },
+            get: { viewModel.isReleased },
             set: { isOn in
-                if isOn {
-                    viewModel.presentSheet(.openRequest)
-                } else {
-                    Task { await viewModel.confirmCancelPublication() }
+                Task {
+                    if isOn {
+                        await viewModel.confirmRelease()
+                    } else {
+                        await viewModel.confirmUnrelease()
+                    }
                 }
             }
         )

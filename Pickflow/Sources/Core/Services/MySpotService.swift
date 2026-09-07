@@ -72,6 +72,22 @@ final class MySpotService: MySpotServiceProtocol, Sendable {
         )
         return envelope.data
     }
+
+    @discardableResult
+    func releaseSpot(spotId: Int64) async throws -> ReleaseMySpotResponse {
+        let envelope: APIEnvelope<ReleaseMySpotResponse> = try await networkManager.request(
+            endpoint: MySpotEndpoint.releaseSpot(spotId: spotId)
+        )
+        return envelope.data
+    }
+
+    @discardableResult
+    func unreleaseSpot(spotId: Int64) async throws -> ReleaseMySpotResponse {
+        let envelope: APIEnvelope<ReleaseMySpotResponse> = try await networkManager.request(
+            endpoint: MySpotEndpoint.unreleaseSpot(spotId: spotId)
+        )
+        return envelope.data
+    }
 }
 
 private extension Double {

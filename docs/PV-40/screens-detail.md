@@ -111,7 +111,8 @@
 기획 3.6은 "오픈 취소하기" 버튼 → 확인 모달("좋아요 수는 그대로 유지되고…") 흐름이었는데, 이후 확정된 토글 원칙으로 정리됨:
 "최초 오픈 승인 이후에만 나타나며, 승인 이력이 있는 스팟은 이후 ON/OFF 를 검수 없이 자유롭게 전환 가능. OFF 상태는 '나만보기(DRAFT)' 와는 다른 별도 상태로 취급하며, OFF→ON 전환 시 재검수 절차를 거치지 않는다."
 → 확인 모달은 없어지고 즉시 반영되는 토글로 확정. 좋아요/북마크는 기존대로 유지된다.
-→ **막힘: 서버 상태 모델(`DRAFT/PENDING/RE_REVIEW_PENDING/PUBLISHED/REJECTED`)에 "승인 이력 있는 OFF" 를 나타낼 상태가 없다.** `DELETE .../publications` 는 해제 후 상태가 항상 DRAFT 이고, `POST .../open-requests` 는 DRAFT 에서 호출하면 항상 재검수(PENDING) 로 간다. 지금 구현은 이 제약 때문에 토글 OFF→DRAFT, 토글 ON→매번 재검수 시트로 되어 있어 확정된 원칙과 다르다. 서버에 상태/엔드포인트 추가가 필요하다(`docs/PV-40/backlog.md` §2 참고).
+→ **해결됨**: 서버가 `POST/DELETE .../releases`(노출 켜기/끄기)를 추가했다. `status`(검수 flow)와 독립적인 별도 플래그라 PUBLISHED 를 유지한 채 재검수 없이 자유롭게 켰다 껐다 할 수 있다 — 원칙과 정확히 일치. `SpotVisibilityToggle` 을 이 엔드포인트로 재배선했다(`SpotDetailViewModel.confirmRelease/confirmUnrelease`).
+→ 남은 것: 상세/미리보기 응답에 현재 `released` 값이 없어 처음 열 때 on/off 상태를 알 수 없다. 서버에 필드 추가 요청 중(`docs/PV-40/backlog.md` §2).
 
 **8. 재신청 확인 바텀시트("다시 신청할까요?")가 시안에 없음**
 기획 3.5는 폼 제출 시 확인 모달이 뜬다고 돼 있는데, 시안은 [등록] → 바로 성공 토스트. 어느 쪽인지.

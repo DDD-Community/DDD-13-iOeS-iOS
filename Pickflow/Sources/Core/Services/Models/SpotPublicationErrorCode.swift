@@ -17,6 +17,8 @@ enum SpotPublicationErrorCode: String, Sendable, Equatable, CaseIterable {
     case notEditable = "SP010"
     /// 검수 중인 스팟이라 삭제 불가.
     case notDeletable = "SP011"
+    /// 공개(PUBLISHED) 상태가 아니라 노출을 켜거나 끌 수 없음.
+    case notReleasable = "SP012"
     /// 이미 추천한 스팟.
     case alreadyLiked = "SL001"
     /// 추천하지 않은 스팟.
@@ -37,6 +39,7 @@ enum SpotPublicationErrorCode: String, Sendable, Equatable, CaseIterable {
         case .nothingToCancel: "이미 나만 볼 수 있는 상태예요."
         case .notEditable: "공개를 먼저 해제한 뒤 수정할 수 있어요."
         case .notDeletable: "오픈 신청을 먼저 철회한 뒤 삭제할 수 있어요."
+        case .notReleasable: "공개된 스팟만 노출을 켜고 끌 수 있어요."
         case .alreadyLiked, .notLiked: "잠시 후 다시 시도해주세요."
         case .notLikeable: "공개된 스팟에만 추천할 수 있어요."
         case .unauthorized: "로그인이 필요해요."

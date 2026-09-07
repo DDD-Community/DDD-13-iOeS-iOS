@@ -22,6 +22,8 @@
 | 나만의 스팟 삭제 | DELETE | `/v1/users/me/my-spots/{spotId}` | 논리삭제. PENDING/RE_REVIEW_PENDING이면 409 |
 | 공개 해제 (철회/비공개 전환) | DELETE | `/v1/users/me/my-spots/{spotId}/publications` | 철회·비공개 전환 **동일 엔드포인트** |
 | 오픈 신청 | POST | `/v1/users/me/my-spots/{spotId}/open-requests` | DRAFT→PENDING, REJECTED→RE_REVIEW_PENDING |
+| 노출 켜기 | POST | `/v1/users/me/my-spots/{spotId}/releases` | PUBLISHED 유지, `status` 와 독립적인 별도 플래그. 재검수 없음. PUBLISHED 아니면 SP012 |
+| 노출 끄기 | DELETE | `/v1/users/me/my-spots/{spotId}/releases` | 위와 동일 엔드포인트, 메서드만 다름 |
 | 좋아요(추천) 등록 | POST | `/v1/spots/{spotId}/likes` | **201** 성공 |
 | 좋아요(추천) 취소 | DELETE | `/v1/spots/{spotId}/likes` | 200 |
 | 스팟 상세 | GET | `/v1/spots/{spotId}` | 필드 추가 (아래) |
