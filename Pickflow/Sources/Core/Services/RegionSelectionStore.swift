@@ -39,7 +39,9 @@ final class RegionSelectionStore: ObservableObject {
 
     private func performLoad() async {
         let fetched = (try? await regionService.fetchActiveRegions()) ?? []
-        let loaded = fetched.isEmpty ? Region.fallbackRegions : fetched
+        // 서버는 regionId 오름차순으로 내려주지만(`GET /v1/regions`), 목록·기본 선택 순서는
+        // 내림차순이어야 한다.
+        let loaded = (fetched.isEmpty ? Region.fallbackRegions : fetched).sorted { $0.id > $1.id }
         regions = loaded
 
         let savedId = defaults.object(forKey: Self.selectedRegionIdKey) as? Int

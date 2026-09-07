@@ -33,6 +33,17 @@ final class RegionSelectionStoreTests: XCTestCase {
         XCTAssertEqual(store.selectedRegion, Region.fallbackRegions.first)
     }
 
+    func test_loadIfNeeded_서버가regionId오름차순으로내려줘도_내림차순으로정렬된다() async {
+        // 서버(GET /v1/regions)는 regionId 오름차순으로 반환하지만, 목록·기본 선택은 내림차순이어야 한다.
+        regionService.regions = [Region(id: 1, name: "서울"), Region(id: 2, name: "대전")]
+        let store = RegionSelectionStore(regionService: regionService, defaults: defaults)
+
+        await store.loadIfNeeded()
+
+        XCTAssertEqual(store.regions.map(\.id), [2, 1])
+        XCTAssertEqual(store.selectedRegion?.id, 2)
+    }
+
     func test_loadIfNeeded_API실패시_폴백지역목록으로대체된다() async {
         regionService.error = TestError.failed
         let store = RegionSelectionStore(regionService: regionService, defaults: defaults)

@@ -37,9 +37,10 @@ extension Region {
         ),
     ]
 
-    /// 활성지역 조회 API 실패 시 폴백. 대전이 기본값으로 먼저 노출되어야 한다.
+    /// 활성지역 조회 API 실패 시 폴백. 목록은 regionId 내림차순으로 정렬되므로
+    /// 대전이 기본값으로 먼저 노출되도록 서울보다 큰 id를 준다.
     static let fallbackRegions: [Region] = [
-        Region(id: 1, name: "대전"),
-        Region(id: 2, name: "서울"),
+        Region(id: 2, name: "대전"),
+        Region(id: 1, name: "서울"),
     ]
 }
