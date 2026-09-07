@@ -263,6 +263,7 @@ final class OnboardingSnapshotTests: XCTestCase {
                 page: page,
                 currentIndex: index,
                 pageCount: pages.count,
+                primaryButtonTitle: index == pages.count - 1 ? "시작하기" : "다음으로",
                 onPrimaryTap: {}
             )
         }
@@ -292,6 +293,7 @@ final class OnboardingSnapshotTests: XCTestCase {
             page: pages[index],
             currentIndex: index,
             pageCount: pages.count,
+            primaryButtonTitle: index == pages.count - 1 ? "시작하기" : "다음으로",
             onPrimaryTap: {}
         )
         .frame(width: 393)
