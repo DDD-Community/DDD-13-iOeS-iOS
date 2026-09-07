@@ -138,10 +138,11 @@ struct HomeMapView: View {
                 await regionSelectionStore.loadIfNeeded()
             }
             .onChange(of: regionSelectionStore.selectedRegion) { oldValue, newValue in
-                // 최초 로드(oldValue == nil, 부팅 시퀀스의 loadIfNeeded 또는 persisted 값 복원)에서는
-                // 카메라를 움직이지 않는다 — 이 부수효과는 §2.2 "적용하기"로 확정된 변경에만 반응해야 한다.
-                // 시트 자체는 ContentView(탭바 위 오버레이)에서 렌더되므로 여기서는 이 값 변화만 관찰한다.
-                guard let oldValue, let newValue, oldValue != newValue else { return }
+                // 최초 해석(oldValue == nil, 부팅 시퀀스의 loadIfNeeded 또는 persisted 값 복원)에도
+                // 카메라를 이 지역 bounds로 옮겨야 한다 — regionId가 viewport 조회에 필수 파라미터라
+                // NaverMapViewController의 하드코딩된 초기 카메라(서울 왕십리 근방)와 기본 선택 지역이
+                // 어긋나면 bbox·regionId가 AND로 묶여 빈 응답만 오는 콜드 런치 blank map 버그가 난다.
+                guard let newValue, oldValue != newValue else { return }
                 // 지도는 이 지역의 bounds로 카메라를 이동시키면 idle 콜백으로 새 viewport가
                 // 자동 보고되어 clusteringViewModel이 그 지역 기준으로 재조회한다.
                 // bounds를 모르는(향후 확장) 지역이면 필터링만 적용되고 카메라는 그대로 둔다.
