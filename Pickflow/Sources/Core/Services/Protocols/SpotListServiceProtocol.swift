@@ -12,7 +12,7 @@ protocol SpotListServiceProtocol: Sendable {
         sort: SpotListSort,
         latitude: Double?,
         longitude: Double?,
-        regionId: Int?
+        regionId: Int
     ) async throws -> SpotListPage
 }
 

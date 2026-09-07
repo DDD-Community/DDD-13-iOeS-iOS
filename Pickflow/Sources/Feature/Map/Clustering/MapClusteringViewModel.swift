@@ -65,7 +65,8 @@ final class MapClusteringViewModel: ObservableObject {
     private func fetch(viewport: Viewport, themes: Set<SpotTheme>) async {
         // 스플래시 단계에서 선점 로드가 시작되므로 대부분 즉시 반환되고, 드물게 아직 진행 중이면 여기서 기다린다.
         await regionSelectionStore.loadIfNeeded()
-        let regionId = regionSelectionStore.selectedRegion?.id
+        // loadIfNeeded() 완료 후에는 폴백을 포함해 항상 채워지는 값이라 실질적으로 도달하지 않는 가드.
+        guard let regionId = regionSelectionStore.selectedRegion?.id else { return }
 
         // viewport 1회 호출로 curation/mySpots 동시 수신 — 동일 엔드포인트를 2번 때리는 문제 제거.
         do {

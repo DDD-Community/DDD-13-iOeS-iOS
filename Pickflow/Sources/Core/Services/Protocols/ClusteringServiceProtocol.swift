@@ -7,7 +7,7 @@ protocol ClusteringServiceProtocol: Sendable {
     func fetchSpots(
         viewport: Viewport,
         themes: Set<SpotTheme>,
-        regionId: Int?
+        regionId: Int
     ) async throws -> (curation: [ClusterableSpot], mySpots: [MySpot])
 }
 

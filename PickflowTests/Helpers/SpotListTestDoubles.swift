@@ -9,7 +9,7 @@ final class MockSpotListService: SpotListServiceProtocol, @unchecked Sendable {
         let sort: SpotListSort
         let latitude: Double?
         let longitude: Double?
-        let regionId: Int?
+        let regionId: Int
     }
 
     var responder: @Sendable (Request) -> Result<SpotListPage, any Error> = { _ in
@@ -24,7 +24,7 @@ final class MockSpotListService: SpotListServiceProtocol, @unchecked Sendable {
         sort: SpotListSort,
         latitude: Double?,
         longitude: Double?,
-        regionId: Int?
+        regionId: Int
     ) async throws -> SpotListPage {
         let request = Request(
             page: page,

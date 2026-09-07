@@ -96,6 +96,9 @@ final class SpotListViewModel: ObservableObject {
             return
         }
 
+        // loadIfNeeded() 완료 후에는 폴백을 포함해 항상 채워지는 값이라 실질적으로 도달하지 않는 가드.
+        guard let regionId = regionSelectionStore.selectedRegion?.id else { return }
+
         isLoadingNextPage = true
         defer { isLoadingNextPage = false }
 
@@ -107,7 +110,7 @@ final class SpotListViewModel: ObservableObject {
                 sort: sort,
                 latitude: currentCoordinate?.latitude,
                 longitude: currentCoordinate?.longitude,
-                regionId: regionSelectionStore.selectedRegion?.id
+                regionId: regionId
             )
             currentPage = response.page
             self.hasNext = response.hasNext
@@ -172,6 +175,8 @@ final class SpotListViewModel: ObservableObject {
     private func reload() async {
         // 스플래시 단계에서 선점 로드가 시작되므로 대부분 즉시 반환되고, 드물게 아직 진행 중이면 여기서 기다린다.
         await regionSelectionStore.loadIfNeeded()
+        // loadIfNeeded() 완료 후에는 폴백을 포함해 항상 채워지는 값이라 실질적으로 도달하지 않는 가드.
+        guard let regionId = regionSelectionStore.selectedRegion?.id else { return }
 
         let permitted = hasLocationPermission
         if !hasInitializedSort {
@@ -198,7 +203,7 @@ final class SpotListViewModel: ObservableObject {
                 sort: sort,
                 latitude: coordinate?.latitude,
                 longitude: coordinate?.longitude,
-                regionId: regionSelectionStore.selectedRegion?.id
+                regionId: regionId
             )
             currentPage = response.page
             hasNext = response.hasNext

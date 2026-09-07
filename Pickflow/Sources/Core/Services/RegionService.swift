@@ -8,9 +8,9 @@ final class RegionService: RegionServiceProtocol, Sendable {
     }
 
     func fetchActiveRegions() async throws -> [Region] {
-        let envelope: APIEnvelope<[Region]> = try await networkManager.request(
+        let envelope: APIEnvelope<RegionListResponse> = try await networkManager.request(
             endpoint: RegionEndpoint.activeList
         )
-        return envelope.data
+        return envelope.data.regions
     }
 }

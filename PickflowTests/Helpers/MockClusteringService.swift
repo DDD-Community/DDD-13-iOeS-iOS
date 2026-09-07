@@ -3,7 +3,7 @@ import Foundation
 
 final class MockClusteringService: ClusteringServiceProtocol, @unchecked Sendable {
     var result: Result<[ClusterableSpot], any Error> = .success([])
-    private(set) var requests: [(viewport: Viewport, themes: Set<SpotTheme>, regionId: Int?)] = []
+    private(set) var requests: [(viewport: Viewport, themes: Set<SpotTheme>, regionId: Int)] = []
 
     var mySpotsResult: Result<[MySpot], any Error> = .success([])
     private(set) var mySpotsRequests: [Viewport] = []
@@ -11,7 +11,7 @@ final class MockClusteringService: ClusteringServiceProtocol, @unchecked Sendabl
     func fetchSpots(
         viewport: Viewport,
         themes: Set<SpotTheme>,
-        regionId: Int?
+        regionId: Int
     ) async throws -> (curation: [ClusterableSpot], mySpots: [MySpot]) {
         requests.append((viewport, themes, regionId))
         mySpotsRequests.append(viewport)

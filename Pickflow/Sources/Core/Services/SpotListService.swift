@@ -13,7 +13,7 @@ final class SpotListService: SpotListServiceProtocol, Sendable {
         sort: SpotListSort,
         latitude: Double?,
         longitude: Double?,
-        regionId: Int?
+        regionId: Int
     ) async throws -> SpotListPage {
         let envelope: APIEnvelope<SpotListPage> = try await networkManager.request(
             endpoint: SpotListEndpoint(

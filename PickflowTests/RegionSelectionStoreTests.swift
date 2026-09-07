@@ -89,12 +89,7 @@ final class RegionSelectionStoreTests: XCTestCase {
     func test_저장된지역ID가새로로드된목록에없으면_첫번째지역이선택된다() async {
         // 이전 세션에서 id=2(서울)를 선택해 저장해둔 상태를 시뮬레이션.
         defaults.set(2, forKey: "regionSelection.selectedRegionId")
-        regionService.regions = [Region(
-            id: 99,
-            name: "부산",
-            southWestLatitude: 0, southWestLongitude: 0,
-            northEastLatitude: 0, northEastLongitude: 0
-        )]
+        regionService.regions = [Region(id: 99, name: "부산")]
         let store = RegionSelectionStore(regionService: regionService, defaults: defaults)
 
         await store.loadIfNeeded()

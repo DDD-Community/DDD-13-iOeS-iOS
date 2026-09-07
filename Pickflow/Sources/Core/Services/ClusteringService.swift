@@ -10,7 +10,7 @@ final class ClusteringService: ClusteringServiceProtocol, Sendable {
     func fetchSpots(
         viewport: Viewport,
         themes: Set<SpotTheme>,
-        regionId: Int?
+        regionId: Int
     ) async throws -> (curation: [ClusterableSpot], mySpots: [MySpot]) {
         let summaries = try await fetchViewport(viewport: viewport, themes: themes, regionId: regionId)
         var curation: [ClusterableSpot] = []
@@ -26,7 +26,7 @@ final class ClusteringService: ClusteringServiceProtocol, Sendable {
         return (curation, mySpots)
     }
 
-    private func fetchViewport(viewport: Viewport, themes: Set<SpotTheme>, regionId: Int?) async throws -> [SpotSummary] {
+    private func fetchViewport(viewport: Viewport, themes: Set<SpotTheme>, regionId: Int) async throws -> [SpotSummary] {
         let envelope: APIEnvelope<SpotViewportResponse> = try await networkManager.request(
             endpoint: SpotViewportEndpoint(
                 viewport: viewport,

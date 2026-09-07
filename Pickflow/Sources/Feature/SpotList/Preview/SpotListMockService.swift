@@ -11,7 +11,7 @@ final class SpotListMockService: SpotListServiceProtocol, Sendable {
         sort _: SpotListSort,
         latitude _: Double?,
         longitude _: Double?,
-        regionId _: Int?
+        regionId _: Int
     ) async throws -> SpotListPage {
         try await Task.sleep(for: .milliseconds(400))
 

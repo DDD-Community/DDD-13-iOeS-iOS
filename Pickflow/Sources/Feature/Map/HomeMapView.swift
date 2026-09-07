@@ -142,7 +142,10 @@ struct HomeMapView: View {
                 guard let oldValue, let newValue, oldValue != newValue else { return }
                 // 지도는 이 지역의 bounds로 카메라를 이동시키면 idle 콜백으로 새 viewport가
                 // 자동 보고되어 clusteringViewModel이 그 지역 기준으로 재조회한다.
-                cameraMoveRequest = CameraMoveRequest(southWest: newValue.southWest, northEast: newValue.northEast)
+                // bounds를 모르는(향후 확장) 지역이면 필터링만 적용되고 카메라는 그대로 둔다.
+                if let bounds = newValue.cameraBounds {
+                    cameraMoveRequest = CameraMoveRequest(southWest: bounds.southWest, northEast: bounds.northEast)
+                }
                 Task { await spotList.regionChanged() }
             }
             .onChange(of: selectedThemes) { _, themes in
