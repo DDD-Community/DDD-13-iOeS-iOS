@@ -83,7 +83,13 @@ final class AppRootViewModel: ObservableObject {
         case main
     }
 
-    @Published private(set) var routeState: AuthRouteState = .loading
+    @Published private(set) var routeState: AuthRouteState = .loading {
+        didSet {
+            guard routeState == .main, oldValue != .main else { return }
+            presentV2UpdateGuideIfNeeded()
+            refreshFeatureConfigAndPresentV2UpdateGuide()
+        }
+    }
     @Published private(set) var isV2UpdateGuidePresented = false
 
     /// 하위 ViewModel(LoginViewModel, OnboardingViewModel 등) 생성 시 주입용으로 노출.
@@ -123,8 +129,6 @@ final class AppRootViewModel: ObservableObject {
         let authState = await authService.currentAuthState()
         if case .signedIn = authState {
             routeState = .main
-            presentV2UpdateGuideIfNeeded()
-            refreshFeatureConfigAndPresentV2UpdateGuide()
         } else {
             routeState = guestModeStore.hasEnteredAsGuest() ? .main : .signedOut
         }
@@ -135,8 +139,6 @@ final class AppRootViewModel: ObservableObject {
             let authState = await authService.currentAuthState()
             if case .signedIn = authState {
                 routeState = .main
-                presentV2UpdateGuideIfNeeded()
-                refreshFeatureConfigAndPresentV2UpdateGuide()
             } else {
                 routeState = .signedOut
             }
@@ -145,8 +147,6 @@ final class AppRootViewModel: ObservableObject {
 
     func didCompleteSignIn() {
         routeState = .main
-        presentV2UpdateGuideIfNeeded()
-        refreshFeatureConfigAndPresentV2UpdateGuide()
     }
 
     private func refreshFeatureConfigAndPresentV2UpdateGuide() {
