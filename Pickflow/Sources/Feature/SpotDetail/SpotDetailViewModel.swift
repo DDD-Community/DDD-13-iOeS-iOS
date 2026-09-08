@@ -29,10 +29,10 @@ final class SpotDetailViewModel: ObservableObject {
     /// 유저 등록 스팟의 공개 상태. 큐레이션 스팟이면 nil.
     @Published private(set) var publicationStatus: MySpotStatus?
     /// 지도뷰/리스트 노출 on/off. `status`(검수 flow)와 독립적인 별도 플래그라
-    /// 껐다 켜도 PUBLISHED 를 벗어나지 않고, 재검수도 없다.
-    /// 상세/미리보기 응답에 아직 이 필드가 없어(서버에 추가 요청 중,
-    /// docs/PV-40/backlog.md 참고) 로드 시점엔 켜져 있다고 가정한다 —
-    /// 이 토글이 생기기 전엔 공개된 스팟은 항상 노출되어 있었기 때문이다.
+    /// 껐다 켜도 PUBLISHED 를 벗어나지 않고, 재검수도 없다. 상세 응답(`SpotDetail.isReleased`)엔
+    /// 반영됐지만 미리보기·목록 응답엔 아직 없다(서버에 추가 요청 중, docs/PV-40/backlog.md 참고).
+    /// 로드 전이거나 응답에 값이 없으면 켜져 있다고 가정한다 — 이 토글이 생기기 전엔
+    /// 공개된 스팟은 항상 노출되어 있었기 때문이다.
     @Published private(set) var isReleased = true
     @Published private(set) var likeCount = 0
     @Published private(set) var isLiked = false
@@ -256,6 +256,9 @@ final class SpotDetailViewModel: ObservableObject {
 
     private func applyPublicationState(from spot: SpotDetail) {
         publicationStatus = spot.status
+        // 미리보기·목록 응답엔 아직 이 필드가 없어(2026-09-08 기준) nil 이면 켜져 있다고
+        // 가정한다 — 이 토글이 생기기 전엔 공개된 스팟은 항상 노출되어 있었기 때문이다.
+        isReleased = spot.isReleased ?? true
         likeCount = spot.likeCount ?? 0
         isLiked = spot.isLiked ?? false
         canLike = spot.isLikeable ?? (spot.isCurated ?? false)
@@ -367,8 +370,7 @@ final class SpotDetailViewModel: ObservableObject {
 
         do {
             let response = try await mySpotService.releaseSpot(spotId: spotId)
-            isReleased = response.released
-            NotificationCenter.default.post(name: .mySpotListDidChange, object: nil)
+            updateReleaseState(response.released)
         } catch {
             await handlePublicationFailure(error)
         }
@@ -381,11 +383,22 @@ final class SpotDetailViewModel: ObservableObject {
 
         do {
             let response = try await mySpotService.unreleaseSpot(spotId: spotId)
-            isReleased = response.released
-            NotificationCenter.default.post(name: .mySpotListDidChange, object: nil)
+            updateReleaseState(response.released)
         } catch {
             await handlePublicationFailure(error)
         }
+    }
+
+    /// `isReleased` 는 헤더 등 여러 컴포넌트가 `detailState` 에 담긴 `SpotDetail` 을
+    /// 직접 읽을 수도 있으므로, 별도 published 프로퍼티만 갱신하면 화면에 반영되지
+    /// 않는 경우가 생길 수 있다(likeCount/publicationStatus 와 같은 이유).
+    private func updateReleaseState(_ released: Bool) {
+        isReleased = released
+        NotificationCenter.default.post(name: .mySpotListDidChange, object: nil)
+
+        guard case var .loaded(spot) = detailState else { return }
+        spot.isReleased = released
+        detailState = .loaded(spot)
     }
 
     private func updatePublicationStatus(_ status: MySpotStatus?) {

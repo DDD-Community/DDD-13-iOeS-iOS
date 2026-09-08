@@ -35,6 +35,9 @@ struct SpotDetail: Codable, Sendable, Identifiable, Equatable {
 
     /// 유저 등록 스팟의 공개 상태. 큐레이션 스팟이면 nil.
     var status: MySpotStatus?
+    /// 지도뷰/리스트 노출 on/off. `status`(검수 flow)와 독립적인 별도 플래그.
+    /// 이 상세 응답에만 추가돼 있고(2026-09-08 기준) 미리보기·목록 응답엔 아직 없다.
+    var isReleased: Bool?
     /// 관리자 큐레이션 스팟 여부. 유저 등록 스팟이면 false.
     var isCurated: Bool?
     /// 추천(좋아요) 수.

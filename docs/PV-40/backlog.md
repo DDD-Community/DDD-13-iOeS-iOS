@@ -46,7 +46,7 @@
 | 항목 | 내용 |
 |---|---|
 | 반려 배너 [스팟 오픈 철회] Dev 확인 | 기존 `DELETE .../publications` 연결은 완료했다. OpenAPI 에 `REJECTED` 처리 결과가 명시되지 않아 실제 Dev 응답 확인이 필요하다 |
-| 공개 ON/OFF 토글의 초기 상태 — `released` 필드 미노출 | 서버가 `POST/DELETE .../releases`(노출 켜기/끄기, `status` 와 독립적인 별도 플래그, 재검수 없음)를 추가해 원칙 자체는 해결됐다. 다만 `SpotDetailResponse`/`SpotPreviewResponse`/`MySpotItem` 응답엔 현재 `released` 값이 없어, 상세를 새로 열거나 목록에서 볼 때 지금 켜져 있는지 꺼져 있는지 알 방법이 없다. 앱은 당분간 PUBLISHED 면 항상 켜져 있다고 가정한다(`SpotDetailViewModel.isReleased` 기본값 `true`) — 읽기 응답에 필드 추가를 서버에 요청해야 한다 |
+| 공개 ON/OFF 토글의 초기 상태 — `SpotPreviewResponse`/`MySpotItem`엔 아직 없음 | `SpotDetailResponse`엔 `isReleased`가 추가돼(2026-09-08 확인) 상세 화면은 이제 서버 값을 그대로 읽는다. 다만 미리보기(`SpotPreviewResponse`)와 나만의 스팟 목록(`MySpotItem`)엔 아직 없어서, 미리보기 시트나 "나의 스팟" 리스트 카드에서는 여전히 켜져 있는지 꺼져 있는지 구분을 못 한다. "나의 스팟" 카드의 "공개" 뱃지도 그래서 released 여부와 무관하게 항상 뜬다 — 이 두 응답에도 필드 추가를 요청해야 한다 |
 | 큐레이션 출처명 | 기획 3.7 은 "한국관광공사"/"Pickflow 운영자" 같은 소스별 고정값을 요구하는데 API 에는 `isCurated: Bool` 뿐이다 |
 | 비공개 스팟 북마크 해제 | 비공개 스팟은 조회가 404 인데 북마크 해제도 막히는지 미확인. 막히면 보관함의 "저장 목록에서 삭제" 가 실패 토스트로 빠진다 |
 | 저장된 스팟 목록의 `likeCount` | 보관함 카드 시안은 "윤슬 · 추천 34" 인데 `SavedSpotItem` 에는 `bookmarkCount` 만 있고 `likeCount` 가 없다. 지표를 아예 노출하지 않고 있다(잘못 넣었다가 이번에 되돌렸다) |

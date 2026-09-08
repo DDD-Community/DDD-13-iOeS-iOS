@@ -109,6 +109,20 @@ final class SpotPublicationDecodingTests: XCTestCase {
         XCTAssertEqual(detail.rejection?.guideMessage, "선택하신 카테고리와 사진이 일치하지 않습니다.")
     }
 
+    func test_SpotDetail_isReleased를_디코딩한다() throws {
+        let json = """
+        {
+          "spotId": 1, "name": "석촌호수 산책길", "comment": "코멘트",
+          "theme": "SUNSET", "latitude": 37.5, "longitude": 127.1,
+          "address": "서울특별시 송파구", "imageUrl": null,
+          "bookmarkCount": 0, "isBookmarked": false, "isMySpot": true,
+          "status": "PUBLISHED", "isReleased": false
+        }
+        """
+        let detail = try decoder.decode(SpotDetail.self, from: Data(json.utf8))
+        XCTAssertEqual(detail.isReleased, false)
+    }
+
     func test_SpotDetail_PV40_필드가_없어도_디코딩된다() throws {
         let json = """
         {
@@ -122,6 +136,7 @@ final class SpotPublicationDecodingTests: XCTestCase {
         XCTAssertNil(detail.status)
         XCTAssertNil(detail.likeCount)
         XCTAssertNil(detail.rejection)
+        XCTAssertNil(detail.isReleased)
     }
 
     // MARK: - 저장된 스팟 / 미리보기 / 리스트

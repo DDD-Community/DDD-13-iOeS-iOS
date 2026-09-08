@@ -198,6 +198,30 @@ final class SpotPublicationViewModelTests: XCTestCase {
 
     // MARK: - 노출 on/off (releases)
 
+    func test_상세로드시_isReleased가_서버값을_그대로_따른다() async {
+        await loadDetail(.fixture(isMySpot: true, status: .published, isReleased: false))
+
+        XCTAssertFalse(viewModel.isReleased)
+    }
+
+    func test_상세로드시_isReleased가_없으면_켜져있다고_가정한다() async {
+        await loadDetail(.fixture(isMySpot: true, status: .published, isReleased: nil))
+
+        XCTAssertTrue(viewModel.isReleased)
+    }
+
+    func test_release_성공하면_detailState의_스팟에도_반영된다() async {
+        await loadDetail(.fixture(isMySpot: true, status: .published, isReleased: false))
+        mySpotService.releaseResult = .success(ReleaseMySpotResponse(spotId: 1, released: true))
+
+        await viewModel.confirmRelease()
+
+        guard case let .loaded(spot) = viewModel.detailState else {
+            return XCTFail("detailState 가 loaded 여야 한다")
+        }
+        XCTAssertEqual(spot.isReleased, true)
+    }
+
     func test_release_성공하면_isReleased가_true가_된다() async {
         await loadDetail(.fixture(isMySpot: true, status: .published))
         mySpotService.releaseResult = .success(ReleaseMySpotResponse(spotId: 1, released: true))
