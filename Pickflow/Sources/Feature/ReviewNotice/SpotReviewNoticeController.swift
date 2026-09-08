@@ -113,7 +113,13 @@ final class SpotReviewNoticeController: ObservableObject {
                 SpotReviewNotice(historyId: $0.historyId, spotId: $0.spotId, kind: .approved)
             }
             queue = rejected + approved
-            if !queue.isEmpty { notice = queue.removeFirst() }
+            if !queue.isEmpty {
+                notice = queue.removeFirst()
+                // 오픈/반려가 확인된 스팟은 "나의 스팟" 목록의 뱃지(검수중 → 공개/오픈 반려)도
+                // 같이 갱신되어야 한다. 스낵바를 닫기 전에도 목록엔 바로 반영되어야 하므로
+                // 여기서 posting — 확인(check) 처리와는 별개다.
+                NotificationCenter.default.post(name: .mySpotListDidChange, object: nil)
+            }
         }
 
         updateIndicator()

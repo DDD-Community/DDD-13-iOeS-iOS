@@ -58,6 +58,38 @@ final class SpotReviewNoticeTests: XCTestCase {
         XCTAssertEqual(controller.notice, SpotReviewNotice(historyId: 101, spotId: 7, kind: .rejected))
     }
 
+    func test_새_결과가_확인되면_나의스팟목록갱신알림을_보낸다() async {
+        reviewHistoryService.historiesResult = .success(
+            SpotReviewHistoryList(
+                approved: [ApprovedReviewHistoryItem(historyId: 100, spotId: 7, reviewedAt: "2026-09-08T10:00:00Z")],
+                rejected: []
+            )
+        )
+        let controller = makeController()
+        var received: Notification.Name?
+        let observer = NotificationCenter.default.addObserver(
+            forName: .mySpotListDidChange, object: nil, queue: nil
+        ) { received = $0.name }
+        defer { NotificationCenter.default.removeObserver(observer) }
+
+        await controller.refresh()
+
+        XCTAssertEqual(received, .mySpotListDidChange)
+    }
+
+    func test_새_결과가_없으면_나의스팟목록갱신알림을_보내지_않는다() async {
+        let controller = makeController()
+        var received: Notification.Name?
+        let observer = NotificationCenter.default.addObserver(
+            forName: .mySpotListDidChange, object: nil, queue: nil
+        ) { received = $0.name }
+        defer { NotificationCenter.default.removeObserver(observer) }
+
+        await controller.refresh()
+
+        XCTAssertNil(received)
+    }
+
     func test_미확인_히스토리가_없으면_스낵바가_뜨지_않는다() async {
         let controller = makeController()
 
