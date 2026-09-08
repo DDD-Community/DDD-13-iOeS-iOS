@@ -39,7 +39,9 @@ struct HomeMapView: View {
                     // 헤더 bottom 으로부터 8pt 간격 — Padding.containerTop + topBarHeight + 8
                     SpotListView(
                         viewModel: spotList,
-                        contentTopInset: Padding.containerTop + topBarHeight + 8,
+                        // 정렬 필터가 테마 필터 아래로 내려오면서(§ 지역/정렬 위계 정리) 카드 리스트와의
+                        // 간격도 16으로 맞췄다(시안 기준).
+                        contentTopInset: Padding.containerTop + topBarHeight + 16,
                         onCellTap: { spotId in
                             listDetailVM = makeSpotDetailViewModel(spotId: spotId)
                             isSpotDetailPresented = true
