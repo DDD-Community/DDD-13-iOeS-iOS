@@ -26,6 +26,7 @@ final class SocialLoginService: SocialLoginServiceProtocol {
             refreshToken: response.refreshToken,
             userId: response.profile.userId
         ))
+        NotificationCenter.default.post(name: .spotReviewCheckRequested, object: nil)
     }
 
     func signInWithApple() async throws {
@@ -44,6 +45,7 @@ final class SocialLoginService: SocialLoginServiceProtocol {
             refreshToken: response.refreshToken,
             userId: response.profile.userId
         ))
+        NotificationCenter.default.post(name: .spotReviewCheckRequested, object: nil)
     }
 
     func restoreAccount(restoreToken: String) async throws {
@@ -63,5 +65,6 @@ final class SocialLoginService: SocialLoginServiceProtocol {
             refreshToken: response.refreshToken,
             userId: response.profile.userId
         ))
+        NotificationCenter.default.post(name: .spotReviewCheckRequested, object: nil)
     }
 }

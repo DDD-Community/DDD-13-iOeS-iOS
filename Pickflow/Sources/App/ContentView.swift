@@ -8,6 +8,8 @@ struct ContentView: View {
     @State private var selectedTab: Tab
     // 보관함 탭은 한 번 방문하면 뷰를 살려둔다(재생성 시 이미지 재로드·스크롤 리셋로 리프레시처럼 보임).
     @State private var hasVisitedSaved: Bool
+    // 검수완료 알림 호출 시점 중 하나 — 지도 탐색화면 "최초" 진입시에만 부른다.
+    @State private var hasEnteredExploreOnce = false
     @State private var isExploreAddPlacePresented = false
     @State private var isExploreSpotDetailPresented = false
     @State private var isExploreRegionSheetPresented = false
@@ -205,11 +207,11 @@ struct ContentView: View {
         .task {
             // 윈도우가 준비된 뒤여야 터치 오버레이를 올릴 수 있다.
             devMode.applyPersistedSettings()
-            // 검수 결과가 나와 있으면 첫 진입 시점부터 스낵바를 띄운다.
-            await reviewNotice.refresh()
+            await enterExploreIfNeeded()
         }
         .onChange(of: selectedTab) { _, newValue in
             if newValue == .saved { hasVisitedSaved = true }
+            Task { await enterExploreIfNeeded() }
         }
         .onChange(of: deepLinkRouter.pendingSpotId) { _, spotId in
             guard spotId != nil else { return }
@@ -219,6 +221,15 @@ struct ContentView: View {
             // 탈퇴 완료 화면(WithdrawalView .done)이 뜨는 동안 마이 탭 하단 탭바를 노출한다.
             isWithdrawalComplete = true
         }
+    }
+
+    /// 검수완료 알림 호출 시점 중 하나 — 지도 탐색화면 최초 진입시에만 부른다.
+    /// 로그인 직후 / 앱 포그라운드 복귀 / 보관함 목록 조회는 reviewNotice 가
+    /// 알림(.spotReviewCheckRequested, willEnterForeground)을 직접 구독해서 처리한다.
+    private func enterExploreIfNeeded() async {
+        guard selectedTab == .explore, !hasEnteredExploreOnce else { return }
+        hasEnteredExploreOnce = true
+        await reviewNotice.refresh()
     }
 }
 

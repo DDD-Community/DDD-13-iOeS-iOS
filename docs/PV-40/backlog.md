@@ -21,11 +21,17 @@
 반려·승인이 동시에 여러 건 나와도 반려 우선으로 하나씩 순서대로 보여준다(큐 방식이라
 `refresh()` 재호출 없이 다음 건이 바로 뜬다).
 
-**아직 안 한 것 — 호출 시점**
-지금은 앱 진입 시(`ContentView.task`) 한 번만 부른다. 아래는 API가 생기기 전에
-정리해 둔 의견인데, 이제 API가 있으니 실제로 붙이면 된다:
-- 앱 포그라운드 복귀 시에도 호출 — 백그라운드에 오래 둬도 결과를 놓치지 않게
-- 오픈 신청 / 신청 철회 직후에도 호출 — 저장 탭 인디케이터가 그 즉시 반영되게
+**호출 시점 — 확정된 5가지 반영 완료(2026-09-08)**
+로그인 시점 / 앱 포그라운드 복귀 시 / 지도 탐색화면 최초 진입 시 / 저장된 스팟 목록
+조회 시 / 나만의 스팟 목록 조회 시, 이렇게 다섯 곳에서 부르기로 확정되어 그대로 구현했다.
+
+- 로그인·목록 조회는 `.spotReviewCheckRequested` 알림으로 느슨하게 연결했다
+  (`SocialLoginService.signInWithKakao/signInWithApple/retrySignIn`,
+  `ArchiveViewModel.fetchArchive/fetchMySpots` 성공 시 posting →
+  `SpotReviewNoticeController` 가 구독해 `refresh()` 호출)
+- 포그라운드 복귀는 `UIApplication.willEnterForegroundNotification` 을 같은 방식으로 구독
+- 탐색화면 최초 진입은 `ContentView` 가 `reviewNotice` 를 직접 들고 있어 알림 없이
+  바로 `refresh()` 호출(`hasEnteredExploreOnce` 플래그로 1회 제한)
 - (제외 유지) refresh token 갱신 시점은 여전히 부적절 — 인터셉터가 시점을 제어하고
   동시 401 시 중복 호출이 생긴다
 

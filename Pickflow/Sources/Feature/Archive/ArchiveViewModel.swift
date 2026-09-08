@@ -411,6 +411,7 @@ final class ArchiveViewModel: ObservableObject {
             state = response.spots.isEmpty
                 ? .empty
                 : .loaded(items: response.spots, hasNext: response.hasNext)
+            NotificationCenter.default.post(name: .spotReviewCheckRequested, object: nil)
         } catch let e as APIError {
             guard !silent else { return }
             state = .failed(e.message)
@@ -440,6 +441,7 @@ final class ArchiveViewModel: ObservableObject {
                 ? .empty
                 : .loaded(items: response.spots, hasNext: response.hasNext)
             evaluateSpotOpenGuidePresentation()
+            NotificationCenter.default.post(name: .spotReviewCheckRequested, object: nil)
         } catch {
             guard !silent else { return }
             mySpotsState = .failed(error.localizedDescription)

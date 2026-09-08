@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 /// 검수 결과 스낵바가 안내할 내용.
 struct SpotReviewNotice: Equatable {
@@ -61,6 +62,7 @@ final class SpotReviewNoticeController: ObservableObject {
     private var hasSpotUnderReview = false
     /// 한 번에 여러 건이 완료된 경우 나머지는 여기 쌓아 뒀다가 확인할 때마다 하나씩 꺼낸다.
     private var queue: [SpotReviewNotice] = []
+    nonisolated(unsafe) private var notificationObservers: [NSObjectProtocol] = []
 
     init(
         archiveService: ArchiveServiceProtocol,
@@ -70,6 +72,28 @@ final class SpotReviewNoticeController: ObservableObject {
         self.archiveService = archiveService
         self.reviewHistoryService = reviewHistoryService
         self.tokenStore = tokenStore
+        setupNotificationObservers()
+    }
+
+    deinit {
+        notificationObservers.forEach { NotificationCenter.default.removeObserver($0) }
+    }
+
+    /// 호출 시점: 로그인 직후·보관함 목록 조회(.spotReviewCheckRequested)와
+    /// 앱 포그라운드 복귀. 지도 탐색화면 최초 진입은 ContentView 가 reviewNotice 를
+    /// 직접 들고 있어 거기서 바로 refresh() 를 부른다.
+    private func setupNotificationObservers() {
+        let names: [Notification.Name] = [
+            .spotReviewCheckRequested,
+            UIApplication.willEnterForegroundNotification,
+        ]
+        notificationObservers = names.map { name in
+            NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    await self?.refresh()
+                }
+            }
+        }
     }
 
     func refresh() async {

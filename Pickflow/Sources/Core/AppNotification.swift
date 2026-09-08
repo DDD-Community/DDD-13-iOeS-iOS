@@ -8,6 +8,8 @@ extension Notification.Name {
     /// 등록/재신청/삭제 등 "나의 스팟" 목록 구성 자체가 바뀌는 모든 경우에 posting.
     static let mySpotListDidChange = Notification.Name("pickflow.mySpotListDidChange")
     static let spotLikeDidChange = Notification.Name("pickflow.spotLikeDidChange")
+    /// 검수완료 알림을 다시 확인해야 하는 시점(로그인 직후, 보관함 목록 조회 등)에 posting.
+    static let spotReviewCheckRequested = Notification.Name("pickflow.spotReviewCheckRequested")
 }
 
 /// `.spotLikeDidChange` 알림의 payload. 북마크와 달리 목록에서 전체를

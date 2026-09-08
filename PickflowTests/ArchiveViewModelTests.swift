@@ -56,6 +56,22 @@ final class ArchiveViewModelTests: XCTestCase {
         XCTAssertEqual(archiveService.requestedPages, [0])
     }
 
+    func test_onAppear_저장스팟과나의스팟목록이_각각_로드되면_검수확인알림을_보낸다() async {
+        authService.stubbedAuthState = .signedIn(.fixture())
+        archiveService.responder = { _ in .success(SavedSpotPage(spots: [.fixture()], page: 0, hasNext: false)) }
+        archiveService.mySpotsResponder = { _ in .success(MySpotListPage(spots: [.fixture()], page: 0, hasNext: false)) }
+        var receivedCount = 0
+        let observer = NotificationCenter.default.addObserver(
+            forName: .spotReviewCheckRequested, object: nil, queue: nil
+        ) { _ in receivedCount += 1 }
+        defer { NotificationCenter.default.removeObserver(observer) }
+
+        await viewModel.onAppear()
+
+        // 저장된 스팟 목록, 나만의 스팟 목록 — 각 조회 성공마다 한 번씩.
+        XCTAssertEqual(receivedCount, 2)
+    }
+
     func test_onAppear_로그인상태_빈응답_상태가empty로전환된다() async {
         authService.stubbedAuthState = .signedIn(.fixture())
         archiveService.responder = { _ in

@@ -1,3 +1,4 @@
+import UIKit
 import XCTest
 @testable import Pickflow
 
@@ -201,6 +202,50 @@ final class SpotReviewNoticeTests: XCTestCase {
 
         XCTAssertNil(controller.notice)
         XCTAssertFalse(controller.showsSavedTabIndicator)
+    }
+
+    // MARK: - 호출 시점(알림 구독)
+
+    func test_spotReviewCheckRequested_알림을_받으면_refresh가_실행된다() async {
+        reviewHistoryService.historiesResult = .success(
+            SpotReviewHistoryList(
+                approved: [ApprovedReviewHistoryItem(historyId: 100, spotId: 7, reviewedAt: "2026-09-08T10:00:00Z")],
+                rejected: []
+            )
+        )
+        let controller = makeController()
+        XCTAssertNil(controller.notice)
+
+        NotificationCenter.default.post(name: .spotReviewCheckRequested, object: nil)
+
+        await waitUntil { controller.notice != nil }
+        XCTAssertEqual(controller.notice, SpotReviewNotice(historyId: 100, spotId: 7, kind: .approved))
+    }
+
+    func test_앱_포그라운드_복귀_알림을_받으면_refresh가_실행된다() async {
+        reviewHistoryService.historiesResult = .success(
+            SpotReviewHistoryList(
+                approved: [ApprovedReviewHistoryItem(historyId: 100, spotId: 7, reviewedAt: "2026-09-08T10:00:00Z")],
+                rejected: []
+            )
+        )
+        let controller = makeController()
+
+        NotificationCenter.default.post(name: UIApplication.willEnterForegroundNotification, object: nil)
+
+        await waitUntil { controller.notice != nil }
+        XCTAssertEqual(controller.notice, SpotReviewNotice(historyId: 100, spotId: 7, kind: .approved))
+    }
+
+    /// NotificationCenter → Task { } 로 넘어가는 비동기 갱신을 짧게 폴링해서 기다린다.
+    private func waitUntil(
+        timeout: TimeInterval = 1,
+        _ condition: @MainActor () -> Bool
+    ) async {
+        let deadline = Date().addingTimeInterval(timeout)
+        while !condition(), Date() < deadline {
+            try? await Task.sleep(nanoseconds: 10_000_000)
+        }
     }
 
     private func makeController() -> SpotReviewNoticeController {
