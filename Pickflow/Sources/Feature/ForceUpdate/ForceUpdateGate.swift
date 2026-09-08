@@ -8,18 +8,25 @@ import UIKit
 struct ForceUpdateGate<Content: View>: View {
     @StateObject private var viewModel: ForceUpdateViewModel
     private let content: Content
+    private let onLaunchChecksCompleted: () async -> Void
 
     init(
         viewModel: @autoclosure @escaping () -> ForceUpdateViewModel,
+        onLaunchChecksCompleted: @escaping () async -> Void = {},
         @ViewBuilder content: () -> Content
     ) {
         _viewModel = StateObject(wrappedValue: viewModel())
+        self.onLaunchChecksCompleted = onLaunchChecksCompleted
         self.content = content()
     }
 
     var body: some View {
         content
-            .task { await viewModel.checkForUpdate() }
+            .task {
+                await viewModel.checkForUpdate()
+                // 앱 버전(config) 정책 확인 응답 직후 바로 시작 — 지역 선택 스토어의 활성지역 선점 로드 등.
+                await onLaunchChecksCompleted()
+            }
             .fullScreenCover(isPresented: .constant(viewModel.isForceUpdateRequired)) {
                 if let storeURL = viewModel.forceUpdateStoreURL {
                     ForceUpdateView(storeURL: storeURL) { url in

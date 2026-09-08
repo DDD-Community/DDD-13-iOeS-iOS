@@ -41,11 +41,15 @@ enum SpotEndpoint: APIEndpoint {
 struct SpotViewportEndpoint: APIEndpoint {
     let viewport: Viewport
     let themes: Set<SpotTheme>
+    /// 서버 스펙상 필수 파라미터, bbox 범위와 AND 조건으로 결합된다.
+    /// TODO(BE-API 확인 필요, PV-64): 내 MY스팟이 이 필터와 무관하게 항상 포함되는지 스펙 문서에
+    /// 명시돼 있지 않음 — bbox 안이라도 선택 지역 밖 MY스팟이 잘려나가지 않는지 BE에 재확인 필요.
+    let regionId: Int
 
     var baseURL: String { APIBaseURL.current }
     var path: String { "/v1/spots/viewport" }
     var method: HTTPMethod { .get }
-    // 카테고리 다중선택이 반복 파라미터라 대괄호 없는 배열 인코딩이 필요하다.
+    // 카테고리/지역 다중선택이 반복 파라미터라 대괄호 없는 배열 인코딩이 필요하다.
     var encoding: any ParameterEncoding { SpotThemeQuery.encoding }
     var parameters: Parameters? {
         // 서버 제약: 위/경도 소수점 6자리까지 허용. (KAN-107)
@@ -59,6 +63,7 @@ struct SpotViewportEndpoint: APIEndpoint {
             "bottomLeftLng": r(viewport.bottomLeft.longitude),
             "bottomRightLat": r(viewport.bottomRight.latitude),
             "bottomRightLng": r(viewport.bottomRight.longitude),
+            "regionId": [regionId],
         ]
         if let themeValues = SpotThemeQuery.values(for: themes) {
             p[SpotThemeQuery.parameterName] = themeValues

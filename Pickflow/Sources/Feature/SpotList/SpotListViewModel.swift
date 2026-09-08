@@ -25,6 +25,7 @@ final class SpotListViewModel: ObservableObject {
     private let bookmarkService: BookmarkServiceProtocol
     private let locationService: LocationServiceProtocol
     private let tokenStore: TokenStoreProtocol
+    private let regionSelectionStore: RegionSelectionStore
 
     private var currentPage: Int = 0
     private var hasNext: Bool = false
@@ -38,12 +39,14 @@ final class SpotListViewModel: ObservableObject {
         bookmarkService: BookmarkServiceProtocol,
         locationService: LocationServiceProtocol,
         tokenStore: TokenStoreProtocol,
+        regionSelectionStore: RegionSelectionStore,
         initialThemes: Set<SpotTheme> = []
     ) {
         self.spotListService = spotListService
         self.bookmarkService = bookmarkService
         self.locationService = locationService
         self.tokenStore = tokenStore
+        self.regionSelectionStore = regionSelectionStore
         self.selectedThemes = initialThemes
         setupLikeObserver()
         setupBookmarkObserver()
@@ -94,6 +97,11 @@ final class SpotListViewModel: ObservableObject {
         await reload()
     }
 
+    /// 지역 필터(대전/서울) 적용 시 첫 페이지부터 재조회.
+    func regionChanged() async {
+        await reload()
+    }
+
     /// 칩 탭 토글. 이미 선택돼 있으면 해제한다.
     func themeTapped(_ theme: SpotTheme) async {
         if selectedThemes.contains(theme) {
@@ -133,6 +141,9 @@ final class SpotListViewModel: ObservableObject {
             return
         }
 
+        // loadIfNeeded() 완료 후에는 폴백을 포함해 항상 채워지는 값이라 실질적으로 도달하지 않는 가드.
+        guard let regionId = regionSelectionStore.selectedRegion?.id else { return }
+
         isLoadingNextPage = true
         defer { isLoadingNextPage = false }
 
@@ -143,7 +154,8 @@ final class SpotListViewModel: ObservableObject {
                 themes: selectedThemes,
                 sort: sort,
                 latitude: currentCoordinate?.latitude,
-                longitude: currentCoordinate?.longitude
+                longitude: currentCoordinate?.longitude,
+                regionId: regionId
             )
             currentPage = response.page
             self.hasNext = response.hasNext
@@ -212,6 +224,11 @@ final class SpotListViewModel: ObservableObject {
     }
 
     private func reload() async {
+        // 스플래시 단계에서 선점 로드가 시작되므로 대부분 즉시 반환되고, 드물게 아직 진행 중이면 여기서 기다린다.
+        await regionSelectionStore.loadIfNeeded()
+        // loadIfNeeded() 완료 후에는 폴백을 포함해 항상 채워지는 값이라 실질적으로 도달하지 않는 가드.
+        guard let regionId = regionSelectionStore.selectedRegion?.id else { return }
+
         let permitted = hasLocationPermission
         if !hasInitializedSort {
             hasInitializedSort = true
@@ -236,7 +253,8 @@ final class SpotListViewModel: ObservableObject {
                 themes: selectedThemes,
                 sort: sort,
                 latitude: coordinate?.latitude,
-                longitude: coordinate?.longitude
+                longitude: coordinate?.longitude,
+                regionId: regionId
             )
             currentPage = response.page
             hasNext = response.hasNext

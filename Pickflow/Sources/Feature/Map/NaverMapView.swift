@@ -7,18 +7,25 @@ import SwiftUI
 /// 콜백이 호출되지 않는 이슈가 KAN-82 검증에서 확인됨.
 /// 동일 좌표 재탭에서도 카메라 이동이 다시 트리거되도록 UUID 기반 식별자를 함께 보낸다.
 struct CameraMoveRequest: Equatable {
+    enum Target: Equatable {
+        case point(coordinate: Coordinate, zoom: Double?, pivotY: CGFloat?)
+        /// 남서/북동 좌표로 정의된 영역이 화면에 다 들어오도록 자동으로 이동·줌 (지역 전환 시 사용).
+        case bounds(southWest: Coordinate, northEast: Coordinate)
+    }
+
     let id: UUID
-    let coordinate: Coordinate
-    let zoom: Double?
+    let target: Target
+
     /// 카메라 pivot Y (0=상단, 1=하단). nil 이면 화면 중앙(0.5).
     /// 바텀시트로 가려지지 않도록 마커를 위쪽에 띄우고 싶을 때 0.3 정도 권장.
-    let pivotY: CGFloat?
-
     init(coordinate: Coordinate, zoom: Double? = nil, pivotY: CGFloat? = nil) {
         self.id = UUID()
-        self.coordinate = coordinate
-        self.zoom = zoom
-        self.pivotY = pivotY
+        self.target = .point(coordinate: coordinate, zoom: zoom, pivotY: pivotY)
+    }
+
+    init(southWest: Coordinate, northEast: Coordinate) {
+        self.id = UUID()
+        self.target = .bounds(southWest: southWest, northEast: northEast)
     }
 }
 
@@ -159,17 +166,28 @@ final class NaverMapViewController: UIViewController, @preconcurrency NMFMapView
         guard request.id != lastAppliedCameraRequestId else { return }
         guard let mapView = naverMapView?.mapView else { return }
         lastAppliedCameraRequestId = request.id
-        let latlng = NMGLatLng(
-            lat: request.coordinate.latitude,
-            lng: request.coordinate.longitude
-        )
-        let position = NMFCameraPosition(latlng, zoom: request.zoom ?? mapView.zoomLevel)
-        let update = NMFCameraUpdate(position: position)
-        update.animation = .easeOut
-        if let pivotY = request.pivotY {
-            update.pivot = CGPoint(x: 0.5, y: pivotY)
+
+        switch request.target {
+        case let .point(coordinate, zoom, pivotY):
+            let latlng = NMGLatLng(lat: coordinate.latitude, lng: coordinate.longitude)
+            let position = NMFCameraPosition(latlng, zoom: zoom ?? mapView.zoomLevel)
+            let update = NMFCameraUpdate(position: position)
+            update.animation = .easeOut
+            if let pivotY {
+                update.pivot = CGPoint(x: 0.5, y: pivotY)
+            }
+            mapView.moveCamera(update)
+        case let .bounds(southWest, northEast):
+            let bounds = NMGLatLngBounds(
+                southWestLat: southWest.latitude,
+                southWestLng: southWest.longitude,
+                northEastLat: northEast.latitude,
+                northEastLng: northEast.longitude
+            )
+            let update = NMFCameraUpdate(fit: bounds, padding: 24)
+            update.animation = .easeOut
+            mapView.moveCamera(update)
         }
-        mapView.moveCamera(update)
     }
 
     fileprivate func applyLeafSelectionDelta(previous: Int64?, current: Int64?) {
