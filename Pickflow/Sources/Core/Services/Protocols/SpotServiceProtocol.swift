@@ -8,6 +8,13 @@ protocol SpotServiceProtocol: Sendable {
     /// - TODO(BE-API): 이미지 업로드 방식(multipart vs presigned URL)을 반영한다.
     func registerSpot(draft: SpotRegistrationDraft) async throws -> SpotId
     func reportSpot(id: Int64, content: String) async throws
+
+    /// 스팟에 추천(좋아요)을 등록한다. 공개된 스팟에만 허용된다. (PV-40)
+    /// - Returns: 서버에 최종 반영된 추천 수와 내 추천 여부.
+    func likeSpot(id: Int64) async throws -> SpotLikeResponse
+
+    /// 등록한 추천을 취소한다. (PV-40)
+    func unlikeSpot(id: Int64) async throws -> SpotLikeResponse
 }
 
 struct SpotRegistrationDraft: Sendable {

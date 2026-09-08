@@ -8,6 +8,11 @@ struct SpotListItem: Codable, Sendable, Identifiable, Equatable {
     let distanceKm: Double?
     let isBookmarked: Bool
 
+    // MARK: - PV-40
+    // 서버가 아직 안 내려주거나 비로그인이면 nil 이다.
+    var likeCount: Int?
+    var isLiked: Bool?
+
     var id: Int64 { spotId }
 }
 

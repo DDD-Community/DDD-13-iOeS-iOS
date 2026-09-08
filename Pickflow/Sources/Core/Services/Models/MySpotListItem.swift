@@ -22,14 +22,24 @@ enum MySpotStatus: String, Sendable, Equatable {
         case .rejected: "오픈 반려"
         }
     }
+
+    /// 검수 결과를 기다리는 중인지. 이 상태에서는 삭제·수정이 막힌다(SP010/SP011).
+    var isUnderReview: Bool {
+        self == .pending || self == .reReviewPending
+    }
 }
 
-extension MySpotStatus: Decodable {
+extension MySpotStatus: Codable {
     /// 모르는 값이 오면 그 스팟 하나가 아니라 목록 전체 디코딩이 실패한다.
     /// 상태는 표시용이므로 알 수 없는 값은 `unknown` 으로 흘려보낸다.
     init(from decoder: any Decoder) throws {
         let raw = try decoder.singleValueContainer().decode(String.self)
         self = MySpotStatus(rawValue: raw) ?? .unknown
+    }
+
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
     }
 }
 

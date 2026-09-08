@@ -17,7 +17,7 @@ final class ArchiveViewModel: ObservableObject {
     enum LoadState: Equatable {
         case signedOut
         case loading
-        case loaded(items: [SpotListItem], hasNext: Bool)
+        case loaded(items: [SavedSpotItem], hasNext: Bool)
         case empty
         case failed(String)
 
@@ -55,6 +55,13 @@ final class ArchiveViewModel: ObservableObject {
     @Published private(set) var withdrawnAccountInfo: WithdrawnAccountInfo?
     @Published private(set) var archiveImageURL: URL?
     @Published var toast: String?
+
+    // MARK: - PV-40 비공개 전환된 저장 스팟
+
+    /// 삭제 확인창에 올라온 항목. nil 이면 확인창이 닫힌 상태.
+    @Published private(set) var removalCandidate: SavedSpotItem?
+    /// 상세로 열어야 할 스팟. 뷰가 소비하고 nil 로 되돌린다.
+    @Published var openedSpotId: Int64?
     @Published var archiveName: String = "나의 보관함"
     @Published var coverImageData: Data?
     @Published private(set) var isSpotOpenGuidePresented: Bool = false
@@ -110,10 +117,10 @@ final class ArchiveViewModel: ObservableObject {
                 await self.fetchArchive(silent: true)
             }
         }
-        // 스팟 등록 완료 시 나만의 스팟 목록을 조용히 갱신한다.
-        // (보관함 밖/안 어디서 등록하든 반영 — 빈 상태 placeholder 등록 후 pop 시에도 갱신)
+        // 등록/재신청/삭제 등으로 나만의 스팟 목록 구성이 바뀌면 조용히 갱신한다.
+        // (보관함 밖/안 어디서 일어나든 반영 — 빈 상태 placeholder 등록 후 pop 시에도 갱신)
         let registerObserver = NotificationCenter.default.addObserver(
-            forName: .spotDidRegister,
+            forName: .mySpotListDidChange,
             object: nil,
             queue: .main
         ) { [weak self] _ in
@@ -281,7 +288,7 @@ final class ArchiveViewModel: ObservableObject {
         return spotId
     }
 
-    func loadNextPageIfNeeded(currentItem: SpotListItem) async {
+    func loadNextPageIfNeeded(currentItem: SavedSpotItem) async {
         guard case let .loaded(items, hasNext) = state, hasNext, !isLoadingNextPage else { return }
         let triggerIndex = max(0, items.count - 3)
         guard let index = items.firstIndex(where: { $0.id == currentItem.id }),
@@ -331,10 +338,33 @@ final class ArchiveViewModel: ObservableObject {
         }
     }
 
+    // MARK: - PV-40 비공개 전환된 저장 스팟
+
+    /// 삭제되었거나 비공개로 전환된 스팟은 상세를 열 수 없다(서버가 404 로 막는다).
+    /// 대신 저장 목록에서 뺄지 묻는다.
+    func savedSpotTapped(_ item: SavedSpotItem) {
+        if item.isUnavailable {
+            removalCandidate = item
+        } else {
+            openedSpotId = item.spotId
+        }
+    }
+
+    func cancelRemoveFromSaved() {
+        removalCandidate = nil
+    }
+
+    /// 저장 목록에서 빼는 것은 북마크 해제와 같은 동작이다.
+    func confirmRemoveFromSaved() async {
+        guard let candidate = removalCandidate else { return }
+        removalCandidate = nil
+        await bookmarkTapped(candidate.spotId)
+    }
+
     // MARK: - Debug
 
     #if DEBUG
-    func applyLoadedState(items: [SpotListItem]) {
+    func applyLoadedState(items: [SavedSpotItem]) {
         state = .loaded(items: items, hasNext: false)
     }
 
@@ -381,6 +411,7 @@ final class ArchiveViewModel: ObservableObject {
             state = response.spots.isEmpty
                 ? .empty
                 : .loaded(items: response.spots, hasNext: response.hasNext)
+            NotificationCenter.default.post(name: .spotReviewCheckRequested, object: nil)
         } catch let e as APIError {
             guard !silent else { return }
             state = .failed(e.message)
@@ -410,6 +441,7 @@ final class ArchiveViewModel: ObservableObject {
                 ? .empty
                 : .loaded(items: response.spots, hasNext: response.hasNext)
             evaluateSpotOpenGuidePresentation()
+            NotificationCenter.default.post(name: .spotReviewCheckRequested, object: nil)
         } catch {
             guard !silent else { return }
             mySpotsState = .failed(error.localizedDescription)

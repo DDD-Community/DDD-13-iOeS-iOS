@@ -153,6 +153,25 @@ struct ArchiveView: View {
             }
             .ignoresSafeArea()
         )
+        // ViewModel 이 열기로 결정한 스팟만 상세로 넘어간다(비공개는 여기로 오지 않는다).
+        .onChange(of: viewModel.openedSpotId) { _, spotId in
+            guard let spotId else { return }
+            selectedSpotId = spotId
+            viewModel.openedSpotId = nil
+        }
+        .overlay {
+            if viewModel.removalCandidate != nil {
+                ZStack {
+                    Color.black.opacity(0.5).ignoresSafeArea()
+                    SavedSpotRemovalPopup(
+                        onCancel: viewModel.cancelRemoveFromSaved,
+                        onConfirm: { Task { await viewModel.confirmRemoveFromSaved() } }
+                    )
+                }
+                .transition(.opacity)
+                .animation(.easeInOut(duration: 0.2), value: viewModel.removalCandidate)
+            }
+        }
         .fullScreenCover(isPresented: Binding(
             get: { selectedSpotId != nil },
             set: { if !$0 { selectedSpotId = nil } }
@@ -349,11 +368,13 @@ struct ArchiveView: View {
                 onAppearItem: { item in Task { await viewModel.loadNextPageIfNeeded(currentItem: item) } }
             ) { item in
                 SpotListCell(
-                    item: item,
+                    item: item.toSpotListItem(),
                     isBookmarked: true,
-                    bookmarkCount: nil,
+                    likeCount: item.likeCount,
                     onBookmarkTap: { Task { await viewModel.bookmarkTapped(item.spotId) } },
-                    onCellTap: { selectedSpotId = item.spotId }
+                    // 비공개로 전환된 스팟은 상세 대신 삭제 확인창을 띄운다.
+                    onCellTap: { viewModel.savedSpotTapped(item) },
+                    unavailableNotice: item.unavailableNotice
                 )
             }
             .padding(.horizontal, 16)
@@ -401,7 +422,7 @@ struct ArchiveScreenContent: View {
 
     private var firstThumbnailURL: URL? {
         guard case let .loaded(items, _) = state,
-              let urlString = items.first?.thumbnailUrl else { return nil }
+              let urlString = items.first?.imageUrl else { return nil }
         return URL(string: urlString)
     }
 
@@ -420,7 +441,13 @@ struct ArchiveScreenContent: View {
             SpotListLoadingView().padding(.top, 16)
         case let .loaded(items, _):
             MasonryTwoColumn(items: items) { item in
-                SpotListCell(item: item, isBookmarked: true, bookmarkCount: nil, onBookmarkTap: {})
+                SpotListCell(
+                    item: item.toSpotListItem(),
+                    isBookmarked: true,
+                    likeCount: item.likeCount,
+                    onBookmarkTap: {},
+                    unavailableNotice: item.unavailableNotice
+                )
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 16)

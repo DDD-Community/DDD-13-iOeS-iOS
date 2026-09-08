@@ -39,7 +39,9 @@ struct HomeMapView: View {
                     // 헤더 bottom 으로부터 8pt 간격 — Padding.containerTop + topBarHeight + 8
                     SpotListView(
                         viewModel: spotList,
-                        contentTopInset: Padding.containerTop + topBarHeight + 8,
+                        // 정렬 필터가 테마 필터 아래로 내려오면서(§ 지역/정렬 위계 정리) 카드 리스트와의
+                        // 간격도 16으로 맞췄다(시안 기준).
+                        contentTopInset: Padding.containerTop + topBarHeight + 16,
                         onCellTap: { spotId in
                             listDetailVM = makeSpotDetailViewModel(spotId: spotId)
                             isSpotDetailPresented = true
@@ -70,8 +72,9 @@ struct HomeMapView: View {
                                     }
                                 }
                                 .padding(.trailing, Padding.containerHorizontal)
-                                // PICKFLOW row 높이(~38pt) + 헤더 padding 합 → 정렬 버튼 아래로 떠오름
-                                .offset(y: Padding.containerTop + 38 + 4)
+                                // 정렬 버튼이 이제 topBar 의 마지막 줄이라, bottomTrailing 기준으로
+                                // 바로 아래에 작은 간격만 주면 된다(이전엔 PICKFLOW 줄에 있어 더 큰 오프셋 필요).
+                                .offset(y: 4)
                                 .transition(.opacity)
                             }
                         }
@@ -303,22 +306,13 @@ struct HomeMapView: View {
 
     // MARK: - Top Bar
 
+    // 정렬 필터가 지역 필터와 같은 줄에 있으면 위계가 헷갈린다는 시안 피드백으로,
+    // 스팟(테마) 필터 아래 자기 줄로 내렸다(Figma node 1197-14923).
     private var topBar: some View {
         VStack(alignment: .leading, spacing: 14) {
-          HStack(alignment: .center) {
-              RegionPickerHeader(regionName: regionSelectionStore.selectedRegion?.name ?? "") {
-                  withAnimation(.easeInOut(duration: 0.25)) {
-                      isRegionSheetPresented = true
-                  }
-              }
-
-                Spacer()
-
-                if mapListMode == .list {
-                    SpotListSortDropdownHeader(
-                        sort: spotList.sort,
-                        isExpanded: $isSortExpanded
-                    )
+            RegionPickerHeader(regionName: regionSelectionStore.selectedRegion?.name ?? "") {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    isRegionSheetPresented = true
                 }
             }
 
@@ -326,6 +320,16 @@ struct HomeMapView: View {
                 selectedThemes: $selectedThemes,
                 showsNewIndicators: newThemeIndicatorViewModel.showsIndicators
             )
+
+            if mapListMode == .list {
+                HStack {
+                    Spacer()
+                    SpotListSortDropdownHeader(
+                        sort: spotList.sort,
+                        isExpanded: $isSortExpanded
+                    )
+                }
+            }
         }
     }
 

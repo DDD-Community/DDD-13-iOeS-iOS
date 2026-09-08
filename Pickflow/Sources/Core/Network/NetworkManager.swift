@@ -47,8 +47,16 @@ final class NetworkManager: NetworkManagerProtocol, Sendable {
         .serializingData()
         .response
 
-        if response.response?.statusCode == 409 {
+        // 북마크 중복 등록(409)만 도메인 에러로 승격한다.
+        // 다른 API의 409(예: PV-40 의 SP004/SP011/SL001)는 APIError 로 내려가 code 를 잃지 않아야 한다.
+        if response.response?.statusCode == 409, endpoint is BookmarkEndpoint {
             throw BookmarkError.alreadyBookmarked
+        }
+
+        // 4xx/5xx 라도 서버가 code 를 실어 보냈다면 APIError 를 우선한다.
+        // AFError 로 감싸버리면 SP001/SP004/SL003 같은 도메인 코드를 호출부가 볼 수 없다.
+        if let data = response.data {
+            try Self.checkForAPIError(in: data, statusCode: response.response?.statusCode)
         }
 
         if let error = response.error {
@@ -58,8 +66,6 @@ final class NetworkManager: NetworkManagerProtocol, Sendable {
         guard let data = response.data else {
             throw AFError.responseSerializationFailed(reason: .inputDataNilOrZeroLength)
         }
-
-        try Self.checkForAPIError(in: data)
 
         if T.self == EmptyResponse.self {
             return EmptyResponse() as! T
@@ -126,12 +132,13 @@ final class NetworkManager: NetworkManagerProtocol, Sendable {
         let message: String?
     }
 
-    private static func checkForAPIError(in data: Data) throws {
+    private static func checkForAPIError(in data: Data, statusCode: Int? = nil) throws {
         guard let meta = try? snakeCaseDecoder.decode(APIResponseMeta.self, from: data),
               meta.success == false else { return }
         throw APIError(
             code: meta.code ?? "",
-            message: meta.message ?? "알 수 없는 오류가 발생했어요."
+            message: meta.message ?? "알 수 없는 오류가 발생했어요.",
+            statusCode: statusCode
         )
     }
 
