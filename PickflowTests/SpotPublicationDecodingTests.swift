@@ -156,6 +156,19 @@ final class SpotPublicationDecodingTests: XCTestCase {
         XCTAssertNil(item.imageUrl)
     }
 
+    func test_SavedSpotItem_likeCount를_디코딩한다() throws {
+        let json = """
+        {
+          "spotId": 110, "name": "테스트", "theme": "YS",
+          "imageUrl": "https://example.com/spot.jpg", "latitude": 37.5, "longitude": 127.0,
+          "distanceKm": 3.61, "bookmarkCount": 1, "likeCount": 0,
+          "savedAt": "2026-09-08T22:18:33.825016", "deleted": false, "isPrivate": false
+        }
+        """
+        let item = try decoder.decode(SavedSpotItem.self, from: Data(json.utf8))
+        XCTAssertEqual(item.likeCount, 0)
+    }
+
     func test_SpotPreviewResponse_PV40_신규필드를_디코딩한다() throws {
         let json = """
         {

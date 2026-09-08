@@ -8,6 +8,9 @@ struct SavedSpotItem: Decodable, Sendable, Identifiable, Equatable {
     let latitude: Double
     let longitude: Double
     let distanceKm: Double?
+    /// 좋아요(추천) 수. 서버가 2026-09-08부터 이 필드를 내려주기 시작했다
+    /// (이전엔 없어서 지표를 아예 숨겼었다).
+    let likeCount: Int?
     let savedAt: String
     /// 등록자가 스팟 자체를 삭제한 경우.
     let deleted: Bool
