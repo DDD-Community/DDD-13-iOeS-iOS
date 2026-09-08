@@ -47,4 +47,16 @@ final class SpotPublicationEndpointTests: XCTestCase {
         XCTAssertEqual(like.method, .post)
         XCTAssertEqual(unlike.method, .delete)
     }
+
+    func test_검수완료_히스토리_조회는_GET() {
+        let endpoint = SpotReviewHistoryEndpoint.fetchUnchecked
+        XCTAssertEqual(endpoint.path, "/v1/users/me/spot-open-review-histories")
+        XCTAssertEqual(endpoint.method, .get)
+    }
+
+    func test_검수완료_히스토리_확인은_PATCH() {
+        let endpoint = SpotReviewHistoryEndpoint.checkStatus(historyId: 100)
+        XCTAssertEqual(endpoint.path, "/v1/users/me/spot-open-review-histories/100/check-status")
+        XCTAssertEqual(endpoint.method, .patch)
+    }
 }

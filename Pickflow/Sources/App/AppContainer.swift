@@ -33,6 +33,7 @@ final class AppContainer {
         container.register(MySpotServiceProtocol.self) { MySpotService(networkManager: networkManager) }
         container.register(SpotListServiceProtocol.self) { SpotListService(networkManager: networkManager) }
         container.register(ArchiveServiceProtocol.self) { ArchiveService(networkManager: networkManager) }
+        container.register(SpotReviewHistoryServiceProtocol.self) { SpotReviewHistoryService(networkManager: networkManager) }
         container.register(ClusteringServiceProtocol.self) { ClusteringService(networkManager: networkManager) }
         container.register(RegionServiceProtocol.self) { RegionService(networkManager: networkManager) }
         container.register(RegionSelectionStore.self, scope: .container) { [container] in

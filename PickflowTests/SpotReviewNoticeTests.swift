@@ -2,92 +2,134 @@ import XCTest
 @testable import Pickflow
 
 /// PV-40 — 검수 결과 스낵바와 저장 탭 인디케이터.
+/// spot-open-review-histories API 를 단일 진실 소스로 쓴다.
 @MainActor
 final class SpotReviewNoticeTests: XCTestCase {
     private var archiveService: MockArchiveService!
-    private var store: InMemoryReviewSeenStore!
+    private var reviewHistoryService: MockSpotReviewHistoryService!
     private var tokenStore: MockTokenStore!
 
     override func setUp() async throws {
         try await super.setUp()
         archiveService = MockArchiveService()
-        store = InMemoryReviewSeenStore()
+        reviewHistoryService = MockSpotReviewHistoryService()
         tokenStore = MockTokenStore()
         tokenStore.storedToken = AuthToken(accessToken: "t", refreshToken: "r")
     }
 
     override func tearDown() async throws {
         tokenStore = nil
-        store = nil
+        reviewHistoryService = nil
         archiveService = nil
         try await super.tearDown()
     }
 
     // MARK: - 결과 감지
 
-    func test_검수중이던_스팟이_승인되면_승인_스낵바가_뜬다() async {
-        store.seen = [7: .pending]
-        let controller = makeController(spots: [.fixture(spotId: 7, status: .published)])
+    func test_승인_히스토리가_있으면_승인_스낵바가_뜬다() async {
+        reviewHistoryService.historiesResult = .success(
+            SpotReviewHistoryList(
+                approved: [ApprovedReviewHistoryItem(historyId: 100, spotId: 7, reviewedAt: "2026-09-08T10:00:00Z")],
+                rejected: []
+            )
+        )
+        let controller = makeController()
 
         await controller.refresh()
 
-        XCTAssertEqual(controller.notice, SpotReviewNotice(spotId: 7, kind: .approved))
+        XCTAssertEqual(controller.notice, SpotReviewNotice(historyId: 100, spotId: 7, kind: .approved))
     }
 
-    func test_검수중이던_스팟이_반려되면_반려_스낵바가_뜬다() async {
-        store.seen = [7: .reReviewPending]
-        let controller = makeController(spots: [.fixture(spotId: 7, status: .rejected)])
+    func test_반려_히스토리가_있으면_반려_스낵바가_뜬다() async {
+        reviewHistoryService.historiesResult = .success(
+            SpotReviewHistoryList(
+                approved: [],
+                rejected: [RejectedReviewHistoryItem(
+                    historyId: 101, spotId: 7, rejectReason: "LOW_QUALITY",
+                    rejectReasonLabel: "사진 상태 불량", rejectDetail: nil, reviewedAt: "2026-09-08T10:00:00Z"
+                )]
+            )
+        )
+        let controller = makeController()
 
         await controller.refresh()
 
-        XCTAssertEqual(controller.notice, SpotReviewNotice(spotId: 7, kind: .rejected))
+        XCTAssertEqual(controller.notice, SpotReviewNotice(historyId: 101, spotId: 7, kind: .rejected))
     }
 
-    func test_아직_검수중이면_스낵바가_뜨지_않는다() async {
-        store.seen = [7: .pending]
-        let controller = makeController(spots: [.fixture(spotId: 7, status: .pending)])
-
-        await controller.refresh()
-
-        XCTAssertNil(controller.notice)
-    }
-
-    func test_이미_본_결과는_다시_뜨지_않는다() async {
-        store.seen = [7: .published]
-        let controller = makeController(spots: [.fixture(spotId: 7, status: .published)])
-
-        await controller.refresh()
-
-        XCTAssertNil(controller.notice)
-    }
-
-    func test_검수를_거치지_않은_상태변화는_결과로_보지_않는다() async {
-        // 나만보기 → 공개 는 검수 결과가 아니라 유저가 직접 되돌린 경우다.
-        store.seen = [7: .draft]
-        let controller = makeController(spots: [.fixture(spotId: 7, status: .published)])
+    func test_미확인_히스토리가_없으면_스낵바가_뜨지_않는다() async {
+        let controller = makeController()
 
         await controller.refresh()
 
         XCTAssertNil(controller.notice)
     }
 
-    // MARK: - 소멸
+    func test_반려와_승인이_동시에_있으면_반려를_먼저_보여준다() async {
+        reviewHistoryService.historiesResult = .success(
+            SpotReviewHistoryList(
+                approved: [ApprovedReviewHistoryItem(historyId: 100, spotId: 7, reviewedAt: "2026-09-08T10:00:00Z")],
+                rejected: [RejectedReviewHistoryItem(
+                    historyId: 101, spotId: 8, rejectReason: "LOW_QUALITY",
+                    rejectReasonLabel: "사진 상태 불량", rejectDetail: nil, reviewedAt: "2026-09-08T10:00:00Z"
+                )]
+            )
+        )
+        let controller = makeController()
 
-    func test_닫기를_누르면_사라지고_다시_뜨지_않는다() async {
-        store.seen = [7: .pending]
-        let controller = makeController(spots: [.fixture(spotId: 7, status: .published)])
+        await controller.refresh()
+
+        XCTAssertEqual(controller.notice?.kind, .rejected)
+        XCTAssertEqual(controller.notice?.spotId, 8)
+    }
+
+    func test_여러건이_동시에_있으면_하나를_닫자마자_다음이_바로_뜬다() async {
+        reviewHistoryService.historiesResult = .success(
+            SpotReviewHistoryList(
+                approved: [ApprovedReviewHistoryItem(historyId: 100, spotId: 7, reviewedAt: "2026-09-08T10:00:00Z")],
+                rejected: [RejectedReviewHistoryItem(
+                    historyId: 101, spotId: 8, rejectReason: "LOW_QUALITY",
+                    rejectReasonLabel: "사진 상태 불량", rejectDetail: nil, reviewedAt: "2026-09-08T10:00:00Z"
+                )]
+            )
+        )
+        let controller = makeController()
         await controller.refresh()
 
         controller.dismissNotice()
 
-        XCTAssertNil(controller.notice)
+        // 서버를 다시 호출하지 않고도(refresh() 재호출 없이) 큐에 있던 다음 건이 바로 뜬다.
+        XCTAssertEqual(controller.notice, SpotReviewNotice(historyId: 100, spotId: 7, kind: .approved))
+    }
+
+    // MARK: - 소멸 / 확인 처리
+
+    func test_닫기를_누르면_사라지고_확인API가_호출된다() async {
+        reviewHistoryService.historiesResult = .success(
+            SpotReviewHistoryList(
+                approved: [ApprovedReviewHistoryItem(historyId: 100, spotId: 7, reviewedAt: "2026-09-08T10:00:00Z")],
+                rejected: []
+            )
+        )
+        let controller = makeController()
         await controller.refresh()
+
+        controller.dismissNotice()
+        // markChecked 는 Task { } 로 fire-and-forget 이라 한 틱 양보한다.
+        await Task.yield()
+
         XCTAssertNil(controller.notice)
+        XCTAssertEqual(reviewHistoryService.checkedHistoryIds, [100])
     }
 
     func test_이동_버튼은_대상_스팟을_알려주고_스낵바를_닫는다() async {
-        store.seen = [7: .pending]
-        let controller = makeController(spots: [.fixture(spotId: 7, status: .published)])
+        reviewHistoryService.historiesResult = .success(
+            SpotReviewHistoryList(
+                approved: [ApprovedReviewHistoryItem(historyId: 100, spotId: 7, reviewedAt: "2026-09-08T10:00:00Z")],
+                rejected: []
+            )
+        )
+        let controller = makeController()
         await controller.refresh()
 
         let target = controller.openNoticeTarget()
@@ -99,8 +141,13 @@ final class SpotReviewNoticeTests: XCTestCase {
     // MARK: - 바텀시트로 인한 일시 숨김
 
     func test_바텀시트가_뜨면_숨고_닫히면_다시_보인다() async {
-        store.seen = [7: .pending]
-        let controller = makeController(spots: [.fixture(spotId: 7, status: .published)])
+        reviewHistoryService.historiesResult = .success(
+            SpotReviewHistoryList(
+                approved: [ApprovedReviewHistoryItem(historyId: 100, spotId: 7, reviewedAt: "2026-09-08T10:00:00Z")],
+                rejected: []
+            )
+        )
+        let controller = makeController()
         await controller.refresh()
 
         controller.setSpotSheetPresented(true)
@@ -114,16 +161,24 @@ final class SpotReviewNoticeTests: XCTestCase {
     // MARK: - 저장 탭 인디케이터
 
     func test_검수중인_스팟이_있으면_인디케이터가_켜진다() async {
-        let controller = makeController(spots: [.fixture(spotId: 7, status: .pending)])
+        archiveService.mySpotsResponder = { _ in
+            .success(MySpotListPage(spots: [.fixture(spotId: 7, status: .pending)], page: 0, hasNext: false))
+        }
+        let controller = makeController()
 
         await controller.refresh()
 
         XCTAssertTrue(controller.showsSavedTabIndicator)
     }
 
-    func test_결과를_확인하기_전까지_인디케이터가_유지된다() async {
-        store.seen = [7: .pending]
-        let controller = makeController(spots: [.fixture(spotId: 7, status: .published)])
+    func test_확인하기_전까지_인디케이터가_유지되고_확인하면_꺼진다() async {
+        reviewHistoryService.historiesResult = .success(
+            SpotReviewHistoryList(
+                approved: [ApprovedReviewHistoryItem(historyId: 100, spotId: 7, reviewedAt: "2026-09-08T10:00:00Z")],
+                rejected: []
+            )
+        )
+        let controller = makeController()
         await controller.refresh()
 
         XCTAssertTrue(controller.showsSavedTabIndicator)
@@ -134,7 +189,13 @@ final class SpotReviewNoticeTests: XCTestCase {
 
     func test_비로그인이면_아무것도_하지_않는다() async {
         tokenStore.storedToken = nil
-        let controller = makeController(spots: [.fixture(spotId: 7, status: .pending)])
+        reviewHistoryService.historiesResult = .success(
+            SpotReviewHistoryList(
+                approved: [ApprovedReviewHistoryItem(historyId: 100, spotId: 7, reviewedAt: "2026-09-08T10:00:00Z")],
+                rejected: []
+            )
+        )
+        let controller = makeController()
 
         await controller.refresh()
 
@@ -142,20 +203,11 @@ final class SpotReviewNoticeTests: XCTestCase {
         XCTAssertFalse(controller.showsSavedTabIndicator)
     }
 
-    private func makeController(spots: [MySpotListItem]) -> SpotReviewNoticeController {
-        archiveService.mySpotsResponder = { _ in
-            .success(MySpotListPage(spots: spots, page: 0, hasNext: false))
-        }
-        return SpotReviewNoticeController(
+    private func makeController() -> SpotReviewNoticeController {
+        SpotReviewNoticeController(
             archiveService: archiveService,
-            tokenStore: tokenStore,
-            store: store
+            reviewHistoryService: reviewHistoryService,
+            tokenStore: tokenStore
         )
     }
-}
-
-final class InMemoryReviewSeenStore: SpotReviewSeenStoring, @unchecked Sendable {
-    var seen: [Int64: MySpotStatus] = [:]
-    func lastSeenStatuses() -> [Int64: MySpotStatus] { seen }
-    func save(_ statuses: [Int64: MySpotStatus]) { seen = statuses }
 }

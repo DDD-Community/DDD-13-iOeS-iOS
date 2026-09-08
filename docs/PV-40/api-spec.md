@@ -30,6 +30,8 @@
 | 스팟 미리보기 | GET | `/v1/spots/{spotId}/preview` | 필드 추가 |
 | 스팟 리스트 | GET | `/v1/spots` | 추천순 정렬 기준 변경 |
 | 저장된 스팟 | GET | `/v1/users/me/saved-spots` | `isPrivate` 추가, 비공개 포함 |
+| 검수완료 히스토리 조회 | GET | `/v1/users/me/spot-open-review-histories` | 미확인(`check_yn=N`) 건만, 승인/반려 배열로 분리 |
+| 검수완료 히스토리 확인 | PATCH | `/v1/users/me/spot-open-review-histories/{historyId}/check-status` | `check_yn=Y` 처리, 멱등 |
 | (어드민) 검수 | POST | `/v1/admin/spots/{spotId}/reviews` | iOS 범위 밖 |
 
 ### 요청/응답 요점

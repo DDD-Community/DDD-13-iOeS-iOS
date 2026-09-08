@@ -25,6 +25,7 @@ struct ContentView: View {
     @StateObject private var devMode = DevModeController()
     @StateObject private var reviewNotice = SpotReviewNoticeController(
         archiveService: getArchiveService(),
+        reviewHistoryService: getSpotReviewHistoryService(),
         tokenStore: getTokenStore()
     )
 

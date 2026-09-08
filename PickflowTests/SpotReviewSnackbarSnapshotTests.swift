@@ -44,7 +44,7 @@ final class SpotReviewSnackbarSnapshotTests: XCTestCase {
         line: UInt = #line
     ) {
         let view = SpotReviewSnackbar(
-            notice: SpotReviewNotice(spotId: 1, kind: kind),
+            notice: SpotReviewNotice(historyId: 1, spotId: 1, kind: kind),
             onAction: {},
             onClose: {}
         )

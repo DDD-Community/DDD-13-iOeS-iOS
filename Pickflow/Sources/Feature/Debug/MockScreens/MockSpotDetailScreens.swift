@@ -206,12 +206,12 @@ struct MockReviewSnackbarScreen: View {
                 UIAsset.Colors.gray80.swiftUIColor.ignoresSafeArea()
                 VStack(spacing: 20) {
                     SpotReviewSnackbar(
-                        notice: SpotReviewNotice(spotId: 1, kind: .approved),
+                        notice: SpotReviewNotice(historyId: 1, spotId: 1, kind: .approved),
                         onAction: {},
                         onClose: {}
                     )
                     SpotReviewSnackbar(
-                        notice: SpotReviewNotice(spotId: 2, kind: .rejected),
+                        notice: SpotReviewNotice(historyId: 2, spotId: 2, kind: .rejected),
                         onAction: {},
                         onClose: {}
                     )

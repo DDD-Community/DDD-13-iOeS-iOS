@@ -7,6 +7,8 @@ struct SpotReviewNotice: Equatable {
         case rejected
     }
 
+    /// 확인(check-status) 처리에 쓴다. 화면엔 노출되지 않는다.
+    let historyId: Int64
     let spotId: Int64
     let kind: Kind
 
@@ -32,52 +34,18 @@ struct SpotReviewNotice: Equatable {
     }
 }
 
-/// 내 스팟의 공개 상태를 마지막으로 확인한 시점 기준으로 기억한다.
-protocol SpotReviewSeenStoring: Sendable {
-    func lastSeenStatuses() -> [Int64: MySpotStatus]
-    func save(_ statuses: [Int64: MySpotStatus])
-}
-
-struct UserDefaultsSpotReviewSeenStore: SpotReviewSeenStoring {
-    private static let key = "spot.review.lastSeenStatuses"
-
-    // UserDefaults 는 스레드 안전하지만 Sendable 로 표시돼 있지 않다.
-    private nonisolated(unsafe) let defaults: UserDefaults
-
-    init(defaults: UserDefaults = .standard) {
-        self.defaults = defaults
-    }
-
-    func lastSeenStatuses() -> [Int64: MySpotStatus] {
-        guard let raw = defaults.dictionary(forKey: Self.key) as? [String: String] else { return [:] }
-        return raw.reduce(into: [:]) { result, pair in
-            guard let id = Int64(pair.key), let status = MySpotStatus(rawValue: pair.value) else { return }
-            result[id] = status
-        }
-    }
-
-    func save(_ statuses: [Int64: MySpotStatus]) {
-        let raw = statuses.reduce(into: [String: String]()) { result, pair in
-            result[String(pair.key)] = pair.value.rawValue
-        }
-        defaults.set(raw, forKey: Self.key)
-    }
-}
-
-/// 오픈 신청 결과를 스낵바와 저장 탭 인디케이터로 알린다.
+/// 오픈 신청 결과를 스낵바와 저장 탭 인디케이터로 안내한다.
 ///
-/// 서버에 "검수 결과를 확인했는지" 를 나타내는 플래그가 없어서, 내 스팟 목록의 상태를
-/// 로컬에 기록해 두고 다음에 읽은 값과 비교해 결과 도착을 감지한다.
-/// - TODO(PV-40): 서버가 검수 결과 알림 API 를 만들면 그쪽을 단일 진실 소스로 삼을 것.
-///   호출 시점은 논의 중이며 백로그에 정리해 뒀다(docs/PV-40/backlog.md).
-///   지금 방식의 한계는 두 가지다.
-///   1. 앱을 지웠다 깔거나 기기를 바꾸면 기록이 없어 결과 안내를 놓친다.
-///   2. my-spots 는 6 개 단위 페이징인데 첫 페이지만 읽는다. 등록한 스팟이 7 개 이상이면
-///      뒤쪽 스팟의 결과를 잡지 못한다. 전체 페이지를 도는 대신 전용 API 를 기다린다.
+/// 검수완료 알림 히스토리 API(`spot-open-review-histories`)를 단일 진실 소스로 쓴다.
+/// 확인 여부(check_yn)는 서버가 기록하므로 로컬에 "본 것"을 따로 저장하지 않는다.
+/// (이전엔 my-spots 상태를 로컬에 기록해 두고 비교하는 임시 방식을 썼다 — 전용 API가
+/// 생겨 대체됐다. docs/PV-40/backlog.md 참고.)
+///
+/// "검수중인 스팟이 있는지"는 이 API 가 알려주지 않아 my-spots 조회로 별도 판단한다.
 @MainActor
 final class SpotReviewNoticeController: ObservableObject {
     @Published private(set) var notice: SpotReviewNotice?
-    /// 오픈 신청 중이거나 결과를 아직 확인하지 않았을 때 켜진다.
+    /// 검수중이거나 결과를 아직 확인하지 않았을 때 켜진다.
     @Published private(set) var showsSavedTabIndicator = false
     /// 스팟 바텀시트가 떠 있는 동안에는 스낵바를 잠시 감춘다(소멸이 아니다).
     @Published private(set) var isSpotSheetPresented = false
@@ -86,64 +54,55 @@ final class SpotReviewNoticeController: ObservableObject {
     var isNoticeVisible: Bool { notice != nil && !isSpotSheetPresented }
 
     private let archiveService: ArchiveServiceProtocol
+    private let reviewHistoryService: SpotReviewHistoryServiceProtocol
     private let tokenStore: TokenStoreProtocol
-    private let store: SpotReviewSeenStoring
 
     /// 아직 검수 중인 스팟이 있는지. 인디케이터 판단에 쓴다.
     private var hasSpotUnderReview = false
+    /// 한 번에 여러 건이 완료된 경우 나머지는 여기 쌓아 뒀다가 확인할 때마다 하나씩 꺼낸다.
+    private var queue: [SpotReviewNotice] = []
 
     init(
         archiveService: ArchiveServiceProtocol,
-        tokenStore: TokenStoreProtocol,
-        store: SpotReviewSeenStoring = UserDefaultsSpotReviewSeenStore()
+        reviewHistoryService: SpotReviewHistoryServiceProtocol,
+        tokenStore: TokenStoreProtocol
     ) {
         self.archiveService = archiveService
+        self.reviewHistoryService = reviewHistoryService
         self.tokenStore = tokenStore
-        self.store = store
     }
 
     func refresh() async {
         guard (try? tokenStore.load()) != nil else { return }
-        guard let spots = try? await archiveService.fetchMySpots(page: 0, latitude: nil, longitude: nil).spots else {
-            return
+
+        if let spots = try? await archiveService.fetchMySpots(page: 0, latitude: nil, longitude: nil).spots {
+            hasSpotUnderReview = spots.contains { $0.status.isUnderReview }
         }
 
-        let seen = store.lastSeenStatuses()
-        let current = spots.reduce(into: [Int64: MySpotStatus]()) { $0[$1.spotId] = $1.status }
-        hasSpotUnderReview = spots.contains { $0.status.isUnderReview }
-
-        // 검수를 기다리던 스팟만 결과로 본다. 나만보기에서 바로 공개로 바뀐 것은
-        // 유저가 직접 되돌린 경우라 안내할 결과가 아니다.
-        if notice == nil {
-            notice = spots.compactMap { spot -> SpotReviewNotice? in
-                guard seen[spot.spotId]?.isUnderReview == true else { return nil }
-                switch spot.status {
-                case .published: return SpotReviewNotice(spotId: spot.spotId, kind: .approved)
-                case .rejected: return SpotReviewNotice(spotId: spot.spotId, kind: .rejected)
-                default: return nil
-                }
-            }.first
+        if notice == nil, queue.isEmpty, let histories = try? await reviewHistoryService.fetchUncheckedHistories() {
+            // 반려를 먼저 보여준다 — 승인은 놓쳐도 스팟 상세에서 다시 확인할 수 있지만,
+            // 반려는 재신청 여부를 결정해야 해서 더 급하다.
+            let rejected = histories.rejected.map {
+                SpotReviewNotice(historyId: $0.historyId, spotId: $0.spotId, kind: .rejected)
+            }
+            let approved = histories.approved.map {
+                SpotReviewNotice(historyId: $0.historyId, spotId: $0.spotId, kind: .approved)
+            }
+            queue = rejected + approved
+            if !queue.isEmpty { notice = queue.removeFirst() }
         }
-
-        // 아직 안내하지 않은 결과는 "본 것" 으로 기록하지 않는다. 확인 전에 기록하면
-        // 앱을 껐다 켰을 때 안내가 사라진다.
-        var toStore = seen
-        for spot in spots where notice?.spotId != spot.spotId {
-            toStore[spot.spotId] = spot.status
-        }
-        store.save(toStore)
 
         updateIndicator()
     }
 
     func dismissNotice() {
-        markNoticeSeen()
+        acknowledgeAndAdvance()
     }
 
     /// 이동 버튼. 열어야 할 스팟 id 를 돌려주고 스낵바를 닫는다.
     func openNoticeTarget() -> Int64? {
         let target = notice?.spotId
-        markNoticeSeen()
+        acknowledgeAndAdvance()
         return target
     }
 
@@ -151,16 +110,15 @@ final class SpotReviewNoticeController: ObservableObject {
         isSpotSheetPresented = isPresented
     }
 
-    private func markNoticeSeen() {
-        guard let notice else { return }
-        var statuses = store.lastSeenStatuses()
-        statuses[notice.spotId] = notice.kind == .approved ? .published : .rejected
-        store.save(statuses)
-        self.notice = nil
+    private func acknowledgeAndAdvance() {
+        guard let current = notice else { return }
+        let historyId = current.historyId
+        Task { try? await reviewHistoryService.markChecked(historyId: historyId) }
+        notice = queue.isEmpty ? nil : queue.removeFirst()
         updateIndicator()
     }
 
     private func updateIndicator() {
-        showsSavedTabIndicator = hasSpotUnderReview || notice != nil
+        showsSavedTabIndicator = hasSpotUnderReview || notice != nil || !queue.isEmpty
     }
 }
