@@ -10,6 +10,13 @@ struct SpotListCell: View {
     /// 값이 있으면 썸네일과 메타를 죽이고 그 위에 문구를 덮는다.
     var unavailableNotice: String? = nil
 
+    // MARK: - PV-131 썸네일 로드 재시도
+    /// AsyncImage 를 강제로 다시 만들어 재시도를 유도하는 값. 실패할 때마다 증가시킨다.
+    @State private var thumbnailReloadToken = 0
+    /// 무한 재시도를 막는 시도 횟수 상한.
+    @State private var thumbnailRetryCount = 0
+    private static let maxThumbnailRetries = 2
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             thumbnailBox
@@ -68,7 +75,7 @@ struct SpotListCell: View {
     private func thumbnail(width: CGFloat, height: CGFloat) -> some View {
         ZStack {
             UIAsset.Colors.gray90.swiftUIColor
-            if let urlString = item.thumbnailUrl, let url = URL(string: urlString) {
+            if let url = Self.thumbnailURL(from: item.thumbnailUrl) {
                 AsyncImage(url: url) { phase in
                     switch phase {
                     case let .success(image):
@@ -77,16 +84,37 @@ struct SpotListCell: View {
                             .scaledToFill()
                             .frame(width: width, height: height)
                             .clipped()
+                    case .failure:
+                        // 네트워크 일시 오류 등으로 로드가 실패해도 조용히 회색 박스로 영구히
+                        // 남던 문제(PV-131) — 짧은 간격을 두고 최대 2번까지 다시 시도한다.
+                        UIAsset.Colors.gray90.swiftUIColor
+                            .task {
+                                guard thumbnailRetryCount < Self.maxThumbnailRetries else { return }
+                                thumbnailRetryCount += 1
+                                try? await Task.sleep(for: .seconds(1.5))
+                                thumbnailReloadToken += 1
+                            }
                     default:
                         UIAsset.Colors.gray90.swiftUIColor
                     }
                 }
+                .id(thumbnailReloadToken)
                 .frame(width: width, height: height)
                 .clipped()
             }
         }
         .frame(width: width, height: height)
         .clipped()
+    }
+
+    /// 서버 썸네일 URL 문자열엔 공백·인코딩 안 된 특수문자가 섞여 올 수 있어
+    /// `URL(string:)` 이 조용히 nil 을 반환하고 썸네일 자체가 사라지던 문제(PV-131) — 실패하면
+    /// query 허용 문자셋으로 percent-encoding 한 뒤 한 번 더 시도한다.
+    private static func thumbnailURL(from urlString: String?) -> URL? {
+        guard let urlString, !urlString.isEmpty else { return nil }
+        if let url = URL(string: urlString) { return url }
+        guard let encoded = urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else { return nil }
+        return URL(string: encoded)
     }
 
     /// 해석하지 못한 카테고리면 뱃지를 달지 않는다.
