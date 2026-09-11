@@ -120,6 +120,7 @@ jobs:
             -skip-testing:PickflowTests/LoginViewSnapshotTests \
             -skip-testing:PickflowTests/MapClusteringSnapshotTests \
             -skip-testing:PickflowTests/MyProfileSnapshotTests \
+            -skip-testing:PickflowTests/MySpotListCellSnapshotTests \
             -skip-testing:PickflowTests/NoticeSnapshotTests \
             -skip-testing:PickflowTests/OnboardingSnapshotTests \
             -skip-testing:PickflowTests/SpotDetailBottomSheetSnapshotTests \
