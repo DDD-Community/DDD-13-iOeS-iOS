@@ -40,6 +40,8 @@ struct SpotDetail: Codable, Sendable, Identifiable, Equatable {
     var isReleased: Bool?
     /// 관리자 큐레이션 스팟 여부. 유저 등록 스팟이면 false.
     var isCurated: Bool?
+    /// 사진 출처 표기(예: "ⓒ한국관광공사"). Pickflow/유저 등록 사진이면 nil.
+    var imageCredit: String?
     /// 추천(좋아요) 수.
     var likeCount: Int?
     /// 내가 추천했는지. 비로그인 시 false.

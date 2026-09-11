@@ -59,4 +59,22 @@ extension DateFormatter {
         guard parts.count == 2 else { return nil }
         return max(0, min((24 * 60) - 1, parts[0] * 60 + parts[1]))
     }
+
+    /// 사진 촬영 일시 배지 문자열. `recordedTime`(시:분)이 있으면 "yy.MM.dd. h:mm a"(예: "26.04.11. PM 6:33"),
+    /// 시각 없이 `recordedDate`만 있으면(관광공사 사진 등) 연-월까지만 "yyyy.MM" 로 자른다.
+    /// 둘 다 없으면 nil — 호출부에서 배지 자체를 숨긴다.
+    static func spotPhotoBadgeText(recordedDate: String?, recordedTime: String?) -> String? {
+        guard let recordedDate, !recordedDate.isEmpty else { return nil }
+        let dateParts = recordedDate.split(separator: "-")
+        guard dateParts.count == 3 else { return recordedDate }
+        let year = dateParts[0]
+        let month = dateParts[1]
+        let day = dateParts[2]
+
+        guard let recordedTime, !recordedTime.isEmpty else {
+            return "\(year).\(month)"
+        }
+        let yy = year.suffix(2)
+        return "\(yy).\(month).\(day). \(pickflowDisplayTime(from: recordedTime))"
+    }
 }

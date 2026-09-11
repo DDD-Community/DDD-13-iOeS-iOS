@@ -11,6 +11,8 @@ struct SpotPublicationHeader: View {
     let isMySpot: Bool
     /// 다른 유저가 등록해 공개한 스팟. 타이틀 옆에 "유저 등록" 뱃지가 붙는다.
     var isUserRegistered: Bool = false
+    /// 사진 출처 표기(예: "ⓒ한국관광공사"). 있으면 서브타이틀 맨 앞에 출처 + 인증 배지로 붙는다.
+    var imageCredit: String? = nil
     let metric: String?
 
     var body: some View {
@@ -32,6 +34,17 @@ struct SpotPublicationHeader: View {
 
     private var subtitle: some View {
         HStack(spacing: 4) {
+            if let imageCredit, !imageCredit.isEmpty {
+                Text(imageCredit)
+                    .pretendard(.body(.medium()))
+                    .foregroundStyle(UIAsset.Colors.gray30.swiftUIColor)
+                AssetImage(named: "icVerified", size: 14) {
+                    Image(systemName: "checkmark.seal.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.blue)
+                }
+                dot
+            }
             if let theme {
                 Text(theme.displayName)
                     .pretendard(.body(.medium()))
@@ -39,9 +52,7 @@ struct SpotPublicationHeader: View {
             }
             if let metric {
                 if theme != nil {
-                    Circle()
-                        .fill(UIAsset.Colors.gray30.swiftUIColor)
-                        .frame(width: 2, height: 2)
+                    dot
                 }
                 // 축약 표기 없이 원 숫자 그대로 노출한다(기획 3.8).
                 Text(metric)
@@ -49,5 +60,11 @@ struct SpotPublicationHeader: View {
                     .foregroundStyle(UIAsset.Colors.gray30.swiftUIColor)
             }
         }
+    }
+
+    private var dot: some View {
+        Circle()
+            .fill(UIAsset.Colors.gray30.swiftUIColor)
+            .frame(width: 2, height: 2)
     }
 }

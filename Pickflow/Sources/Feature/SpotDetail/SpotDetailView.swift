@@ -230,6 +230,7 @@ struct SpotDetailView: View {
                     SpotHeaderSection(spot: spot)
                     SpotPhotoSection(
                         imageURL: spot.imageUrl,
+                        recordedDate: spot.recordedDate,
                         recordedTime: spot.recordedTime,
                         address: spot.address
                     )

@@ -27,20 +27,27 @@ struct SpotRealTimeInfoSection: View {
     }
 
     private var realtimeDescriptionText: AttributedString {
-        var str = AttributedString("공공 API를 활용한 실시간 정보를 확인해 보세요")
-        if let range = str.range(of: "실시간 정보") {
+        var str = AttributedString("공공 API를 활용한 현재 스팟 상황을 살펴보세요")
+        if let range = str.range(of: "현재 스팟 상황") {
             str[range].foregroundColor = UIAsset.Colors.sunsetOrange.swiftUIColor
         }
         return str
     }
 
+    private static let noDataText = "정보 없음"
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(realtimeDescriptionText)
-                .pretendard(.body(.medium()))
-                .foregroundStyle(.gray0)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .multilineTextAlignment(.center)
+            VStack(spacing: 4) {
+                Text(realtimeDescriptionText)
+                    .pretendard(.body(.medium()))
+                    .foregroundStyle(.gray0)
+                Text("지역에 따라 정보 기준이 다르거나\n일부 정보가 제공되지 않을 수 있어요")
+                    .pretendard(.body(.small()))
+                    .foregroundStyle(.gray50)
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
+            .multilineTextAlignment(.center)
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("\(spot.sunsetTime.map { DateFormatter.pickflowDisplayTime(from: $0) } ?? "-") 기준 정보입니다.")
@@ -52,19 +59,19 @@ struct SpotRealTimeInfoSection: View {
                     infoRow(
                         iconName: "icSunny",
                         label: "현재 날씨",
-                        value: spot.weatherDisplayName ?? "-",
+                        value: spot.weatherDisplayName ?? Self.noDataText,
                         sub: spot.precipitationProbability.map { "강수확률 \($0)%" } ?? "강수확률 -"
                     )
                     infoRow(
                         iconName: "icTwilight",
                         label: "일몰 시간",
-                        value: spot.sunsetTime.map { DateFormatter.pickflowDisplayTime(from: $0) } ?? "-",
-                        sub: "오차 시간"
+                        value: spot.sunsetTime.map { DateFormatter.pickflowDisplayTime(from: $0) } ?? Self.noDataText,
+                        sub: nil
                     )
                     infoRow(
                         iconName: "icLocalParking",
                         label: "주차 관련",
-                        value: isMine ? "-" : (spot.parkingInfo ?? "-"),
+                        value: isMine ? Self.noDataText : (spot.parkingInfo ?? Self.noDataText),
                         sub: nil,
                         multiline: true
                     )
@@ -130,7 +137,7 @@ struct SpotRealTimeInfoSection: View {
                     .pretendard(.body(.small()))
                     .foregroundStyle(.gray50)
                 HStack(spacing: 6) {
-                    Text(isMine ? "-" : (spot.congestionLevel?.displayName ?? "-"))
+                    Text(isMine ? Self.noDataText : (spot.congestionLevel?.displayName ?? Self.noDataText))
                         .pretendard(.heading(.large))
                         .foregroundStyle(.gray0)
                     Button {
