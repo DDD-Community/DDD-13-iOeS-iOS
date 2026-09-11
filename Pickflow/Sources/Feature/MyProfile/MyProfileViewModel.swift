@@ -85,6 +85,7 @@ final class MyProfileViewModel: ObservableObject {
         loginError = nil
         do {
             try await socialLoginService.signInWithKakao()
+            NotificationCenter.default.post(name: .userDidSignIn, object: nil)
             await onAppear()
         } catch {
             handleSignInError(error)
@@ -98,6 +99,7 @@ final class MyProfileViewModel: ObservableObject {
         loginError = nil
         do {
             try await socialLoginService.signInWithApple()
+            NotificationCenter.default.post(name: .userDidSignIn, object: nil)
             await onAppear()
         } catch {
             handleSignInError(error)
@@ -123,6 +125,7 @@ final class MyProfileViewModel: ObservableObject {
         loginError = nil
         do {
             try await RestoreAccountFlow.restore(info, using: socialLoginService)
+            NotificationCenter.default.post(name: .userDidSignIn, object: nil)
             await onAppear()
         } catch let e as APIError {
             e.post()
