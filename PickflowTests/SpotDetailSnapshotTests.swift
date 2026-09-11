@@ -219,6 +219,7 @@ final class SpotDetailSnapshotTests: XCTestCase {
                         SpotHeaderSection(spot: spot)
                         SpotPhotoSection(
                             imageURL: spot.imageUrl,
+                            recordedDate: spot.recordedDate,
                             recordedTime: spot.recordedTime,
                             address: spot.address
                         )
@@ -251,6 +252,7 @@ final class SpotDetailSnapshotTests: XCTestCase {
     private func photoView(spot: SpotDetail) -> some View {
         SpotPhotoSection(
             imageURL: spot.imageUrl,
+            recordedDate: spot.recordedDate,
             recordedTime: spot.recordedTime,
             address: spot.address
         )
