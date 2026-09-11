@@ -187,7 +187,6 @@ final class SpotListSnapshotTests: XCTestCase {
         SpotListScreenContent(
             state: state,
             isBookmarked: { _ in false },
-            bookmarkCount: { _ in nil },
             onBookmarkTap: { _ in },
             onRetry: {},
             onAppearItem: { _ in }
@@ -217,7 +216,7 @@ final class SpotListSnapshotTests: XCTestCase {
         SpotListCell(
             item: item,
             isBookmarked: isBookmarked,
-            bookmarkCount: count,
+            likeCount: count,
             onBookmarkTap: {}
         )
         .padding(8)

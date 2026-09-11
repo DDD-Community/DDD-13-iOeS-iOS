@@ -14,12 +14,13 @@ final class ArchiveService: ArchiveServiceProtocol, Sendable {
         return envelope.data
     }
 
-    func fetchSavedSpots(page: Int, latitude: Double?, longitude: Double?) async throws -> SpotListPage {
+    /// 저장된 스팟은 SpotListItem 으로 납작하게 만들지 않는다.
+    /// 비공개 전환(isPrivate)·삭제(deleted) 여부가 그 과정에서 사라지기 때문이다.
+    func fetchSavedSpots(page: Int, latitude: Double?, longitude: Double?) async throws -> SavedSpotPage {
         let envelope: APIEnvelope<SavedSpotPage> = try await networkManager.request(
             endpoint: ArchiveEndpoint.fetchSavedSpots(page: page, latitude: latitude, longitude: longitude)
         )
-        let spots = envelope.data.spots.map { $0.toSpotListItem() }
-        return SpotListPage(spots: spots, page: envelope.data.page, hasNext: envelope.data.hasNext)
+        return envelope.data
     }
 
     func fetchMySpots(page: Int, latitude: Double?, longitude: Double?) async throws -> MySpotListPage {

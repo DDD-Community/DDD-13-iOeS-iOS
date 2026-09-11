@@ -116,6 +116,7 @@ jobs:
             -destination "id=${{ steps.simulator.outputs.device_id }}" \
             -resultBundlePath TestResults.xcresult \
             -skip-testing:PickflowTests/ArchiveSnapshotTests \
+            -skip-testing:PickflowTests/ArchivePrivateSpotSnapshotTests \
             -skip-testing:PickflowTests/LoginViewSnapshotTests \
             -skip-testing:PickflowTests/MapClusteringSnapshotTests \
             -skip-testing:PickflowTests/MyProfileSnapshotTests \
@@ -124,6 +125,10 @@ jobs:
             -skip-testing:PickflowTests/SpotDetailBottomSheetSnapshotTests \
             -skip-testing:PickflowTests/SpotDetailSnapshotTests \
             -skip-testing:PickflowTests/SpotListSnapshotTests \
+            -skip-testing:PickflowTests/SpotPublicationSnapshotTests \
+            -skip-testing:PickflowTests/SpotPreviewSheetSnapshotTests \
+            -skip-testing:PickflowTests/SpotResubmissionSnapshotTests \
+            -skip-testing:PickflowTests/SpotReviewSnackbarSnapshotTests \
             CODE_SIGNING_ALLOWED=NO
 
       - name: Upload test results

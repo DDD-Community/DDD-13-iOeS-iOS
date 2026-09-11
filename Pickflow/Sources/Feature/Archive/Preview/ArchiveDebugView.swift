@@ -71,15 +71,15 @@ struct ArchiveEmptyDebugView: View {
 // MARK: - Mock Services
 
 final class ArchiveDebugService: ArchiveServiceProtocol, Sendable {
-    static let sampleItems: [SpotListItem] = [
-        SpotListItem(spotId: 1, name: "한강 노을길",      theme: .sunset,     thumbnailUrl: nil, distanceKm: 0.4, isBookmarked: false),
-        SpotListItem(spotId: 2, name: "잠실 윤슬",        theme: .reflection, thumbnailUrl: nil, distanceKm: 1.2, isBookmarked: false),
-        SpotListItem(spotId: 3, name: "응봉산 전망대",    theme: .sunset,     thumbnailUrl: nil, distanceKm: 2.0, isBookmarked: false),
-        SpotListItem(spotId: 4, name: "반포 무지개 분수", theme: .reflection, thumbnailUrl: nil, distanceKm: 2.8, isBookmarked: false),
-        SpotListItem(spotId: 5, name: "선유도 일몰 포인트", theme: .sunset,   thumbnailUrl: nil, distanceKm: 3.5, isBookmarked: false),
-        SpotListItem(spotId: 6, name: "광나루 윤슬길",    theme: .reflection, thumbnailUrl: nil, distanceKm: 4.1, isBookmarked: false),
-        SpotListItem(spotId: 7, name: "노들섬 노을 뷰",   theme: .sunset,     thumbnailUrl: nil, distanceKm: 4.7, isBookmarked: false),
-        SpotListItem(spotId: 8, name: "성수 한강 윤슬",   theme: .reflection, thumbnailUrl: nil, distanceKm: 5.3, isBookmarked: false),
+    static let sampleItems: [SavedSpotItem] = [
+        makeSavedSpotItem(spotId: 1, name: "한강 노을길", theme: .sunset, distanceKm: 0.4),
+        makeSavedSpotItem(spotId: 2, name: "잠실 윤슬", theme: .reflection, distanceKm: 1.2, isPrivate: true),
+        makeSavedSpotItem(spotId: 3, name: "응봉산 전망대", theme: .sunset, distanceKm: 2.0),
+        makeSavedSpotItem(spotId: 4, name: "반포 무지개 분수", theme: .reflection, distanceKm: 2.8),
+        makeSavedSpotItem(spotId: 5, name: "선유도 일몰 포인트", theme: .sunset, distanceKm: 3.5),
+        makeSavedSpotItem(spotId: 6, name: "광나루 윤슬길", theme: .reflection, distanceKm: 4.1),
+        makeSavedSpotItem(spotId: 7, name: "노들섬 노을 뷰", theme: .sunset, distanceKm: 4.7),
+        makeSavedSpotItem(spotId: 8, name: "성수 한강 윤슬", theme: .reflection, distanceKm: 5.3),
     ]
 
     func fetchArchiveInfo() async throws -> ArchiveInfo {
@@ -94,8 +94,8 @@ final class ArchiveDebugService: ArchiveServiceProtocol, Sendable {
         ArchiveInfo(archiveName: "나의 보관함", archiveImageUrl: nil)
     }
 
-    func fetchSavedSpots(page: Int, latitude: Double?, longitude: Double?) async throws -> SpotListPage {
-        SpotListPage(spots: Self.sampleItems, page: page, hasNext: false)
+    func fetchSavedSpots(page: Int, latitude: Double?, longitude: Double?) async throws -> SavedSpotPage {
+        SavedSpotPage(spots: Self.sampleItems, page: page, hasNext: false)
     }
 
     func fetchMySpots(page: Int, latitude: Double?, longitude: Double?) async throws -> MySpotListPage {

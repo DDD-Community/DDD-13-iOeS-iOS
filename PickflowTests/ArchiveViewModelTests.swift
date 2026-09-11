@@ -47,7 +47,7 @@ final class ArchiveViewModelTests: XCTestCase {
     func test_onAppear_로그인상태_정상응답_상태가loaded로전환된다() async {
         authService.stubbedAuthState = .signedIn(.fixture())
         archiveService.responder = { _ in
-            .success(SpotListPage(spots: [.fixture()], page: 0, hasNext: false))
+            .success(SavedSpotPage(spots: [.fixture()], page: 0, hasNext: false))
         }
 
         await viewModel.onAppear()
@@ -56,10 +56,26 @@ final class ArchiveViewModelTests: XCTestCase {
         XCTAssertEqual(archiveService.requestedPages, [0])
     }
 
+    func test_onAppear_저장스팟과나의스팟목록이_각각_로드되면_검수확인알림을_보낸다() async {
+        authService.stubbedAuthState = .signedIn(.fixture())
+        archiveService.responder = { _ in .success(SavedSpotPage(spots: [.fixture()], page: 0, hasNext: false)) }
+        archiveService.mySpotsResponder = { _ in .success(MySpotListPage(spots: [.fixture()], page: 0, hasNext: false)) }
+        var receivedCount = 0
+        let observer = NotificationCenter.default.addObserver(
+            forName: .spotReviewCheckRequested, object: nil, queue: nil
+        ) { _ in receivedCount += 1 }
+        defer { NotificationCenter.default.removeObserver(observer) }
+
+        await viewModel.onAppear()
+
+        // 저장된 스팟 목록, 나만의 스팟 목록 — 각 조회 성공마다 한 번씩.
+        XCTAssertEqual(receivedCount, 2)
+    }
+
     func test_onAppear_로그인상태_빈응답_상태가empty로전환된다() async {
         authService.stubbedAuthState = .signedIn(.fixture())
         archiveService.responder = { _ in
-            .success(SpotListPage(spots: [], page: 0, hasNext: false))
+            .success(SavedSpotPage(spots: [], page: 0, hasNext: false))
         }
 
         await viewModel.onAppear()
@@ -88,7 +104,7 @@ final class ArchiveViewModelTests: XCTestCase {
 
         authService.stubbedAuthState = .signedIn(.fixture())
         archiveService.responder = { _ in
-            .success(SpotListPage(spots: [.fixture()], page: 0, hasNext: false))
+            .success(SavedSpotPage(spots: [.fixture()], page: 0, hasNext: false))
         }
 
         await viewModel.signInWithKakao()
@@ -123,7 +139,7 @@ final class ArchiveViewModelTests: XCTestCase {
     func test_signInWithApple_성공시_데이터를로드한다() async {
         authService.stubbedAuthState = .signedIn(.fixture())
         archiveService.responder = { _ in
-            .success(SpotListPage(spots: [.fixture()], page: 0, hasNext: false))
+            .success(SavedSpotPage(spots: [.fixture()], page: 0, hasNext: false))
         }
 
         await viewModel.signInWithApple()
@@ -204,7 +220,7 @@ final class ArchiveViewModelTests: XCTestCase {
     func test_loadNextPageIfNeeded_hasNext가false면호출하지않는다() async {
         authService.stubbedAuthState = .signedIn(.fixture())
         archiveService.responder = { _ in
-            .success(SpotListPage(spots: [.fixture()], page: 0, hasNext: false))
+            .success(SavedSpotPage(spots: [.fixture()], page: 0, hasNext: false))
         }
         await viewModel.onAppear()
         let initialCount = archiveService.requestedPages.count
@@ -215,14 +231,14 @@ final class ArchiveViewModelTests: XCTestCase {
     }
 
     func test_loadNextPageIfNeeded_hasNext가true이고마지막근처면다음페이지를병합한다() async {
-        let firstItems = (1...10).map { SpotListItem.fixture(spotId: Int64($0)) }
-        let secondItems = (11...12).map { SpotListItem.fixture(spotId: Int64($0)) }
+        let firstItems = (1...10).map { SavedSpotItem.fixture(spotId: Int64($0)) }
+        let secondItems = (11...12).map { SavedSpotItem.fixture(spotId: Int64($0)) }
         authService.stubbedAuthState = .signedIn(.fixture())
         archiveService.responder = { page in
             if page == 0 {
-                .success(SpotListPage(spots: firstItems, page: 0, hasNext: true))
+                .success(SavedSpotPage(spots: firstItems, page: 0, hasNext: true))
             } else {
-                .success(SpotListPage(spots: secondItems, page: 1, hasNext: false))
+                .success(SavedSpotPage(spots: secondItems, page: 1, hasNext: false))
             }
         }
         await viewModel.onAppear()
@@ -238,10 +254,10 @@ final class ArchiveViewModelTests: XCTestCase {
     }
 
     func test_loadNextPageIfNeeded_처음아이템이면호출하지않는다() async {
-        let items = (1...10).map { SpotListItem.fixture(spotId: Int64($0)) }
+        let items = (1...10).map { SavedSpotItem.fixture(spotId: Int64($0)) }
         authService.stubbedAuthState = .signedIn(.fixture())
         archiveService.responder = { _ in
-            .success(SpotListPage(spots: items, page: 0, hasNext: true))
+            .success(SavedSpotPage(spots: items, page: 0, hasNext: true))
         }
         await viewModel.onAppear()
         let initialCount = archiveService.requestedPages.count
@@ -254,10 +270,10 @@ final class ArchiveViewModelTests: XCTestCase {
     // MARK: - bookmarkTapped
 
     func test_bookmarkTapped_낙관적제거후API성공시아이템이목록에서제거된다() async {
-        let items = [SpotListItem.fixture(spotId: 1), SpotListItem.fixture(spotId: 2)]
+        let items = [SavedSpotItem.fixture(spotId: 1), SavedSpotItem.fixture(spotId: 2)]
         authService.stubbedAuthState = .signedIn(.fixture())
         archiveService.responder = { _ in
-            .success(SpotListPage(spots: items, page: 0, hasNext: false))
+            .success(SavedSpotPage(spots: items, page: 0, hasNext: false))
         }
         await viewModel.onAppear()
 
@@ -273,10 +289,10 @@ final class ArchiveViewModelTests: XCTestCase {
     }
 
     func test_bookmarkTapped_마지막아이템제거시_상태가empty로전환된다() async {
-        let item = SpotListItem.fixture(spotId: 1)
+        let item = SavedSpotItem.fixture(spotId: 1)
         authService.stubbedAuthState = .signedIn(.fixture())
         archiveService.responder = { _ in
-            .success(SpotListPage(spots: [item], page: 0, hasNext: false))
+            .success(SavedSpotPage(spots: [item], page: 0, hasNext: false))
         }
         await viewModel.onAppear()
 
@@ -286,10 +302,10 @@ final class ArchiveViewModelTests: XCTestCase {
     }
 
     func test_bookmarkTapped_API실패시_아이템이복원되고toast가설정된다() async {
-        let items = [SpotListItem.fixture(spotId: 1), SpotListItem.fixture(spotId: 2)]
+        let items = [SavedSpotItem.fixture(spotId: 1), SavedSpotItem.fixture(spotId: 2)]
         authService.stubbedAuthState = .signedIn(.fixture())
         archiveService.responder = { _ in
-            .success(SpotListPage(spots: items, page: 0, hasNext: false))
+            .success(SavedSpotPage(spots: items, page: 0, hasNext: false))
         }
         await viewModel.onAppear()
         bookmarkService.deleteError = TestError.failed

@@ -30,6 +30,7 @@ struct DevModeView: View {
                     VStack(alignment: .leading, spacing: 32) {
                         apiEnvironmentSection
                         displaySection
+                        mockScreenSection
                         appInfoSection
                     }
                     .padding(20)
@@ -147,6 +148,36 @@ struct DevModeView: View {
                 isOn: $controller.isTouchIndicatorEnabled
             )
         }
+    }
+
+    // MARK: - 목 데이터 화면
+
+    /// 서버에 실제 데이터를 만들기 어려운 상태들을 목으로 띄운다.
+    /// 릴리즈 빌드에는 포함되지 않는다.
+    @ViewBuilder
+    private var mockScreenSection: some View {
+        #if DEBUG
+        section("목 데이터 화면") {
+            ForEach(MockScreenCatalog.entries) { entry in
+                NavigationLink {
+                    entry.destination()
+                } label: {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(entry.title)
+                            .pretendard(.body(.medium(.bold)))
+                            .foregroundStyle(.gray0)
+                        Text(entry.description)
+                            .pretendard(.body(.small()))
+                            .foregroundStyle(.gray30)
+                            .multilineTextAlignment(.leading)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(16)
+                    .background(UIAsset.Colors.gray90.swiftUIColor, in: RoundedRectangle(cornerRadius: 8))
+                }
+            }
+        }
+        #endif
     }
 
     private func toggleRow(title: String, description: String, isOn: Binding<Bool>) -> some View {

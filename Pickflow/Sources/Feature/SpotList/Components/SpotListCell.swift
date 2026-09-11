@@ -3,14 +3,18 @@ import SwiftUI
 struct SpotListCell: View {
     let item: SpotListItem
     let isBookmarked: Bool
-    let bookmarkCount: Int?
+    let likeCount: Int?
     let onBookmarkTap: () -> Void
     var onCellTap: () -> Void = {}
+    /// PV-40: 상세를 열 수 없는 저장 스팟(삭제·비공개)의 안내 문구.
+    /// 값이 있으면 썸네일과 메타를 죽이고 그 위에 문구를 덮는다.
+    var unavailableNotice: String? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             thumbnailBox
             metaRow
+                .opacity(unavailableNotice == nil ? 1 : 0.28)
         }
         .contentShape(Rectangle())
         .onTapGesture { onCellTap() }
@@ -28,6 +32,21 @@ struct SpotListCell: View {
             let h = w * aspect
             ZStack(alignment: .top) {
                 thumbnail(width: w, height: h)
+                    .opacity(unavailableNotice == nil ? 1 : 0.2)
+
+                if let unavailableNotice {
+                    Text(unavailableNotice)
+                        .pretendard(.body(.small(.bold)))
+                        .foregroundStyle(UIAsset.Colors.gray20.swiftUIColor)
+                        .multilineTextAlignment(.center)
+                        // 썸네일이 고정 크기라 큰 글씨에서 잘린다. 넘치는 대신 줄여 맞춘다.
+                        .minimumScaleFactor(0.6)
+                        .lineLimit(3)
+                        .padding(.horizontal, 12)
+                        // 위쪽 태그 행과 겹치지 않도록 세로 여백을 두고, 그래도 모자라면 글자를 줄인다.
+                        .padding(.vertical, 44)
+                        .frame(width: w, height: h)
+                }
                 HStack(alignment: .center) {
                     Spacer()
                     HStack(spacing: 4) {
@@ -132,11 +151,11 @@ struct SpotListCell: View {
                     .pretendard(.body(.small()))
                     .foregroundStyle(.gray10)
             }
-            if let count = bookmarkCount {
+            if let count = likeCount {
                 Text("·")
                 .pretendard(.body(.small()))
                     .foregroundStyle(.gray50)
-                Text("북마크 \(count)")
+                Text("추천 \(count)")
                     .pretendard(.body(.small()))
                     .foregroundStyle(.gray10)
             }
@@ -146,7 +165,7 @@ struct SpotListCell: View {
 
 #Preview {
   let item = allItems[0]
-  SpotListCell(item: item, isBookmarked: true, bookmarkCount: 10) {
+  SpotListCell(item: item, isBookmarked: true, likeCount: 10) {
     
   }
 }

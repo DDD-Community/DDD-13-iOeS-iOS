@@ -12,7 +12,6 @@ struct SpotListView: View {
         SpotListScreenContent(
             state: viewModel.state,
             isBookmarked: { viewModel.isBookmarked($0) },
-            bookmarkCount: { _ in nil },  // FIXME(BE-API): 응답 추가 시 item.bookmarkCount 전달.
             onBookmarkTap: { id in Task { await viewModel.bookmarkTapped(id) } },
             onCellTap: onCellTap,
             onRetry: { Task { await viewModel.onAppear() } },
@@ -94,7 +93,6 @@ struct SpotListView: View {
 struct SpotListScreenContent: View {
     let state: SpotListViewModel.LoadState
     let isBookmarked: (Int64) -> Bool
-    let bookmarkCount: (Int64) -> Int?
     let onBookmarkTap: (Int64) -> Void
     var onCellTap: (Int64) -> Void = { _ in }
     let onRetry: () -> Void
@@ -128,7 +126,7 @@ struct SpotListScreenContent: View {
                 SpotListCell(
                     item: item,
                     isBookmarked: isBookmarked(item.spotId),
-                    bookmarkCount: bookmarkCount(item.spotId),
+                    likeCount: item.likeCount,
                     onBookmarkTap: { onBookmarkTap(item.spotId) },
                     onCellTap: { onCellTap(item.spotId) }
                 )

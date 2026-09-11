@@ -1,0 +1,72 @@
+# PV-40 백로그
+
+이 티켓에서 구현하지 못했거나, 임시 방식으로 두고 넘어간 항목을 모아 둔다.
+막고 있는 주체별로 나눴다.
+
+---
+
+## 1. 검수 결과 알림 — API 연동 완료, 호출 시점만 남음
+
+서버가 전용 히스토리 API 를 추가해(2026-09-08) `SpotReviewNoticeController` 를
+이걸로 완전히 갈아끼웠다. 요청했던 세 가지(`spotId` 포함 / 확인 처리 엔드포인트 /
+건별 목록)가 전부 반영됐다:
+
+- `GET /v1/users/me/spot-open-review-histories` — 미확인(`check_yn=N`) 건을
+  승인/반려로 분리해 배열로 반환. 각 항목에 `historyId`/`spotId` 포함
+- `PATCH /v1/users/me/spot-open-review-histories/{historyId}/check-status` — 확인
+  처리(멱등). `SpotReviewNoticeController.dismissNotice()`/`openNoticeTarget()` 가 호출
+
+이전의 "my-spots 상태를 로컬에 기록해 두고 비교" 하던 임시 방식과
+`SpotReviewSeenStoring`/`UserDefaultsSpotReviewSeenStore` 는 전부 제거했다.
+반려·승인이 동시에 여러 건 나와도 반려 우선으로 하나씩 순서대로 보여준다(큐 방식이라
+`refresh()` 재호출 없이 다음 건이 바로 뜬다).
+
+**호출 시점 — 확정된 5가지 반영 완료(2026-09-08)**
+로그인 시점 / 앱 포그라운드 복귀 시 / 지도 탐색화면 최초 진입 시 / 저장된 스팟 목록
+조회 시 / 나만의 스팟 목록 조회 시, 이렇게 다섯 곳에서 부르기로 확정되어 그대로 구현했다.
+
+- 로그인·목록 조회는 `.spotReviewCheckRequested` 알림으로 느슨하게 연결했다
+  (`SocialLoginService.signInWithKakao/signInWithApple/retrySignIn`,
+  `ArchiveViewModel.fetchArchive/fetchMySpots` 성공 시 posting →
+  `SpotReviewNoticeController` 가 구독해 `refresh()` 호출)
+- 포그라운드 복귀는 `UIApplication.willEnterForegroundNotification` 을 같은 방식으로 구독
+- 탐색화면 최초 진입은 `ContentView` 가 `reviewNotice` 를 직접 들고 있어 알림 없이
+  바로 `refresh()` 호출(`hasEnteredExploreOnce` 플래그로 1회 제한)
+- (제외 유지) refresh token 갱신 시점은 여전히 부적절 — 인터셉터가 시점을 제어하고
+  동시 401 시 중복 호출이 생긴다
+
+---
+
+## 2. 서버 작업이 필요한 것
+
+| 항목 | 내용 |
+|---|---|
+| 반려 배너 [스팟 오픈 철회] Dev 확인 | 기존 `DELETE .../publications` 연결은 완료했다. OpenAPI 에 `REJECTED` 처리 결과가 명시되지 않아 실제 Dev 응답 확인이 필요하다 |
+| 공개 ON/OFF 토글의 초기 상태 — `SpotPreviewResponse`/`MySpotItem`엔 아직 없음 | `SpotDetailResponse`엔 `isReleased`가 추가돼(2026-09-08 확인) 상세 화면은 이제 서버 값을 그대로 읽는다. 다만 미리보기(`SpotPreviewResponse`)와 나만의 스팟 목록(`MySpotItem`)엔 아직 없어서, 미리보기 시트나 "나의 스팟" 리스트 카드에서는 여전히 켜져 있는지 꺼져 있는지 구분을 못 한다. "나의 스팟" 카드의 "공개" 뱃지도 그래서 released 여부와 무관하게 항상 뜬다 — 이 두 응답에도 필드 추가를 요청해야 한다 |
+| 큐레이션 출처명 | 기획 3.7 은 "한국관광공사"/"Pickflow 운영자" 같은 소스별 고정값을 요구하는데 API 에는 `isCurated: Bool` 뿐이다 |
+| 비공개 스팟 북마크 해제 | 비공개 스팟은 조회가 404 인데 북마크 해제도 막히는지 미확인. 막히면 보관함의 "저장 목록에서 삭제" 가 실패 토스트로 빠진다 |
+---
+
+## 3. 기획·디자인 확정이 필요한 것
+
+| 항목 | 내용 |
+|---|---|
+| 검수중 상태의 "스팟 삭제하기" | 시안엔 노출되는데 API 는 `SP011` 로 막는다. 숨길지, 노출하고 안내를 띄울지 |
+| 반려 상태의 추천 버튼 | 기획 3.8 은 "버튼 자체 없음", 시안엔 있다. 시안에는 추천 카운트가 없어 시안 실수일 가능성 |
+| 보관함 "삭제됨" 카피 | 시안이 없어 서버 문서의 '삭제된 스팟' 표현을 따라 "등록한 유저가 / 삭제한 스팟이에요" 로 두었다 |
+| 북마크 사전 안내 형태 | 카피는 기획에 있으나 노출 형태(토스트/인라인/시트)가 없어 토스트로 두었다 |
+| 미리보기 시트의 [저장하기] | 지도 미리보기 시안에 북마크 버튼이 없다. 의도적으로 뺀 것인지, 프레임에서 생략된 것인지 |
+| 큐레이션 스팟 **상세** | 타 유저 스팟 상세는 받아서 구현했다. 큐레이션 스팟 상세는 아직이라 지금은 뱃지 없이 추천만 노출된다. 기획 3.7 의 출처 표기("한국관광공사" 등)는 API 필드도 없다 |
+
+---
+
+## 4. 앱 내부에 남은 것 (외부 의존 없음)
+
+| 항목 | 내용 |
+|---|---|
+| `ArchiveScreenContent` 사본 | `ArchiveView` 본문을 옮겨 둔 사본이고 스냅샷 테스트에서만 쓰인다. 실제 뷰를 고칠 때 사본도 같이 고치지 않으면 검증 대상과 어긋난다(이번에 실제로 한 번 어긋났다) |
+| `test.yml` 스냅샷 스킵 목록 | 클래스를 이름으로 하나씩 나열해 새 클래스를 만들 때마다 손이 간다. `*SnapshotTests` 패턴으로 한 번에 거르는 편이 낫다 |
+| CI 에 릴리즈 빌드 없음 | `valid_build` 가 `-configuration Debug` 로만 빌드한다. `#if DEBUG` 누락으로 릴리즈 빌드가 깨진 적이 있는데 CI 가 잡지 못했다 |
+| 신규 등록 폼의 이탈 확인 | 재신청 모드에만 걸어 두었다. 신규 등록도 채운 내용을 잃는 건 같아 넓히는 게 맞을 수 있다 |
+| 중앙 팝업 컴포넌트 중복 | 오픈 완료·저장 삭제·이탈 확인 세 팝업의 뼈대가 같다. 공용 컴포넌트로 뽑을 만하다 |
+| 다른 화면의 `.sheet` | iOS 26 은 시트를 띄운 카드로 그린다. 확인 시트는 오버레이로 바꿨지만 `ReportSheet`, 날짜·시간 피커, 지도 미리보기 시트는 그대로다 |

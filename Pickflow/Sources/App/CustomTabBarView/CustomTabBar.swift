@@ -9,6 +9,8 @@ struct CustomTabBar: View {
     /// 탭 버튼이 눌릴 때마다 호출된다. 마이 탭 연타로 Dev Mode 에 진입하는 데 쓴다.
     /// 탭 전환 자체는 그대로 일어나므로 평소 사용에는 영향이 없다.
     var onTabTapped: (Tab) -> Void = { _ in }
+    /// 인디케이터(빨간 점)를 띄울 탭. 검수 결과를 확인하기 전까지 저장 탭에 붙는다.
+    var indicatedTabs: Set<Tab> = []
 
     var body: some View {
         HStack(spacing: 10) {
@@ -33,6 +35,14 @@ struct CustomTabBar: View {
                 Image(isSelected ? tab.selectedIconName : tab.iconName)
                     .renderingMode(.template)
                     .foregroundStyle(isSelected ? .gray0 : .gray50)
+                    .overlay(alignment: .topTrailing) {
+                        if indicatedTabs.contains(tab) {
+                            Circle()
+                                .fill(UIAsset.Colors.sunsetOrange.swiftUIColor)
+                                .frame(width: 5, height: 5)
+                                .offset(x: 3, y: -1)
+                        }
+                    }
 
                 Text(tab.rawValue)
                     .pretendard(.label(.medium))

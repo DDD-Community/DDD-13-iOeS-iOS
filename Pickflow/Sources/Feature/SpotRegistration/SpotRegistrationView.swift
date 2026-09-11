@@ -8,13 +8,27 @@ struct SpotRegistrationView: View {
     @State private var isTimeSheetPresented = false
     @State private var isSpotSearchPresented = false
     private let onRegistered: @MainActor (SpotId) -> Void
+    /// 이 화면이 NavigationStack push 가 아니라 커스텀 overlay 로 떠 있는 경우
+    /// (재신청) `@Environment(\.dismiss)` 가 아무 것도 닫지 못한다. 그런 호출부는
+    /// 이 클로저로 직접 닫는다. push 로 띄운 경우(신규 등록)는 nil 로 두면 된다.
+    private let onDismiss: (() -> Void)?
 
     init(
         viewModel: SpotRegistrationViewModel,
-        onRegistered: @escaping @MainActor (SpotId) -> Void
+        onRegistered: @escaping @MainActor (SpotId) -> Void,
+        onDismiss: (() -> Void)? = nil
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.onRegistered = onRegistered
+        self.onDismiss = onDismiss
+    }
+
+    private func close() {
+        if let onDismiss {
+            onDismiss()
+        } else {
+            dismiss()
+        }
     }
 
     private var spotNameBinding: Binding<String> {
@@ -65,7 +79,7 @@ struct SpotRegistrationView: View {
     private var headerView: some View {
         HStack {
             Button {
-                dismiss()
+                viewModel.backTapped()
             } label: {
                 Group {
                     AssetImage(named: "icon_back_arrow", renderingMode: .template, size: 28) {
@@ -121,7 +135,7 @@ struct SpotRegistrationView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                SpotPhotoPickerCard(photoData: $viewModel.photoData)
+                SpotPhotoPickerCard(photoData: $viewModel.photoData, existingImageUrl: viewModel.existingImageUrl)
 
                 if let selectedAddress = viewModel.selectedAddress,
                    let selectedAddressName = viewModel.selectedAddressName {
@@ -215,6 +229,31 @@ struct SpotRegistrationView: View {
             guard let newValue else { return }
             onRegistered(newValue)
         }
+        .onChange(of: viewModel.dismissRequested) { _, isRequested in
+            if isRequested { close() }
+        }
+        .onChange(of: viewModel.didResubmit) { _, didFinish in
+            guard didFinish else { return }
+            // 신규 등록과 같은 신호(onRegistered)로 성공을 알린다. 값 자체는 두 모드에서
+            // 다른 의미(신규 spotId vs 기존 spotId)라 호출부는 값을 쓰지 않고 완료 신호로만 쓴다.
+            if let spotId = viewModel.resubmitSuccessSpotId {
+                onRegistered(spotId)
+            }
+            close()
+        }
+        .overlay {
+            if viewModel.isExitConfirmPresented {
+                ZStack {
+                    Color.black.opacity(0.5).ignoresSafeArea()
+                    SpotRegistrationExitConfirmPopup(
+                        onContinue: viewModel.cancelExit,
+                        onLeave: viewModel.confirmExit
+                    )
+                }
+                .transition(.opacity)
+                .animation(.easeInOut(duration: 0.2), value: viewModel.isExitConfirmPresented)
+            }
+        }
     }
 }
 
@@ -241,4 +280,12 @@ private struct SpotRegistrationPreviewService: SpotServiceProtocol {
     }
 
     func reportSpot(id: Int64, content: String) async throws {}
+
+    func likeSpot(id: Int64) async throws -> SpotLikeResponse {
+        throw URLError(.notConnectedToInternet)
+    }
+
+    func unlikeSpot(id: Int64) async throws -> SpotLikeResponse {
+        throw URLError(.notConnectedToInternet)
+    }
 }

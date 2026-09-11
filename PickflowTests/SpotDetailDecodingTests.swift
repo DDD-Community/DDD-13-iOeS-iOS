@@ -14,6 +14,8 @@ final class SpotDetailDecodingTests: XCTestCase {
         XCTAssertNil(spot.comment)
         XCTAssertEqual(spot.theme, .nightView)
         XCTAssertEqual(spot.address, "서울 송파구")
+        XCTAssertNil(spot.addressRoad)
+        XCTAssertEqual(spot.addressJibun, "서울 송파구 잠실동 47")
         XCTAssertNil(spot.congestionLevel)
         XCTAssertEqual(spot.precipitation, .rain)
         XCTAssertEqual(spot.weatherSky, .overcast)
@@ -40,6 +42,8 @@ final class SpotDetailDecodingTests: XCTestCase {
 
         XCTAssertNil(spot.comment)
         XCTAssertNil(spot.address)
+        XCTAssertNil(spot.addressRoad)
+        XCTAssertNil(spot.addressJibun)
         XCTAssertNil(spot.imageUrl)
     }
 
