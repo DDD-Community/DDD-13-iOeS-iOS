@@ -264,6 +264,13 @@ final class SpotDetailViewModel: ObservableObject {
         canLike = spot.isLikeable ?? (spot.isCurated ?? false)
         isUserRegisteredSpot = !spot.isMySpot && spot.isCurated == false
 
+        // 나의 스팟 목록 카드가 보여준 상태(검수중/공개/반려 등)가 실제와 어긋나 있을 수 있어
+        // (다른 기기에서 바뀌었거나 서버에서 그 사이 처리됐거나), 내 스팟 상세를 열 때마다
+        // 조용히 목록을 다시 불러와 카드와 상세가 늘 같은 상태를 보여주게 한다.
+        if spot.isMySpot {
+            NotificationCenter.default.post(name: .mySpotListDidChange, object: nil)
+        }
+
         let isApprovedMySpot = spot.isMySpot && spot.status == .published
         if isApprovedMySpot, !openCompleteStore.hasAcknowledged(spotId: spotId) {
             isOpenCompletePresented = true
