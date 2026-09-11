@@ -11,6 +11,7 @@ struct SpotHeaderSection: View {
                 status: spot.status,
                 isMySpot: spot.isMySpot,
                 isUserRegistered: isUserRegistered,
+                imageCredit: spot.imageCredit,
                 metric: metric
             )
 

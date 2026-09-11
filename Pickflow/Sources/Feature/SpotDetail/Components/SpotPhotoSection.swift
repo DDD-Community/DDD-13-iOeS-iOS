@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SpotPhotoSection: View {
     let imageURL: String?
+    let recordedDate: String?
     let recordedTime: String?
     /// 서버가 주소를 채우지 못하면 null 로 온다. 그럴 땐 주소 줄을 통째로 감춘다.
     let address: String?
@@ -56,8 +57,9 @@ struct SpotPhotoSection: View {
         .frame(height: 200)
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .overlay(alignment: .topLeading) {
-            if imageURL != nil, let recordedTime, !recordedTime.isEmpty {
-                Text(DateFormatter.pickflowDisplayTime(from: recordedTime))
+            if imageURL != nil,
+               let badgeText = DateFormatter.spotPhotoBadgeText(recordedDate: recordedDate, recordedTime: recordedTime) {
+                Text(badgeText)
                     .pretendard(.body(.small(.bold)))
                     .foregroundStyle(Color(red: 1, green: 161/255, blue: 0))
                     .padding(.horizontal, 8)

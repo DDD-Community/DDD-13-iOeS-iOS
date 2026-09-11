@@ -292,6 +292,9 @@ final class SpotDetailViewModel: ObservableObject {
                 : try await spotService.likeSpot(id: spotId)
             // 서버에 최종 반영된 값이 진실이다.
             updateLikeState(count: response.likeCount, isLiked: response.isLiked)
+            if !previousIsLiked, response.isLiked {
+                showToast("이 스팟을 추천했어요")
+            }
         } catch {
             updateLikeState(count: previousCount, isLiked: previousIsLiked)
             showToast(error.spotPublicationErrorCode?.userMessage ?? "잠시 후 다시 시도해주세요.")
