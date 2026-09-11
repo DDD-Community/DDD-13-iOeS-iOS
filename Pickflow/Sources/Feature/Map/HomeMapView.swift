@@ -72,8 +72,11 @@ struct HomeMapView: View {
                                     }
                                 }
                                 .padding(.trailing, Padding.containerHorizontal)
-                                // 정렬 버튼이 이제 topBar 의 마지막 줄이라, bottomTrailing 기준으로
-                                // 바로 아래에 작은 간격만 주면 된다(이전엔 PICKFLOW 줄에 있어 더 큰 오프셋 필요).
+                                // bottomTrailing 정렬은 옵션 박스의 "아래쪽" 끝을 topBar 바닥에 붙이는
+                                // 것이라, 박스가 topBar 자체보다 크면 위쪽(테마 필터 쪽)으로 겹쳐 자란다.
+                                // alignmentGuide 로 박스의 top 을 자신의 bottom 인 것처럼 속여서, topBar
+                                // 바닥에 박스의 "위쪽" 끝이 붙어 아래로 펼쳐지도록 한다(PV-134).
+                                .alignmentGuide(.bottom) { $0[.top] }
                                 .offset(y: 4)
                                 .transition(.opacity)
                             }
