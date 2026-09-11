@@ -22,15 +22,13 @@ struct MySpotListCell: View {
             ZStack(alignment: .top) {
                 thumbnail(width: w, height: h)
                 HStack(alignment: .top) {
+                    statusBadge
                     Spacer()
-                    VStack(alignment: .trailing, spacing: 4) {
-                        HStack(spacing: 4) {
-                            moodBadge
-                            if let distanceKm = item.distanceKm {
-                                distanceBadge(distanceKm)
-                            }
+                    HStack(spacing: 4) {
+                        moodBadge
+                        if let distanceKm = item.distanceKm {
+                            distanceBadge(distanceKm)
                         }
-                        statusBadge
                     }
                 }
                 .padding(8)
