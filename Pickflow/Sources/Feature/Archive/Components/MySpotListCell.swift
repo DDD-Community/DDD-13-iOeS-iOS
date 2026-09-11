@@ -90,9 +90,9 @@ struct MySpotListCell: View {
         }
     }
 
-    /// 오픈 반려는 배경 없이 테두리만 들어간다. 그 외 상태는 gray90 배경.
+    /// 오픈 반려는 배경 없이 테두리만 들어간다. 그 외 상태는 gray20 15% opacity 배경.
     private var statusBackground: Color {
-        item.status == .rejected ? .clear : UIAsset.Colors.gray90.swiftUIColor
+        item.status == .rejected ? .clear : UIAsset.Colors.gray20.swiftUIColor.opacity(0.15)
     }
 
     /// 해석하지 못한 카테고리면 뱃지를 달지 않는다.
