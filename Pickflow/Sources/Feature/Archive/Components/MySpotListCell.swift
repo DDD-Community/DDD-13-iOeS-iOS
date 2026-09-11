@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 나만의 스팟 탭용 카드. 북마크 액션은 없고, 상단 좌측에 검수/공개/반려 상태 뱃지를 노출한다.
+/// 나만의 스팟 탭용 카드. 북마크 액션은 없고, 사진 좌측 하단에 검수/공개/반려 상태 뱃지를 노출한다.
 struct MySpotListCell: View {
     let item: MySpotListItem
     var onCellTap: () -> Void = {}
@@ -22,7 +22,6 @@ struct MySpotListCell: View {
             ZStack(alignment: .top) {
                 thumbnail(width: w, height: h)
                 HStack(alignment: .top) {
-                    statusBadge
                     Spacer()
                     HStack(spacing: 4) {
                         moodBadge
@@ -34,6 +33,11 @@ struct MySpotListCell: View {
                 .padding(8)
             }
             .frame(width: w, height: h)
+            .overlay(alignment: .bottomLeading) {
+                statusBadge
+                    .padding(.leading, 10)
+                    .padding(.bottom, 10)
+            }
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .aspectRatio(1.0 / aspect, contentMode: .fit)
@@ -76,17 +80,19 @@ struct MySpotListCell: View {
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
                 .background(statusBackground)
-                .clipShape(Capsule())
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+                .overlay {
+                    if item.status == .rejected {
+                        RoundedRectangle(cornerRadius: 4)
+                            .stroke(UIAsset.Colors.gray20.swiftUIColor, lineWidth: 1)
+                    }
+                }
         }
     }
 
+    /// 오픈 반려는 배경 없이 테두리만 들어간다. 그 외 상태는 gray20 배경.
     private var statusBackground: Color {
-        switch item.status {
-        case .pending, .reReviewPending: UIAsset.Colors.gray80.swiftUIColor.opacity(0.85)
-        case .published: UIAsset.Colors.sunsetOrange.swiftUIColor.opacity(0.85)
-        case .rejected: Color.red.opacity(0.7)
-        case .draft, .unknown: .clear
-        }
+        item.status == .rejected ? .clear : UIAsset.Colors.gray20.swiftUIColor
     }
 
     /// 해석하지 못한 카테고리면 뱃지를 달지 않는다.
