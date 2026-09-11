@@ -55,6 +55,7 @@ final class ArchiveViewModel: ObservableObject {
     @Published private(set) var withdrawnAccountInfo: WithdrawnAccountInfo?
     @Published private(set) var archiveImageURL: URL?
     @Published var toast: String?
+    private var toastDismissTask: Task<Void, Never>?
     @Published var archiveName: String = "나의 보관함"
     @Published var coverImageData: Data?
     @Published private(set) var isSpotOpenGuidePresented: Bool = false
@@ -259,10 +260,12 @@ final class ArchiveViewModel: ObservableObject {
     }
 
     func showToast(_ message: String) {
+        toastDismissTask?.cancel()
         toast = message
-        Task {
+        toastDismissTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(2))
-            toast = nil
+            guard !Task.isCancelled else { return }
+            self?.toast = nil
         }
     }
 
