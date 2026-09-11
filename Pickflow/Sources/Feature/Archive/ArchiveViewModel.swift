@@ -122,7 +122,19 @@ final class ArchiveViewModel: ObservableObject {
                 await self.fetchMySpots(silent: true)
             }
         }
-        notificationObservers = [bookmarkObserver, registerObserver]
+        // keep-alive로 뷰가 재생성되지 않아 onAppear()의 .task가 최초 1회만 도는 구조라,
+        // 다른 화면(마이페이지 등)에서 로그인에 성공해도 signedOut 상태가 갱신되지 않던 문제 수정.
+        let signInObserver = NotificationCenter.default.addObserver(
+            forName: .userDidSignIn,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self, self.state == .signedOut else { return }
+                await self.onAppear()
+            }
+        }
+        notificationObservers = [bookmarkObserver, registerObserver, signInObserver]
     }
 
     func onAppear() async {
