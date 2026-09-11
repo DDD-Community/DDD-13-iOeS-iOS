@@ -30,6 +30,7 @@ final class LoginViewModel: ObservableObject {
         do {
             try await socialLoginService.signInWithKakao()
             didSignInSucceed = true
+            NotificationCenter.default.post(name: .userDidSignIn, object: nil)
         } catch {
             handleSignInError(error)
         }
@@ -45,6 +46,7 @@ final class LoginViewModel: ObservableObject {
         do {
             try await socialLoginService.signInWithApple()
             didSignInSucceed = true
+            NotificationCenter.default.post(name: .userDidSignIn, object: nil)
         } catch {
             handleSignInError(error)
         }
@@ -72,6 +74,7 @@ final class LoginViewModel: ObservableObject {
         do {
             try await RestoreAccountFlow.restore(info, using: socialLoginService)
             didSignInSucceed = true
+            NotificationCenter.default.post(name: .userDidSignIn, object: nil)
         } catch let e as APIError {
             e.post()
         } catch {
