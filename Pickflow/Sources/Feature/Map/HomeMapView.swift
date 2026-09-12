@@ -63,21 +63,6 @@ struct HomeMapView: View {
                                 )
                             }
                         )
-                        .overlay(alignment: .bottomTrailing) {
-                            if mapListMode == .list, isSortExpanded {
-                                SpotListSortDropdownOptions(current: spotList.sort) { picked in
-                                    Task { await spotList.sortChanged(picked) }
-                                    withAnimation(.easeInOut(duration: 0.15)) {
-                                        isSortExpanded = false
-                                    }
-                                }
-                                .padding(.trailing, Padding.containerHorizontal)
-                                // 정렬 버튼이 이제 topBar 의 마지막 줄이라, bottomTrailing 기준으로
-                                // 바로 아래에 작은 간격만 주면 된다(이전엔 PICKFLOW 줄에 있어 더 큰 오프셋 필요).
-                                .offset(y: 4)
-                                .transition(.opacity)
-                            }
-                        }
                     Spacer()
                 }
                 .onPreferenceChange(TopBarHeightKey.self) { height in
@@ -86,6 +71,26 @@ struct HomeMapView: View {
                 .onChange(of: mapListMode) { _, newMode in
                     if newMode == .map {
                         isSortExpanded = false
+                    }
+                }
+                // overlay(alignment: .bottomTrailing) + alignmentGuide 로 옵션 박스를 topBar
+                // 바닥에 붙이려던 시도가 실기기에서 여전히 위로 겹쳐 보인다는 리포트가 있어(PV-134),
+                // 대신 이미 검증된 topBarHeight 실측값(contentTopInset 에도 쓰임)으로 화면 최상단
+                // 기준 padding.top 을 직접 계산해서 위치를 확정한다 — 정렬 가이드 트릭에 기대지 않는다.
+                .overlay(alignment: .top) {
+                    if mapListMode == .list, isSortExpanded {
+                        HStack {
+                            Spacer()
+                            SpotListSortDropdownOptions(current: spotList.sort) { picked in
+                                Task { await spotList.sortChanged(picked) }
+                                withAnimation(.easeInOut(duration: 0.15)) {
+                                    isSortExpanded = false
+                                }
+                            }
+                            .padding(.trailing, Padding.containerHorizontal)
+                        }
+                        .padding(.top, Padding.containerTop + topBarHeight + 4)
+                        .transition(.opacity)
                     }
                 }
 
