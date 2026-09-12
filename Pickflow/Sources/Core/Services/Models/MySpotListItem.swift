@@ -53,7 +53,8 @@ struct MySpotListItem: Decodable, Sendable, Identifiable, Equatable {
     let distanceKm: Double?
     let createdAt: String
     let status: MySpotStatus
-    let bookmarkCount: Int
+    /// 추천(좋아요) 수. 값이 없으면(구버전 응답) 0으로 취급한다.
+    let likeCount: Int?
 
     var id: Int64 { spotId }
 

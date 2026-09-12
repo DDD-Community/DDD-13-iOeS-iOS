@@ -129,7 +129,7 @@ struct MySpotListCell: View {
                 .truncationMode(.tail)
 
             HStack(spacing: 6) {
-                Text("북마크 \(item.bookmarkCount)")
+                Text("추천 \(item.likeCount ?? 0)")
                     .pretendard(.label(.medium))
                     .foregroundStyle(.gray30)
             }

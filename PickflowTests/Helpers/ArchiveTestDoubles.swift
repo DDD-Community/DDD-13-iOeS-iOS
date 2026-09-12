@@ -115,6 +115,7 @@ extension MySpotListItem {
         name: String = "석촌호수 산책길",
         theme: SpotTheme? = .reflection,
         status: MySpotStatus = .draft,
+        likeCount: Int? = 0,
         distanceKm: Double? = 1.2
     ) -> MySpotListItem {
         MySpotListItem(
@@ -127,7 +128,7 @@ extension MySpotListItem {
             distanceKm: distanceKm,
             createdAt: "2026-04-11",
             status: status,
-            bookmarkCount: 0
+            likeCount: likeCount
         )
     }
 }
