@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 나만의 스팟 탭용 카드. 북마크 액션은 없고, 상단 좌측에 검수/공개/반려 상태 뱃지를 노출한다.
+/// 나만의 스팟 탭용 카드. 북마크 액션은 없고, 사진 좌측 하단에 검수/공개/반려 상태 뱃지를 노출한다.
 struct MySpotListCell: View {
     let item: MySpotListItem
     var onCellTap: () -> Void = {}
@@ -23,19 +23,21 @@ struct MySpotListCell: View {
                 thumbnail(width: w, height: h)
                 HStack(alignment: .top) {
                     Spacer()
-                    VStack(alignment: .trailing, spacing: 4) {
-                        HStack(spacing: 4) {
-                            moodBadge
-                            if let distanceKm = item.distanceKm {
-                                distanceBadge(distanceKm)
-                            }
+                    HStack(spacing: 4) {
+                        moodBadge
+                        if let distanceKm = item.distanceKm {
+                            distanceBadge(distanceKm)
                         }
-                        statusBadge
                     }
                 }
                 .padding(8)
             }
             .frame(width: w, height: h)
+            .overlay(alignment: .bottomLeading) {
+                statusBadge
+                    .padding(.leading, 10)
+                    .padding(.bottom, 10)
+            }
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .aspectRatio(1.0 / aspect, contentMode: .fit)
@@ -74,21 +76,25 @@ struct MySpotListCell: View {
         if let badgeText = item.status.badgeText {
             Text(badgeText)
                 .pretendard(.label(.medium))
-                .foregroundStyle(.gray0)
+                .foregroundStyle(UIAsset.Colors.gray20.swiftUIColor)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
                 .background(statusBackground)
-                .clipShape(Capsule())
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+                .overlay {
+                    if item.status == .rejected {
+                        RoundedRectangle(cornerRadius: 4)
+                            .stroke(UIAsset.Colors.gray20.swiftUIColor, lineWidth: 1)
+                    }
+                }
         }
     }
 
+    /// 오픈 반려는 gray90 80% opacity + 테두리, 그 외 상태는 gray80.
     private var statusBackground: Color {
-        switch item.status {
-        case .pending, .reReviewPending: UIAsset.Colors.gray80.swiftUIColor.opacity(0.85)
-        case .published: UIAsset.Colors.sunsetOrange.swiftUIColor.opacity(0.85)
-        case .rejected: Color.red.opacity(0.7)
-        case .draft, .unknown: .clear
-        }
+        item.status == .rejected
+            ? UIAsset.Colors.gray90.swiftUIColor.opacity(0.8)
+            : UIAsset.Colors.gray80.swiftUIColor
     }
 
     /// 해석하지 못한 카테고리면 뱃지를 달지 않는다.
