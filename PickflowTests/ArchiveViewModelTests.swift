@@ -350,6 +350,7 @@ private extension MySpotListItem {
         distanceKm: Double? = 1.0,
         createdAt: String = "2026-08-31T00:00:00Z",
         status: MySpotStatus = .draft,
+        isReleased: Bool? = true,
         bookmarkCount: Int = 0
     ) -> MySpotListItem {
         MySpotListItem(
@@ -362,6 +363,7 @@ private extension MySpotListItem {
             distanceKm: distanceKm,
             createdAt: createdAt,
             status: status,
+            isReleased: isReleased,
             bookmarkCount: bookmarkCount
         )
     }
