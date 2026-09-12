@@ -89,9 +89,26 @@ enum SpotRejectionDate {
         return [plain, withFraction]
     }()
 
+    /// ISO8601DateFormatter는 타임존 표기(Z/오프셋)가 없으면 무조건 파싱에 실패한다.
+    /// 서버가 타임존 없이 로컬 시각을 그대로 내려주는 경우(naive timestamp)에 대비한 폴백.
+    private nonisolated(unsafe) static let fallbackFormatters: [DateFormatter] = {
+        ["yyyy-MM-dd'T'HH:mm:ss.SSS", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd HH:mm:ss"].map { pattern in
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+            formatter.dateFormat = pattern
+            return formatter
+        }
+    }()
+
     static func display(_ iso8601: String) -> String {
         for parser in parsers {
             if let date = parser.date(from: iso8601) {
+                return display.string(from: date)
+            }
+        }
+        for formatter in fallbackFormatters {
+            if let date = formatter.date(from: iso8601) {
                 return display.string(from: date)
             }
         }
