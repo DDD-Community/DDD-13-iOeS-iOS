@@ -350,7 +350,7 @@ private extension MySpotListItem {
         distanceKm: Double? = 1.0,
         createdAt: String = "2026-08-31T00:00:00Z",
         status: MySpotStatus = .draft,
-        bookmarkCount: Int = 0
+        likeCount: Int? = 0
     ) -> MySpotListItem {
         MySpotListItem(
             spotId: spotId,
@@ -362,7 +362,7 @@ private extension MySpotListItem {
             distanceKm: distanceKm,
             createdAt: createdAt,
             status: status,
-            bookmarkCount: bookmarkCount
+            likeCount: likeCount
         )
     }
 }
