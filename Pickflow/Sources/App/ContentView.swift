@@ -195,7 +195,9 @@ struct ContentView: View {
                     onClose: reviewNotice.dismissNotice
                 )
                 .padding(.horizontal, 16)
-                .padding(.bottom, 12)
+                // 탭바 바로 위 16pt 지점에 떠야 하는데, 탭바 높이(CustomTabBar.height)를
+                // 안 더해서 탭바와 겹쳐 보이던 문제(PV-136).
+                .padding(.bottom, CustomTabBar.height + 16)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
                 .animation(.easeInOut(duration: 0.2), value: reviewNotice.isNoticeVisible)
             }
