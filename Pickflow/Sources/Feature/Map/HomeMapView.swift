@@ -46,7 +46,9 @@ struct HomeMapView: View {
                         // 간격도 16으로 맞췄다(시안 기준). 헤더가 접혀도 inset 은 펼친 높이 기준으로 두고,
                         // 접히는 만큼은 컨텐츠가 같이 스크롤되어 올라가므로 간격이 유지된다.
                         contentTopInset: Padding.containerTop + topBarHeight + 16,
-                        collapsibleHeaderHeight: regionCollapsibleHeight + Padding.topBarSpacing + sortRowHeight,
+                        // 정렬 행은 필터 아래 8pt 여백선까지만 올라가면 다 가려진다.
+                        collapsibleHeaderHeight: regionCollapsibleHeight
+                            + Padding.topBarSpacing - Padding.stickyFilterBottom + sortRowHeight,
                         onHeaderCollapseChange: headerCollapseChanged,
                         onCellTap: { spotId in
                             listDetailVM = makeSpotDetailViewModel(spotId: spotId)
@@ -386,10 +388,10 @@ struct HomeMapView: View {
                     )
                 }
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { sortRowHeight = $0 }
-                // 필터가 상단에 붙은 뒤 남은 스크롤만큼 더 올라가며, 필터 bottom(행 위 spacing)에서 잘려 필터 밑으로 사라진다.
+                // 필터가 상단에 붙은 뒤 남은 스크롤만큼 더 올라가며, 필터 아래 8pt 여백선에서 잘려 필터 밑으로 사라진다.
                 // 가려진 뒤에도 필터 칩 탭을 가로채지 않도록 필터보다 아래 z 에 둔다.
                 .offset(y: -(headerCollapse - regionCollapse))
-                .mask { Rectangle().padding(.top, -Padding.topBarSpacing) }
+                .mask { Rectangle().padding(.top, -(Padding.topBarSpacing - Padding.stickyFilterBottom)) }
                 .zIndex(-1)
             }
         }
@@ -517,6 +519,8 @@ extension HomeMapView {
     fileprivate enum Padding {
         static let containerTop: CGFloat = 12
         static let topBarSpacing: CGFloat = 14
+        /// 다 접혀 필터만 남았을 때 칩 아래로 카드가 잘리기 전까지 두는 여백.
+        static let stickyFilterBottom: CGFloat = 8
         static let containerHorizontal: CGFloat = 16
         static let containerBottom: CGFloat = 24
     }
