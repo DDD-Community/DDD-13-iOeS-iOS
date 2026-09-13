@@ -141,17 +141,18 @@ final class SpotPublicationDecodingTests: XCTestCase {
 
     // MARK: - 저장된 스팟 / 미리보기 / 리스트
 
-    func test_SavedSpotItem_비공개_전환된_항목은_isPrivate_이고_imageUrl_이_마스킹된다() throws {
+    func test_SavedSpotItem_비공개_전환된_항목은_isReleased가_false이고_imageUrl_이_마스킹된다() throws {
         let json = """
         {
           "spotId": 9, "name": "잠원 노을 스팟", "theme": "SUNSET",
           "imageUrl": null, "latitude": 37.5, "longitude": 127.0,
           "distanceKm": 2.5, "bookmarkCount": 1,
-          "savedAt": "2026-08-01T00:00:00Z", "deleted": false, "isPrivate": true
+          "savedAt": "2026-08-01T00:00:00Z", "deleted": false, "isReleased": false
         }
         """
         let item = try decoder.decode(SavedSpotItem.self, from: Data(json.utf8))
-        XCTAssertEqual(item.isPrivate, true)
+        XCTAssertEqual(item.isReleased, false)
+        XCTAssertTrue(item.isPrivateSpot)
         XCTAssertFalse(item.deleted)
         XCTAssertNil(item.imageUrl)
     }
@@ -162,7 +163,7 @@ final class SpotPublicationDecodingTests: XCTestCase {
           "spotId": 110, "name": "테스트", "theme": "YS",
           "imageUrl": "https://example.com/spot.jpg", "latitude": 37.5, "longitude": 127.0,
           "distanceKm": 3.61, "bookmarkCount": 1, "likeCount": 0,
-          "savedAt": "2026-09-08T22:18:33.825016", "deleted": false, "isPrivate": false
+          "savedAt": "2026-09-08T22:18:33.825016", "deleted": false, "isReleased": true
         }
         """
         let item = try decoder.decode(SavedSpotItem.self, from: Data(json.utf8))

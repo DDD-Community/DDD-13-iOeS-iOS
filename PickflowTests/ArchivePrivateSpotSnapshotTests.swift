@@ -21,15 +21,15 @@ final class ArchivePrivateSpotSnapshotTests: XCTestCase {
     // MARK: - 카드
 
     func test_saved_card_private_light() {
-        assert(card(notice: SavedSpotItem.fixture(isPrivate: true).unavailableNotice), width: cardWidth, height: 260, traits: Self.light)
+        assert(card(notice: SavedSpotItem.fixture(isReleased: false).unavailableNotice), width: cardWidth, height: 260, traits: Self.light)
     }
 
     func test_saved_card_private_dark() {
-        assert(card(notice: SavedSpotItem.fixture(isPrivate: true).unavailableNotice), width: cardWidth, height: 260, traits: Self.dark)
+        assert(card(notice: SavedSpotItem.fixture(isReleased: false).unavailableNotice), width: cardWidth, height: 260, traits: Self.dark)
     }
 
     func test_saved_card_private_a11y() {
-        assert(card(notice: SavedSpotItem.fixture(isPrivate: true).unavailableNotice), width: cardWidth, height: 320, traits: Self.a11yDark)
+        assert(card(notice: SavedSpotItem.fixture(isReleased: false).unavailableNotice), width: cardWidth, height: 320, traits: Self.a11yDark)
     }
 
     func test_saved_card_deleted_light() {

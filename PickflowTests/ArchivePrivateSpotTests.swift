@@ -12,7 +12,7 @@ final class ArchivePrivateSpotTests: XCTestCase {
     private var viewModel: ArchiveViewModel!
 
     private let publicSpot = SavedSpotItem.fixture(spotId: 1)
-    private let privateSpot = SavedSpotItem.fixture(spotId: 2, imageUrl: nil, isPrivate: true)
+    private let privateSpot = SavedSpotItem.fixture(spotId: 2, imageUrl: nil, isReleased: false)
 
     override func setUp() async throws {
         try await super.setUp()

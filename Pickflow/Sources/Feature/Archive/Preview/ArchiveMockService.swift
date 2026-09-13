@@ -39,7 +39,7 @@ final class ArchiveMockService: ArchiveServiceProtocol, Sendable {
 
     private static let allItems: [SavedSpotItem] = [
         makeSavedSpotItem(spotId: 1, name: "한강 노을길", theme: .sunset, distanceKm: 0.4),
-        makeSavedSpotItem(spotId: 2, name: "잠실 윤슬", theme: .reflection, distanceKm: 1.2, isPrivate: true),
+        makeSavedSpotItem(spotId: 2, name: "잠실 윤슬", theme: .reflection, distanceKm: 1.2, isReleased: false),
         makeSavedSpotItem(spotId: 3, name: "응봉산 전망대", theme: .sunset, distanceKm: 2.0, deleted: true),
         makeSavedSpotItem(spotId: 4, name: "반포 무지개 분수", theme: .reflection, distanceKm: 2.8),
         makeSavedSpotItem(spotId: 5, name: "선유도 일몰 포인트", theme: .sunset, distanceKm: 3.5),
@@ -59,7 +59,7 @@ func makeSavedSpotItem(
     distanceKm: Double?,
     likeCount: Int? = 34,
     deleted: Bool = false,
-    isPrivate: Bool? = nil
+    isReleased: Bool? = nil
 ) -> SavedSpotItem {
     SavedSpotItem(
         spotId: spotId,
@@ -72,6 +72,6 @@ func makeSavedSpotItem(
         likeCount: likeCount,
         savedAt: "2026-08-01T00:00:00Z",
         deleted: deleted,
-        isPrivate: isPrivate
+        isReleased: isReleased
     )
 }
