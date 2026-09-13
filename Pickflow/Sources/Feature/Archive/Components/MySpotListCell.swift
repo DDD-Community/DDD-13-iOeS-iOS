@@ -70,10 +70,19 @@ struct MySpotListCell: View {
 
     private var aspect: CGFloat { item.spotId.isMultiple(of: 2) ? 1.2 : 0.9 }
 
+    /// 공개 상태인데 isReleased가 false면(지도뷰/리스트 노출을 껐음) "공개" 대신 "비공개"를 보여준다.
+    /// isReleased가 없으면(구버전 응답) 켜져 있다고 가정해 status의 기본 뱃지를 그대로 쓴다.
+    private var badgeText: String? {
+        if item.status == .published, item.isReleased == false {
+            return "비공개"
+        }
+        return item.status.badgeText
+    }
+
     /// 나만보기(DRAFT)와 알 수 없는 상태는 뱃지를 달지 않는다.
     @ViewBuilder
     private var statusBadge: some View {
-        if let badgeText = item.status.badgeText {
+        if let badgeText {
             Text(badgeText)
                 .pretendard(.label(.medium))
                 .foregroundStyle(UIAsset.Colors.gray20.swiftUIColor)

@@ -116,6 +116,7 @@ extension MySpotListItem {
         theme: SpotTheme? = .reflection,
         status: MySpotStatus = .draft,
         likeCount: Int? = 0,
+        isReleased: Bool? = true,
         distanceKm: Double? = 1.2
     ) -> MySpotListItem {
         MySpotListItem(
@@ -129,6 +130,7 @@ extension MySpotListItem {
             createdAt: "2026-04-11",
             status: status,
             likeCount: likeCount
+            isReleased: isReleased,
         )
     }
 }

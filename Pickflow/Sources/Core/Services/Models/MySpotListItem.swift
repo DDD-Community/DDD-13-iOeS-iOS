@@ -53,9 +53,12 @@ struct MySpotListItem: Decodable, Sendable, Identifiable, Equatable {
     let distanceKm: Double?
     let createdAt: String
     let status: MySpotStatus
+    /// 지도뷰/리스트 노출 on/off. status(검수 flow)와 독립적인 별도 플래그.
+    /// 값이 없으면(구버전 응답 등) 켜져 있다고 가정한다 — SpotDetail과 동일 컨벤션.
+    let isReleased: Bool?
     /// 추천(좋아요) 수. 값이 없으면(구버전 응답) 0으로 취급한다.
     let likeCount: Int?
-
+  
     var id: Int64 { spotId }
 
     /// SpotListCell 재사용을 위한 어댑터. isBookmarked 는 의미상 무관.
