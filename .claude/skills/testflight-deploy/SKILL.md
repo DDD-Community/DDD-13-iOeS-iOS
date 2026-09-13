@@ -51,7 +51,9 @@ gh workflow run "TestFlight Deploy" \
 gh run view <RUN_ID> --log | grep -m1 "ref:"
 ```
 
-`ref: <BRANCH>`가 아니면 즉시 사용자에게 알리고 중단 — 잘못된 브랜치로 배포가 진행 중이면 취소 여부를 물어본다(`gh run cancel <RUN_ID>`).
+**주의**: `gh run view --log`는 잡이 **완료된 뒤에만** 로그를 반환한다("job ... is still in progress; logs will be available when it is complete"). 트리거 직후(in_progress 상태)엔 이 커맨드가 빈 결과만 준다 — 실패로 오인하지 말 것. 진행 중일 땐 검증을 건너뛰고 사용자에게 "실행 중, 완료되면 브랜치 검증하겠다"고 알린 뒤, 완료 후(또는 나중에 다시 확인할 때) 이 grep을 재실행해서 확인한다.
+
+`ref: <BRANCH>`가 아니면(완료 후 확인 시) 즉시 사용자에게 알린다 — 잘못된 브랜치로 배포가 끝났으면 재배포 필요 여부를 물어본다.
 
 ### 5. 결과 보고
 run URL과 사용된 브랜치·테스트 노트를 사용자에게 요약해서 전달한다. 실행은 15~20분 걸리므로 완료까지 기다리지 말고, 필요하면 나중에 `gh run view <RUN_ID>`로 상태만 다시 확인한다.
