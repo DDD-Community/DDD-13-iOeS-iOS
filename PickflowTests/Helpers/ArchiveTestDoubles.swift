@@ -129,8 +129,8 @@ extension MySpotListItem {
             distanceKm: distanceKm,
             createdAt: "2026-04-11",
             status: status,
-            likeCount: likeCount
             isReleased: isReleased,
+            likeCount: likeCount
         )
     }
 }
