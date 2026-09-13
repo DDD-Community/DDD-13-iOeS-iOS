@@ -21,6 +21,10 @@ struct HomeMapView: View {
     )
     @StateObject private var regionSelectionStore = getRegionSelectionStore()
     @State private var topBarHeight: CGFloat = 0
+    @State private var regionHeaderHeight: CGFloat = 0
+    @State private var sortRowHeight: CGFloat = 0
+    /// 리스트 스크롤로 위로 밀어 올린 헤더 높이(로고+지역, 정렬 행은 숨고 테마 필터만 상단에 고정).
+    @State private var listHeaderCollapse: CGFloat = 0
     @State private var isSortExpanded: Bool = false
     @State private var cameraMoveRequest: CameraMoveRequest?
     @State private var userLocation: Coordinate?
@@ -36,18 +40,25 @@ struct HomeMapView: View {
             ZStack(alignment: .top) {
                 // MARK: - List overlay (지도 전체를 덮음, 헤더는 그 위에 오버레이)
                 if mapListMode == .list {
-                    // 헤더 bottom 으로부터 8pt 간격 — Padding.containerTop + topBarHeight + 8
                     SpotListView(
                         viewModel: spotList,
                         // 정렬 필터가 테마 필터 아래로 내려오면서(§ 지역/정렬 위계 정리) 카드 리스트와의
-                        // 간격도 16으로 맞췄다(시안 기준).
+                        // 간격도 16으로 맞췄다(시안 기준). 헤더가 접혀도 inset 은 펼친 높이 기준으로 두고,
+                        // 접히는 만큼은 컨텐츠가 같이 스크롤되어 올라가므로 간격이 유지된다.
                         contentTopInset: Padding.containerTop + topBarHeight + 16,
+                        // 정렬 행은 필터 아래 8pt 여백선까지만 올라가면 다 가려진다.
+                        collapsibleHeaderHeight: regionCollapsibleHeight
+                            + Padding.topBarSpacing - Padding.stickyFilterBottom + sortRowHeight,
+                        onHeaderCollapseChange: headerCollapseChanged,
                         onCellTap: { spotId in
                             listDetailVM = makeSpotDetailViewModel(spotId: spotId)
                             isSpotDetailPresented = true
                         }
                     )
                     .transition(.opacity)
+
+                    listHeaderBackground
+                        .transition(.opacity)
                 }
 
                 // MARK: - Top overlay (List 위로 항상 떠 있는 무드 필터 헤더)
@@ -63,6 +74,9 @@ struct HomeMapView: View {
                                 )
                             }
                         )
+                        // 위로 밀려난 로고+지역 영역은 safe area 상단에서 잘라 상태바 쪽으로 새어 나오지 않게 한다.
+                        .offset(y: -regionCollapse)
+                        .clipped()
                     Spacer()
                 }
                 .onPreferenceChange(TopBarHeightKey.self) { height in
@@ -71,7 +85,13 @@ struct HomeMapView: View {
                 .onChange(of: mapListMode) { _, newMode in
                     if newMode == .map {
                         isSortExpanded = false
+                        listHeaderCollapse = 0
                     }
+                }
+                .onChange(of: spotList.state) { _, state in
+                    // 재조회(필터/정렬/지역 변경)로 그리드가 사라지면 새 리스트는 맨 위부터 시작하므로 헤더도 다시 펼친다.
+                    if case .loaded = state { return }
+                    withAnimation(.easeInOut(duration: 0.25)) { listHeaderCollapse = 0 }
                 }
                 // overlay(alignment: .bottomTrailing) + alignmentGuide 로 옵션 박스를 topBar
                 // 바닥에 붙이려던 시도가 실기기에서 여전히 위로 겹쳐 보인다는 리포트가 있어(PV-134),
@@ -89,7 +109,7 @@ struct HomeMapView: View {
                             }
                             .padding(.trailing, Padding.containerHorizontal)
                         }
-                        .padding(.top, Padding.containerTop + topBarHeight + 4)
+                        .padding(.top, Padding.containerTop + topBarHeight - headerCollapse + 4)
                         .transition(.opacity)
                     }
                 }
@@ -311,15 +331,48 @@ struct HomeMapView: View {
 
     // MARK: - Top Bar
 
+    /// 카드가 헤더 뒤(상태바 포함)로 지나갈 때 비치지 않도록 헤더 영역을 가린다.
+    /// 고정 높이 frame 에 ignoresSafeArea 를 걸면 늘어나지 않고 위로 이동만 하므로, 배경 쪽에서 상태바까지 칠한다.
+    /// 헤더의 빈 공간 탭이 뒤에 가려진 카드로 떨어지지 않도록 hit test 영역도 채운다.
+    private var listHeaderBackground: some View {
+        Color.clear
+            .frame(height: Padding.containerTop + topBarHeight - headerCollapse)
+            .background(UIAsset.Colors.gray95.swiftUIColor, ignoresSafeAreaEdges: .top)
+            .contentShape(Rectangle())
+    }
+
+    /// 스크롤 연동 숨김은 리스트 모드에서만. 지도 모드에서는 헤더 전체(로고+지역+필터)를 고정한다.
+    /// 로고+지역이 먼저 올라가 테마 필터가 상단에 붙고, 그다음부터는 정렬 행만 카드와 함께 필터 밑으로 밀려 들어간다.
+    private var headerCollapse: CGFloat {
+        mapListMode == .list ? listHeaderCollapse : 0
+    }
+
+    private var regionCollapsibleHeight: CGFloat {
+        regionHeaderHeight + Padding.topBarSpacing
+    }
+
+    private var regionCollapse: CGFloat {
+        min(headerCollapse, regionCollapsibleHeight)
+    }
+
+    private func headerCollapseChanged(_ collapse: CGFloat) {
+        listHeaderCollapse = collapse
+        // 정렬 행이 필터 밑으로 들어가기 시작하면 펼친 옵션 박스가 붙어 있을 곳이 없어지므로 닫는다.
+        if isSortExpanded, collapse > regionCollapsibleHeight {
+            isSortExpanded = false
+        }
+    }
+
     // 정렬 필터가 지역 필터와 같은 줄에 있으면 위계가 헷갈린다는 시안 피드백으로,
     // 스팟(테마) 필터 아래 자기 줄로 내렸다(Figma node 1197-14923).
     private var topBar: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: Padding.topBarSpacing) {
             RegionPickerHeader(regionName: regionSelectionStore.selectedRegion?.name ?? "") {
                 withAnimation(.easeInOut(duration: 0.25)) {
                     isRegionSheetPresented = true
                 }
             }
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { regionHeaderHeight = $0 }
 
             SpotThemeFilterBar(
                 selectedThemes: $selectedThemes,
@@ -334,6 +387,12 @@ struct HomeMapView: View {
                         isExpanded: $isSortExpanded
                     )
                 }
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { sortRowHeight = $0 }
+                // 필터가 상단에 붙은 뒤 남은 스크롤만큼 더 올라가며, 필터 아래 8pt 여백선에서 잘려 필터 밑으로 사라진다.
+                // 가려진 뒤에도 필터 칩 탭을 가로채지 않도록 필터보다 아래 z 에 둔다.
+                .offset(y: -(headerCollapse - regionCollapse))
+                .mask { Rectangle().padding(.top, -(Padding.topBarSpacing - Padding.stickyFilterBottom)) }
+                .zIndex(-1)
             }
         }
     }
@@ -459,6 +518,9 @@ extension HomeMapView {
 
     fileprivate enum Padding {
         static let containerTop: CGFloat = 12
+        static let topBarSpacing: CGFloat = 14
+        /// 다 접혀 필터만 남았을 때 칩 아래로 카드가 잘리기 전까지 두는 여백.
+        static let stickyFilterBottom: CGFloat = 8
         static let containerHorizontal: CGFloat = 16
         static let containerBottom: CGFloat = 24
     }

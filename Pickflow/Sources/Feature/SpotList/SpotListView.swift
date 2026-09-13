@@ -5,6 +5,8 @@ import SwiftUI
 struct SpotListView: View {
     @StateObject var viewModel: SpotListViewModel
     var contentTopInset: CGFloat = 0
+    var collapsibleHeaderHeight: CGFloat = 0
+    var onHeaderCollapseChange: (CGFloat) -> Void = { _ in }
     var onCellTap: (Int64) -> Void = { _ in }
     @State private var isLoginViewPresented: Bool = false
 
@@ -18,7 +20,9 @@ struct SpotListView: View {
             onAppearItem: { item in
                 Task { await viewModel.loadNextPageIfNeeded(currentItem: item) }
             },
-            contentTopInset: contentTopInset
+            contentTopInset: contentTopInset,
+            collapsibleHeaderHeight: collapsibleHeaderHeight,
+            onHeaderCollapseChange: onHeaderCollapseChange
         )
         .task { await viewModel.onAppear() }
         .overlay {
@@ -98,10 +102,12 @@ struct SpotListScreenContent: View {
     let onRetry: () -> Void
     let onAppearItem: (SpotListItem) -> Void
     var contentTopInset: CGFloat = 0
+    /// 스크롤로 위로 밀어 올릴 수 있는 헤더 높이(탐색 탭의 로고+지역 영역).
+    var collapsibleHeaderHeight: CGFloat = 0
+    var onHeaderCollapseChange: (CGFloat) -> Void = { _ in }
 
     var body: some View {
         content
-            .padding(.top, contentTopInset)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .background(UIAsset.Colors.gray95.swiftUIColor)
     }
@@ -111,12 +117,15 @@ struct SpotListScreenContent: View {
         switch state {
         case .idle, .loading:
             SpotListLoadingView()
+                .padding(.top, contentTopInset)
         case let .loaded(items, _):
             loadedGrid(items: items)
         case .empty:
             SpotListEmptyView()
+                .padding(.top, contentTopInset)
         case let .failed(message):
             SpotListFailedView(message: message, onRetry: onRetry)
+                .padding(.top, contentTopInset)
         }
     }
 
@@ -134,5 +143,21 @@ struct SpotListScreenContent: View {
             .padding(.horizontal, 16)
             .padding(.bottom, 24)
         }
+        // 카드가 헤더 뒤로 지나가며 스크롤되도록, 스크롤뷰는 화면 상단부터 두고 inset 은 컨텐츠 여백으로 준다.
+        .contentMargins(.top, contentTopInset)
+        .onScrollGeometryChange(for: CGFloat.self) { geometry in
+            Self.headerCollapse(
+                scrollOffset: geometry.contentOffset.y + geometry.contentInsets.top,
+                collapsibleHeight: collapsibleHeaderHeight
+            )
+        } action: { _, collapse in
+            onHeaderCollapseChange(collapse)
+        }
+    }
+
+    /// 스크롤 오프셋(맨 위 0, 아래로 스크롤할수록 +)을 헤더가 위로 밀려 올라갈 높이로 바꾼다.
+    /// 당겨서 튕기는 음수 구간은 0, 접히는 영역 높이를 넘으면 그 높이에서 멈춘다.
+    static func headerCollapse(scrollOffset: CGFloat, collapsibleHeight: CGFloat) -> CGFloat {
+        min(max(scrollOffset, 0), collapsibleHeight)
     }
 }
