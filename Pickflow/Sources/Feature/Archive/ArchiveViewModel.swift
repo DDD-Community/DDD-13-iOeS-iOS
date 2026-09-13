@@ -82,6 +82,10 @@ final class ArchiveViewModel: ObservableObject {
     private var currentUserGuideKey: String?
     nonisolated(unsafe) private var notificationObservers: [NSObjectProtocol] = []
 
+    /// 탭을 연타해도 매번 네트워크를 때리지 않도록, 이 간격 안에서는 재조회하지 않는다.
+    private static let tabRefreshInterval: TimeInterval = 10
+    private var savedSpotsFetchedAt: Date?
+
     init(
         archiveService: ArchiveServiceProtocol,
         bookmarkService: BookmarkServiceProtocol,
@@ -245,9 +249,23 @@ final class ArchiveViewModel: ObservableObject {
         withdrawnAccountInfo = nil
     }
 
-    func tabChanged(_ tab: ArchiveTab) {
+    /// - Parameter now: 재조회 간격 판단 기준 시각(테스트 주입용).
+    func tabChanged(_ tab: ArchiveTab, now: Date = Date()) {
         selectedTab = tab
         evaluateSpotOpenGuidePresentation()
+        // 저장된 스팟만 재조회한다. 등록자가 다른 기기에서 비공개로 돌리거나 삭제한 경우엔
+        // 로컬 알림이 올 수 없어(`.spotReleaseDidChange` 는 내 기기에서 일어난 변경만 잡는다)
+        // 탭을 다시 열 때 조용히 재조회하는 것 말고 반영할 방법이 없기 때문이다.
+        // "나만의 스팟" 은 등록/삭제/공개토글이 모두 내 기기에서 일어나 `.mySpotListDidChange`
+        // 로 이미 갱신되므로 탭 진입으로는 건드리지 않는다.
+        guard tab == .savedSpots, state != .signedOut else { return }
+        guard shouldRefreshSavedSpots(now: now) else { return }
+        Task { await fetchArchive(silent: true) }
+    }
+
+    private func shouldRefreshSavedSpots(now: Date) -> Bool {
+        guard let savedSpotsFetchedAt else { return true }
+        return now.timeIntervalSince(savedSpotsFetchedAt) >= Self.tabRefreshInterval
     }
 
     func clearLoginError() {
@@ -421,6 +439,7 @@ final class ArchiveViewModel: ObservableObject {
     /// - Parameter silent: true면 로딩/실패 상태로 전환하지 않고 성공 시에만 목록을 교체한다.
     ///   (탭 재진입·백그라운드 갱신에서 화면 깜빡임을 없애기 위함)
     private func fetchArchive(silent: Bool = false) async {
+        savedSpotsFetchedAt = Date()
         if !silent {
             state = .loading
             currentPage = 0
