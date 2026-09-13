@@ -118,6 +118,18 @@ final class ArchiveViewModel: ObservableObject {
                 await self.fetchArchive(silent: true)
             }
         }
+        // 등록자가 노출을 끄거나 스팟을 삭제하면 저장된 스팟의 안내 문구가 바뀌어야 한다.
+        // (남이 비공개로 돌린 경우는 로컬 이벤트가 없어 이 경로로는 잡히지 않는다.)
+        let releaseObserver = NotificationCenter.default.addObserver(
+            forName: .spotReleaseDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self, self.state != .signedOut else { return }
+                await self.fetchArchive(silent: true)
+            }
+        }
         // 등록/재신청/삭제 등으로 나만의 스팟 목록 구성이 바뀌면 조용히 갱신한다.
         // (보관함 밖/안 어디서 일어나든 반영 — 빈 상태 placeholder 등록 후 pop 시에도 갱신)
         let registerObserver = NotificationCenter.default.addObserver(
@@ -142,7 +154,7 @@ final class ArchiveViewModel: ObservableObject {
                 await self.onAppear()
             }
         }
-        notificationObservers = [bookmarkObserver, registerObserver, signInObserver]
+        notificationObservers = [bookmarkObserver, releaseObserver, registerObserver, signInObserver]
     }
 
     func onAppear() async {

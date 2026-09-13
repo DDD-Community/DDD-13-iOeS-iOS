@@ -158,6 +158,50 @@ final class ArchiveViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.isLoginLoading)
     }
 
+    // MARK: - spotReleaseDidChange
+
+    func test_spotReleaseDidChange_알림을받으면_저장된스팟을_조용히_다시불러온다() async {
+        authService.stubbedAuthState = .signedIn(.fixture())
+        archiveService.responder = { _ in
+            .success(SavedSpotPage(spots: [.fixture()], page: 0, hasNext: false))
+        }
+        await viewModel.onAppear()
+        XCTAssertEqual(archiveService.requestedPages, [0])
+        archiveService.responder = { _ in
+            .success(SavedSpotPage(spots: [.fixture(imageUrl: nil, isReleased: false)], page: 0, hasNext: false))
+        }
+
+        NotificationCenter.default.post(name: .spotReleaseDidChange, object: nil)
+        await waitUntil { self.archiveService.requestedPages.count == 2 }
+
+        XCTAssertEqual(archiveService.requestedPages, [0, 0])
+        XCTAssertEqual(
+            viewModel.state,
+            .loaded(items: [.fixture(imageUrl: nil, isReleased: false)], hasNext: false)
+        )
+    }
+
+    func test_spotReleaseDidChange_비로그인상태면_다시불러오지_않는다() async {
+        authService.stubbedAuthState = .signedOut
+        await viewModel.onAppear()
+
+        NotificationCenter.default.post(name: .spotReleaseDidChange, object: nil)
+        await Task.yield()
+
+        XCTAssertTrue(archiveService.requestedPages.isEmpty)
+    }
+
+    /// NotificationCenter → Task { } 로 넘어가는 비동기 갱신을 짧게 폴링해서 기다린다.
+    private func waitUntil(
+        timeout: TimeInterval = 1,
+        _ condition: @MainActor () -> Bool
+    ) async {
+        let deadline = Date().addingTimeInterval(timeout)
+        while !condition(), Date() < deadline {
+            try? await Task.sleep(nanoseconds: 10_000_000)
+        }
+    }
+
     // MARK: - tabChanged
 
     func test_tabChanged_savedSpots에서mySpots로변경된다() {
