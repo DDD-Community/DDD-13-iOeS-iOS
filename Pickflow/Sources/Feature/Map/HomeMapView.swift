@@ -22,7 +22,8 @@ struct HomeMapView: View {
     @StateObject private var regionSelectionStore = getRegionSelectionStore()
     @State private var topBarHeight: CGFloat = 0
     @State private var regionHeaderHeight: CGFloat = 0
-    /// 리스트 스크롤로 위로 밀어 올린 헤더 높이(로고+지역 영역만 숨고, 테마 필터부터는 상단에 고정).
+    @State private var sortRowHeight: CGFloat = 0
+    /// 리스트 스크롤로 위로 밀어 올린 헤더 높이(로고+지역, 정렬 행은 숨고 테마 필터만 상단에 고정).
     @State private var listHeaderCollapse: CGFloat = 0
     @State private var isSortExpanded: Bool = false
     @State private var cameraMoveRequest: CameraMoveRequest?
@@ -45,8 +46,8 @@ struct HomeMapView: View {
                         // 간격도 16으로 맞췄다(시안 기준). 헤더가 접혀도 inset 은 펼친 높이 기준으로 두고,
                         // 접히는 만큼은 컨텐츠가 같이 스크롤되어 올라가므로 간격이 유지된다.
                         contentTopInset: Padding.containerTop + topBarHeight + 16,
-                        collapsibleHeaderHeight: regionHeaderHeight + Padding.topBarSpacing,
-                        onHeaderCollapseChange: { listHeaderCollapse = $0 },
+                        collapsibleHeaderHeight: regionCollapsibleHeight + Padding.topBarSpacing + sortRowHeight,
+                        onHeaderCollapseChange: headerCollapseChanged,
                         onCellTap: { spotId in
                             listDetailVM = makeSpotDetailViewModel(spotId: spotId)
                             isSpotDetailPresented = true
@@ -72,7 +73,7 @@ struct HomeMapView: View {
                             }
                         )
                         // 위로 밀려난 로고+지역 영역은 safe area 상단에서 잘라 상태바 쪽으로 새어 나오지 않게 한다.
-                        .offset(y: -headerCollapse)
+                        .offset(y: -regionCollapse)
                         .clipped()
                     Spacer()
                 }
@@ -339,8 +340,25 @@ struct HomeMapView: View {
     }
 
     /// 스크롤 연동 숨김은 리스트 모드에서만. 지도 모드에서는 헤더 전체(로고+지역+필터)를 고정한다.
+    /// 로고+지역이 먼저 올라가 테마 필터가 상단에 붙고, 그다음부터는 정렬 행만 카드와 함께 필터 밑으로 밀려 들어간다.
     private var headerCollapse: CGFloat {
         mapListMode == .list ? listHeaderCollapse : 0
+    }
+
+    private var regionCollapsibleHeight: CGFloat {
+        regionHeaderHeight + Padding.topBarSpacing
+    }
+
+    private var regionCollapse: CGFloat {
+        min(headerCollapse, regionCollapsibleHeight)
+    }
+
+    private func headerCollapseChanged(_ collapse: CGFloat) {
+        listHeaderCollapse = collapse
+        // 정렬 행이 필터 밑으로 들어가기 시작하면 펼친 옵션 박스가 붙어 있을 곳이 없어지므로 닫는다.
+        if isSortExpanded, collapse > regionCollapsibleHeight {
+            isSortExpanded = false
+        }
     }
 
     // 정렬 필터가 지역 필터와 같은 줄에 있으면 위계가 헷갈린다는 시안 피드백으로,
@@ -367,6 +385,12 @@ struct HomeMapView: View {
                         isExpanded: $isSortExpanded
                     )
                 }
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { sortRowHeight = $0 }
+                // 필터가 상단에 붙은 뒤 남은 스크롤만큼 더 올라가며, 필터 bottom(행 위 spacing)에서 잘려 필터 밑으로 사라진다.
+                // 가려진 뒤에도 필터 칩 탭을 가로채지 않도록 필터보다 아래 z 에 둔다.
+                .offset(y: -(headerCollapse - regionCollapse))
+                .mask { Rectangle().padding(.top, -Padding.topBarSpacing) }
+                .zIndex(-1)
             }
         }
     }
