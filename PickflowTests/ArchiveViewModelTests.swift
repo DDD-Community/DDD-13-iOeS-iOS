@@ -351,7 +351,7 @@ private extension MySpotListItem {
         createdAt: String = "2026-08-31T00:00:00Z",
         status: MySpotStatus = .draft,
         isReleased: Bool? = true,
-        bookmarkCount: Int = 0
+        likeCount: Int? = 0
     ) -> MySpotListItem {
         MySpotListItem(
             spotId: spotId,
@@ -364,7 +364,7 @@ private extension MySpotListItem {
             createdAt: createdAt,
             status: status,
             isReleased: isReleased,
-            bookmarkCount: bookmarkCount
+            likeCount: likeCount
         )
     }
 }
