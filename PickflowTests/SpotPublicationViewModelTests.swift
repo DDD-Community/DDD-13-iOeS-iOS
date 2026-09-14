@@ -350,6 +350,33 @@ final class SpotPublicationViewModelTests: XCTestCase {
         XCTAssertEqual(received, .mySpotListDidChange)
     }
 
+    func test_unrelease_성공하면_저장된스팟갱신알림도_보낸다() async {
+        await loadDetail(.fixture(isMySpot: true, status: .published))
+        mySpotService.unreleaseResult = .success(ReleaseMySpotResponse(spotId: 1, released: false))
+        var received: Notification.Name?
+        let observer = NotificationCenter.default.addObserver(
+            forName: .spotReleaseDidChange, object: nil, queue: nil
+        ) { received = $0.name }
+        defer { NotificationCenter.default.removeObserver(observer) }
+
+        await viewModel.confirmUnrelease()
+
+        XCTAssertEqual(received, .spotReleaseDidChange)
+    }
+
+    func test_deleteMySpot_성공하면_저장된스팟갱신알림도_보낸다() async {
+        await loadDetail(.fixture(isMySpot: true, status: .draft))
+        var received: Notification.Name?
+        let observer = NotificationCenter.default.addObserver(
+            forName: .spotReleaseDidChange, object: nil, queue: nil
+        ) { received = $0.name }
+        defer { NotificationCenter.default.removeObserver(observer) }
+
+        await viewModel.confirmDelete()
+
+        XCTAssertEqual(received, .spotReleaseDidChange)
+    }
+
     func test_deleteMySpot_검수중이라_거절되면_철회안내_토스트가_뜬다() async {
         await loadDetail(.fixture(isMySpot: true, status: .pending))
         mySpotService.deleteError = APIError(

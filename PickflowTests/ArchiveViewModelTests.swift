@@ -158,6 +158,50 @@ final class ArchiveViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.isLoginLoading)
     }
 
+    // MARK: - spotReleaseDidChange
+
+    func test_spotReleaseDidChange_알림을받으면_저장된스팟을_조용히_다시불러온다() async {
+        authService.stubbedAuthState = .signedIn(.fixture())
+        archiveService.responder = { _ in
+            .success(SavedSpotPage(spots: [.fixture()], page: 0, hasNext: false))
+        }
+        await viewModel.onAppear()
+        XCTAssertEqual(archiveService.requestedPages, [0])
+        archiveService.responder = { _ in
+            .success(SavedSpotPage(spots: [.fixture(imageUrl: nil, isReleased: false)], page: 0, hasNext: false))
+        }
+
+        NotificationCenter.default.post(name: .spotReleaseDidChange, object: nil)
+        await waitUntil { self.archiveService.requestedPages.count == 2 }
+
+        XCTAssertEqual(archiveService.requestedPages, [0, 0])
+        XCTAssertEqual(
+            viewModel.state,
+            .loaded(items: [.fixture(imageUrl: nil, isReleased: false)], hasNext: false)
+        )
+    }
+
+    func test_spotReleaseDidChange_비로그인상태면_다시불러오지_않는다() async {
+        authService.stubbedAuthState = .signedOut
+        await viewModel.onAppear()
+
+        NotificationCenter.default.post(name: .spotReleaseDidChange, object: nil)
+        await Task.yield()
+
+        XCTAssertTrue(archiveService.requestedPages.isEmpty)
+    }
+
+    /// NotificationCenter → Task { } 로 넘어가는 비동기 갱신을 짧게 폴링해서 기다린다.
+    private func waitUntil(
+        timeout: TimeInterval = 1,
+        _ condition: @MainActor () -> Bool
+    ) async {
+        let deadline = Date().addingTimeInterval(timeout)
+        while !condition(), Date() < deadline {
+            try? await Task.sleep(nanoseconds: 10_000_000)
+        }
+    }
+
     // MARK: - tabChanged
 
     func test_tabChanged_savedSpots에서mySpots로변경된다() {
@@ -172,6 +216,61 @@ final class ArchiveViewModelTests: XCTestCase {
         viewModel.tabChanged(.savedSpots)
 
         XCTAssertEqual(viewModel.selectedTab, .savedSpots)
+    }
+
+    func test_tabChanged_저장탭을_다시열면_저장된스팟을_조용히_다시불러온다() async {
+        authService.stubbedAuthState = .signedIn(.fixture())
+        archiveService.responder = { _ in
+            .success(SavedSpotPage(spots: [.fixture()], page: 0, hasNext: false))
+        }
+        await viewModel.onAppear()
+        archiveService.responder = { _ in
+            .success(SavedSpotPage(spots: [.fixture(imageUrl: nil, isReleased: false)], page: 0, hasNext: false))
+        }
+
+        // 마지막 조회로부터 재조회 간격이 지난 시점에 탭을 다시 연다.
+        viewModel.tabChanged(.savedSpots, now: Date().addingTimeInterval(60))
+        await waitUntil { self.archiveService.requestedPages.count == 2 }
+
+        XCTAssertEqual(archiveService.requestedPages, [0, 0])
+        XCTAssertEqual(
+            viewModel.state,
+            .loaded(items: [.fixture(imageUrl: nil, isReleased: false)], hasNext: false)
+        )
+    }
+
+    func test_tabChanged_나만의스팟탭은_재조회하지_않는다() async {
+        authService.stubbedAuthState = .signedIn(.fixture())
+        await viewModel.onAppear()
+
+        viewModel.tabChanged(.mySpots, now: Date().addingTimeInterval(60))
+        await Task.yield()
+
+        XCTAssertEqual(archiveService.requestedMySpotPages, [0])
+    }
+
+    func test_tabChanged_저장탭_짧은간격의_연타는_재조회하지_않는다() async {
+        authService.stubbedAuthState = .signedIn(.fixture())
+        await viewModel.onAppear()
+
+        viewModel.tabChanged(.mySpots)
+        viewModel.tabChanged(.savedSpots)
+        viewModel.tabChanged(.mySpots)
+        await Task.yield()
+
+        XCTAssertEqual(archiveService.requestedPages, [0])
+        XCTAssertEqual(archiveService.requestedMySpotPages, [0])
+    }
+
+    func test_tabChanged_비로그인상태면_재조회하지_않는다() async {
+        authService.stubbedAuthState = .signedOut
+        await viewModel.onAppear()
+
+        viewModel.tabChanged(.mySpots, now: Date().addingTimeInterval(60))
+        await Task.yield()
+
+        XCTAssertTrue(archiveService.requestedPages.isEmpty)
+        XCTAssertTrue(archiveService.requestedMySpotPages.isEmpty)
     }
 
     func test_mySpots탭진입_기록한스팟이있고안내미확인상태면_오픈안내를노출한다() async {

@@ -405,6 +405,8 @@ final class SpotDetailViewModel: ObservableObject {
     private func updateReleaseState(_ released: Bool) {
         isReleased = released
         NotificationCenter.default.post(name: .mySpotListDidChange, object: nil)
+        // 내가 저장도 해 둔 내 스팟이라면 보관함 "저장" 탭의 비공개 안내도 바뀌어야 한다.
+        NotificationCenter.default.post(name: .spotReleaseDidChange, object: nil)
 
         guard case var .loaded(spot) = detailState else { return }
         spot.isReleased = released
@@ -440,6 +442,8 @@ final class SpotDetailViewModel: ObservableObject {
             // 잘못된 알림(.spotBookmarkDidChange)을 보내고 있었다 — 그건 보관함의
             // "저장" 탭을 갱신할 뿐, 삭제된 스팟이 사라져야 할 "나의 스팟" 탭은 그대로였다.
             NotificationCenter.default.post(name: .mySpotListDidChange, object: nil)
+            // 저장 탭에서도 "삭제한 스팟이에요" 안내로 바뀌어야 하므로 함께 알린다.
+            NotificationCenter.default.post(name: .spotReleaseDidChange, object: nil)
             dismissRequested = true
         } catch {
             await handlePublicationFailure(error)

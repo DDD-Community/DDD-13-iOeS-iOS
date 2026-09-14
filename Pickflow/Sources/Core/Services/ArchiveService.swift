@@ -15,7 +15,7 @@ final class ArchiveService: ArchiveServiceProtocol, Sendable {
     }
 
     /// 저장된 스팟은 SpotListItem 으로 납작하게 만들지 않는다.
-    /// 비공개 전환(isPrivate)·삭제(deleted) 여부가 그 과정에서 사라지기 때문이다.
+    /// 비공개 전환(isReleased == false)·삭제(deleted) 여부가 그 과정에서 사라지기 때문이다.
     func fetchSavedSpots(page: Int, latitude: Double?, longitude: Double?) async throws -> SavedSpotPage {
         let envelope: APIEnvelope<SavedSpotPage> = try await networkManager.request(
             endpoint: ArchiveEndpoint.fetchSavedSpots(page: page, latitude: latitude, longitude: longitude)

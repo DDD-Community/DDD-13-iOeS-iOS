@@ -14,15 +14,16 @@ struct SavedSpotItem: Decodable, Sendable, Identifiable, Equatable {
     let savedAt: String
     /// 등록자가 스팟 자체를 삭제한 경우.
     let deleted: Bool
-    /// PV-40: 등록자가 공개를 해제했거나 아직 승인되지 않은 경우.
-    /// 비공개면 서버가 `imageUrl` 을 null 로 마스킹해서 내려준다.
-    var isPrivate: Bool?
+    /// PV-40: 등록자가 지도·리스트 노출을 켜 둔 상태인지.
+    /// 서버가 `isPrivate` 대신 이 플래그를 내려주도록 바뀌었고, 값이 없으면(구버전 응답)
+    /// 켜져 있다고 가정한다. 꺼져 있으면 서버가 `imageUrl` 을 null 로 마스킹해서 내려준다.
+    var isReleased: Bool?
 
     var id: Int64 { spotId }
 
     /// 등록자가 공개를 해제했거나 아직 승인되지 않은 상태.
     /// 이때 서버는 `imageUrl` 을 null 로 마스킹해 내려준다.
-    var isPrivateSpot: Bool { isPrivate == true }
+    var isPrivateSpot: Bool { isReleased == false }
 
     /// 상세를 열 수 없는 상태. 서버가 삭제·비공개 스팟 조회를 404 로 막는다.
     var isUnavailable: Bool { deleted || isPrivateSpot }

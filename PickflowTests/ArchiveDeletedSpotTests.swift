@@ -53,7 +53,7 @@ final class ArchiveDeletedSpotTests: XCTestCase {
 
     func test_열_수_없는_상태는_삭제와_비공개_두_가지다() {
         XCTAssertTrue(deleted.isUnavailable)
-        XCTAssertTrue(SavedSpotItem.fixture(isPrivate: true).isUnavailable)
+        XCTAssertTrue(SavedSpotItem.fixture(isReleased: false).isUnavailable)
         XCTAssertFalse(normal.isUnavailable)
     }
 
@@ -61,7 +61,7 @@ final class ArchiveDeletedSpotTests: XCTestCase {
     func test_상태별_안내문구() {
         XCTAssertEqual(deleted.unavailableNotice, "등록한 유저가\n삭제한 스팟이에요")
         XCTAssertEqual(
-            SavedSpotItem.fixture(isPrivate: true).unavailableNotice,
+            SavedSpotItem.fixture(isReleased: false).unavailableNotice,
             "등록한 유저가\n비공개로 전환하였어요"
         )
         XCTAssertNil(normal.unavailableNotice)

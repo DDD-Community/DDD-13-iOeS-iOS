@@ -91,7 +91,7 @@ extension SavedSpotItem {
         distanceKm: Double? = 1.2,
         likeCount: Int? = nil,
         deleted: Bool = false,
-        isPrivate: Bool? = nil
+        isReleased: Bool? = nil
     ) -> SavedSpotItem {
         SavedSpotItem(
             spotId: spotId,
@@ -104,7 +104,7 @@ extension SavedSpotItem {
             likeCount: likeCount,
             savedAt: "2026-08-01T00:00:00Z",
             deleted: deleted,
-            isPrivate: isPrivate
+            isReleased: isReleased
         )
     }
 }
