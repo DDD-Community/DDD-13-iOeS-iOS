@@ -217,7 +217,7 @@ final class SpotDetailViewModel: ObservableObject {
 
         analyticsLogger.log(SpotDetailAnalyticsEvent.shareButtonTap)
 
-        let url = "https://api.pickflow-api.us/\(SpotIDCoder.encodeSpot(spotId))"
+        let url = "https://\(APIEnvironment.prod.host)/\(SpotIDCoder.encodeSpot(spotId))"
         if case let .loaded(spot) = detailState {
             // 코멘트가 없으면 " - " 만 덩그러니 남지 않도록 스팟명만 공유한다.
             let title = [spot.name, spot.comment].compactMap { $0 }
