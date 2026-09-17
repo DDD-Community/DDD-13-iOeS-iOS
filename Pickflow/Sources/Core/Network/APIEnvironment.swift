@@ -16,7 +16,7 @@ enum APIEnvironment: String, CaseIterable, Sendable {
     var host: String {
         switch self {
         case .dev: "dev-api.pickflow-api.us"
-        case .prod: "pickflow-api.us"
+        case .prod: "api.pickflow-api.us"
         }
     }
 
