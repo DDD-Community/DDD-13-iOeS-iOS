@@ -181,7 +181,7 @@ final class SpotDetailViewModelTests: XCTestCase {
         await waitForShareSheet()
 
         XCTAssertEqual(shareSheetPresenter.presentedItems.count, 1)
-        XCTAssertTrue(shareSheetPresenter.presentedItems[0][0].contains("https://pickflow-api.us/"))
+        XCTAssertTrue(shareSheetPresenter.presentedItems[0][0].contains("https://api.pickflow-api.us/"))
     }
 
     func test_share_detail미로드시에도_shareSheet는표시된다() async throws {

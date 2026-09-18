@@ -17,7 +17,7 @@ final class APIEnvironmentTests: XCTestCase {
 
     func test_환경별_baseURL이_명세대로다() {
         XCTAssertEqual(APIEnvironment.dev.baseURL, "https://dev-api.pickflow-api.us/api")
-        XCTAssertEqual(APIEnvironment.prod.baseURL, "https://pickflow-api.us/api")
+        XCTAssertEqual(APIEnvironment.prod.baseURL, "https://api.pickflow-api.us/api")
     }
 
     /// 빌드 종류와 무관하게 운영이 기본이다. Debug 만 dev 로 갈라두면
@@ -32,7 +32,7 @@ final class APIEnvironmentTests: XCTestCase {
 
         XCTAssertEqual(APIEnvironment.current, .prod)
         XCTAssertTrue(APIEnvironment.isOverridden)
-        XCTAssertEqual(APIBaseURL.current, "https://pickflow-api.us/api")
+        XCTAssertEqual(APIBaseURL.current, "https://api.pickflow-api.us/api")
     }
 
     func test_오버라이드를지우면_빌드기본값으로돌아간다() {
@@ -68,7 +68,7 @@ final class APIEnvironmentTests: XCTestCase {
 
         XCTAssertEqual(AuthEndpoint.refresh(refreshToken: "t").baseURL, APIBaseURL.current)
         XCTAssertEqual(SpotEndpoint.detail(spotId: 1).baseURL, APIBaseURL.current)
-        XCTAssertEqual(APIBaseURL.current, "https://pickflow-api.us/api")
+        XCTAssertEqual(APIBaseURL.current, "https://api.pickflow-api.us/api")
     }
 
     // MARK: - 실행 인자

@@ -9,6 +9,7 @@
     <key>com.apple.developer.associated-domains</key>
     <array>
         <string>applinks:pickflow-api.us</string>
+        <string>applinks:api.pickflow-api.us</string>
     </array>
 </dict>
 </plist>
